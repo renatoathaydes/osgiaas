@@ -38,8 +38,8 @@ public class ColorCommand extends UsesCli implements Command {
                     err.println( "Invalid color" );
                 }
             } else {
-                err.println( "Error!" );
-                err.println( getUsage() );
+                err.println( "No color provided" );
+                err.println( "Usage: " + getUsage() );
             }
         } );
     }

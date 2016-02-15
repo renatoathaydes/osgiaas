@@ -31,8 +31,8 @@ public class PromptCommand extends UsesCli implements Command {
             String command = line.trim();
 
             if ( !command.contains( " " ) ) {
-                err.println( "Error: no argument provided." );
-                err.println( getUsage() );
+                err.println( "No argument provided" );
+                err.println( "Usage: " + getUsage() );
             } else {
                 String newPrompt = command.substring( getName().length() );
                 newPrompt = newPrompt.trim();
