@@ -1,6 +1,7 @@
 package com.athaydes.osgiaas.cli;
 
 import com.athaydes.osgiaas.api.cli.AnsiColor;
+import com.athaydes.osgiaas.api.cli.CliProperties;
 import com.athaydes.osgiaas.cli.util.InterruptableInputStream;
 import com.athaydes.osgiaas.cli.util.OsgiaasPrintStream;
 import jline.console.ConsoleReader;
@@ -10,27 +11,32 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * This class represents a single run of the CLI.
+ * This class represents a single run of the CLI service.
  * <p>
  * It allows the management of a CLI session without worrying about threading issues.
  */
 public class CliRun implements Runnable {
 
-    private volatile String prompt = ">> ";
-    private volatile AnsiColor promptColor = AnsiColor.RED;
-
     private final ConsoleReader consoleReader;
     private final AtomicBoolean started;
     private final CommandRunner commandRunner;
+    private final CliProperties cliProperties;
 
     @Nullable
     private volatile Thread thread = null;
 
-    public CliRun( CommandRunner commandRunner ) throws IOException {
+    public CliRun( CommandRunner commandRunner, CliProperties cliProperties )
+            throws IOException {
         this.commandRunner = commandRunner;
-        consoleReader = new ConsoleReader( new InterruptableInputStream( System.in ), System.out );
+        this.cliProperties = cliProperties;
+
+        consoleReader = new ConsoleReader(
+                new InterruptableInputStream( System.in ),
+                System.out );
+
         started = new AtomicBoolean( false );
-        resetPrompt();
+
+        consoleReader.setPrompt( getPrompt() );
     }
 
     public void stop() {
@@ -41,18 +47,10 @@ public class CliRun implements Runnable {
         }
     }
 
-    public void setPrompt( String prompt ) {
-        this.prompt = prompt;
-        resetPrompt();
-    }
-
-    public void setPromptColor( AnsiColor color ) {
-        this.promptColor = color;
-        resetPrompt();
-    }
-
-    private void resetPrompt() {
-        consoleReader.setPrompt( colored( prompt, promptColor ) );
+    private String getPrompt() {
+        return colored(
+                cliProperties.getPrompt(),
+                cliProperties.getPromptColor() );
     }
 
     @Override
@@ -66,10 +64,14 @@ public class CliRun implements Runnable {
 
         try {
             String line;
-            while ( ( line = consoleReader.readLine() ) != null ) {
-                OsgiaasPrintStream err = new OsgiaasPrintStream( System.err );
-                err.setColor( AnsiColor.RED );
-                commandRunner.runCommand( line, System.out, err );
+            while ( ( line = consoleReader.readLine( getPrompt() ) ) != null ) {
+                OsgiaasPrintStream out = new OsgiaasPrintStream(
+                        System.out, cliProperties.getTextColor() );
+
+                OsgiaasPrintStream err = new OsgiaasPrintStream(
+                        System.err, cliProperties.getErrorColor() );
+
+                commandRunner.runCommand( line, out, err );
             }
             System.out.println( colored( "Bye!", AnsiColor.BLUE ) );
             consoleReader.shutdown();

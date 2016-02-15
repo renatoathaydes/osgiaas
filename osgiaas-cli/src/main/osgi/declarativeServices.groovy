@@ -2,13 +2,14 @@ commonProperties = { ->
     property( name: 'service.vendor', value: 'com.athaydes' )
 }
 
-component( xmlns: "http://www.osgi.org/xmlns/scr/v1.1.0",
+component( xmlns: "http://www.osgi.org/xmlns/scr/v1.3.0",
         name: 'osgiaasStandardCli', immediate: 'true',
         activate: 'start', deactivate: 'stop' ) {
     implementation( 'class': 'com.athaydes.osgiaas.cli.StandardCli' )
     property( name: 'service.description', value: 'Standard OsgiAAS CLI Service' )
-    service {
+    service( scope: 'singleton' ) {
         provide( 'interface': 'com.athaydes.osgiaas.api.cli.Cli' )
+        provide( 'interface': 'com.athaydes.osgiaas.api.cli.CliProperties' )
     }
     reference( name: 'shellService',
             'interface': 'org.apache.felix.shell.ShellService',

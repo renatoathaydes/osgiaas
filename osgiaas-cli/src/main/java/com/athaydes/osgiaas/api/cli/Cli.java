@@ -13,4 +13,8 @@ public interface Cli {
 
     void setPromptColor( AnsiColor color );
 
+    void setErrorColor( AnsiColor color );
+
+    void setTextColor( AnsiColor color );
+
 }

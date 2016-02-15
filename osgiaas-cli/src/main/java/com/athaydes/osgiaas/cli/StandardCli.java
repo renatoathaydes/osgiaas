@@ -2,6 +2,7 @@ package com.athaydes.osgiaas.cli;
 
 import com.athaydes.osgiaas.api.cli.AnsiColor;
 import com.athaydes.osgiaas.api.cli.Cli;
+import com.athaydes.osgiaas.api.cli.CliProperties;
 import com.athaydes.osgiaas.cli.util.DynamicServiceHelper;
 import org.apache.felix.shell.ShellService;
 
@@ -10,10 +11,15 @@ import java.io.PrintStream;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
-public class StandardCli implements Cli {
+public class StandardCli implements Cli, CliProperties {
 
     private final AtomicReference<CliRun> currentRun = new AtomicReference<>();
     private final AtomicReference<ShellService> shellService = new AtomicReference<>();
+
+    private volatile String prompt = ">> ";
+    private volatile AnsiColor promptColor = AnsiColor.RESET;
+    private volatile AnsiColor textColor = AnsiColor.RESET;
+    private volatile AnsiColor errorColor = AnsiColor.RED;
 
     @Override
     public void start() {
@@ -27,7 +33,7 @@ public class StandardCli implements Cli {
         }
 
         try {
-            CliRun cli = new CliRun( this::runCommand );
+            CliRun cli = new CliRun( this::runCommand, this );
             Thread thread = new Thread( cli );
             currentRun.set( cli );
             thread.start();
@@ -57,12 +63,22 @@ public class StandardCli implements Cli {
 
     @Override
     public void setPrompt( String prompt ) {
-        withCli( cliRun -> cliRun.setPrompt( prompt ) );
+        this.prompt = prompt;
     }
 
     @Override
     public void setPromptColor( AnsiColor color ) {
-        withCli( cliRun -> cliRun.setPromptColor( color ) );
+        promptColor = color;
+    }
+
+    @Override
+    public void setErrorColor( AnsiColor color ) {
+        errorColor = color;
+    }
+
+    @Override
+    public void setTextColor( AnsiColor color ) {
+        textColor = color;
     }
 
     public void setShellService( ShellService shellService ) {
@@ -71,6 +87,26 @@ public class StandardCli implements Cli {
 
     public void removeShellService( ShellService shellService ) {
         this.shellService.set( null );
+    }
+
+    @Override
+    public String getPrompt() {
+        return prompt;
+    }
+
+    @Override
+    public AnsiColor getPromptColor() {
+        return promptColor;
+    }
+
+    @Override
+    public AnsiColor getTextColor() {
+        return textColor;
+    }
+
+    @Override
+    public AnsiColor getErrorColor() {
+        return errorColor;
     }
 
     private void withCli( Consumer<CliRun> consumer ) {
