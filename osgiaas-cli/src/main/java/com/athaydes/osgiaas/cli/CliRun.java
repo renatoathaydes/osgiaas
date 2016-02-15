@@ -7,7 +7,6 @@ import jline.console.ConsoleReader;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
 /**
  * This class represents a single run of the CLI.
@@ -21,12 +20,12 @@ public class CliRun implements Runnable {
 
     private final ConsoleReader consoleReader;
     private final AtomicBoolean started;
-    private final Consumer<String> commandRunner;
+    private final CommandRunner commandRunner;
 
     @Nullable
     private volatile Thread thread = null;
 
-    public CliRun( Consumer<String> commandRunner ) throws IOException {
+    public CliRun( CommandRunner commandRunner ) throws IOException {
         this.commandRunner = commandRunner;
         consoleReader = new ConsoleReader( new InterruptableInputStream( System.in ), System.out );
         started = new AtomicBoolean( false );
@@ -67,7 +66,7 @@ public class CliRun implements Runnable {
         try {
             String line;
             while ( ( line = consoleReader.readLine() ) != null ) {
-                commandRunner.accept( line );
+                commandRunner.runCommand( line, System.out, System.err );
             }
             System.out.println( colored( "Bye!", AnsiColor.BLUE ) );
             consoleReader.shutdown();

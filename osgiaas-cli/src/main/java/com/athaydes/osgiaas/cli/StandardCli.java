@@ -6,6 +6,7 @@ import com.athaydes.osgiaas.cli.util.DynamicServiceHelper;
 import org.apache.felix.shell.ShellService;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
@@ -44,10 +45,10 @@ public class StandardCli implements Cli {
         } );
     }
 
-    private void runCommand( String command ) {
+    private void runCommand( String command, PrintStream out, PrintStream err ) {
         withShellService( shell -> {
             try {
-                shell.executeCommand( command, System.out, System.err );
+                shell.executeCommand( command, out, err );
             } catch ( Exception e ) {
                 e.printStackTrace();
             }
