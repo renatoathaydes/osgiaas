@@ -12,3 +12,6 @@ and [Apache Felix Shell](http://felix.apache.org/documentation/subprojects/apach
 Its features include tab-completion, history, custom key-bindings, vi and emacs modes, and more.
 
 To use `osgiaas-cli`, just install and start the bundle `com.athaydes.osgiaas:osgiaas-cli:1.0-SNAPSHOT`.
+
+For more information about using the `osgiaas-cli`, see the
+[documentation](docs/osgiaas-cli.md) in the `docs` directory.
