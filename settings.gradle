@@ -1,0 +1,3 @@
+rootProject.name = 'osgiaas'
+
+include 'osgiaas-api', 'osgiaas-cli'

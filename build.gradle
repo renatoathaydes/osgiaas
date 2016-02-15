@@ -1,0 +1,51 @@
+buildscript {
+    repositories {
+        jcenter()
+        mavenLocal()
+    }
+    dependencies {
+        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.4.1-SNAPSHOT"
+    }
+}
+
+apply plugin: 'com.athaydes.osgi-run'
+
+allprojects {
+    group = 'com.athaydes.osgiaas'
+    version = '1.0-SNAPSHOT'
+
+    repositories {
+        jcenter()
+    }
+}
+
+repositories {
+    maven {
+        url 'http://www.knopflerfish.org/maven2'
+    }
+}
+
+dependencies {
+    // OSGi framework services
+    osgiRuntime 'org.apache.felix:org.apache.felix.scr:2.0.2'
+    osgiRuntime 'org.apache.felix:org.apache.felix.log:1.0.1', {
+        exclude group: '*'
+    }
+
+    // OBR CLI commands
+    osgiRuntime 'org.apache.felix:org.apache.felix.bundlerepository:2.0.6', {
+        exclude group: '*'
+    }
+
+    // OSGi container
+    osgiMain "org.apache.felix:org.apache.felix.main:5.4.0"
+}
+
+runOsgi {
+    bundles =
+            // uncomment to include the Knopflerfish GUI
+            //['org.knopflerfish.bundle:desktop:5.0.1'] +
+            ( subprojects as List )
+
+    copyManifestTo = 'generated-sources/MANIFEST.MF'
+}

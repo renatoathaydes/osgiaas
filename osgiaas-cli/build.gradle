@@ -1,0 +1,25 @@
+apply plugin: 'java'
+apply plugin: 'osgi'
+apply plugin: 'com.athaydes.osgi-ds'
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile 'com.google.code.findbugs:jsr305:3.0.1'
+    compile 'jline:jline:2.13'
+    compile 'org.apache.felix:org.apache.felix.shell:1.4.3', {
+        exclude group: 'org.osgi' // felix.shell uses an older one
+    }
+}
+
+jar {
+    manifest {
+        instruction 'Export-Package', 'com.athaydes.osgiaas.api.cli'
+    }
+}
+
+declarativeServices {
+    declarations = project.file( 'src/main/osgi/declarativeServices.groovy' )
+}
