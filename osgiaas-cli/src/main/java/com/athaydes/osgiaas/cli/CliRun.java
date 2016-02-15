@@ -2,6 +2,7 @@ package com.athaydes.osgiaas.cli;
 
 import com.athaydes.osgiaas.api.cli.AnsiColor;
 import com.athaydes.osgiaas.cli.util.InterruptableInputStream;
+import com.athaydes.osgiaas.cli.util.OsgiaasPrintStream;
 import jline.console.ConsoleReader;
 
 import javax.annotation.Nullable;
@@ -66,7 +67,9 @@ public class CliRun implements Runnable {
         try {
             String line;
             while ( ( line = consoleReader.readLine() ) != null ) {
-                commandRunner.runCommand( line, System.out, System.err );
+                OsgiaasPrintStream err = new OsgiaasPrintStream( System.err );
+                err.setColor( AnsiColor.RED );
+                commandRunner.runCommand( line, System.out, err );
             }
             System.out.println( colored( "Bye!", AnsiColor.BLUE ) );
             consoleReader.shutdown();
