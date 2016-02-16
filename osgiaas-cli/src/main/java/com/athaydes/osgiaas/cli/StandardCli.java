@@ -3,15 +3,22 @@ package com.athaydes.osgiaas.cli;
 import com.athaydes.osgiaas.api.cli.AnsiColor;
 import com.athaydes.osgiaas.api.cli.Cli;
 import com.athaydes.osgiaas.api.cli.CliProperties;
+import com.athaydes.osgiaas.api.cli.CommandModifier;
 import com.athaydes.osgiaas.cli.util.DynamicServiceHelper;
+import com.athaydes.osgiaas.cli.util.HasManyServices;
 import org.apache.felix.shell.ShellService;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
-public class StandardCli implements Cli, CliProperties {
+public class StandardCli extends HasManyServices<CommandModifier>
+        implements Cli, CliProperties {
 
     private final AtomicReference<CliRun> currentRun = new AtomicReference<>();
     private final AtomicReference<ShellService> shellService = new AtomicReference<>();
@@ -54,11 +61,37 @@ public class StandardCli implements Cli, CliProperties {
     private void runCommand( String command, PrintStream out, PrintStream err ) {
         withShellService( shell -> {
             try {
-                shell.executeCommand( command, out, err );
+                List<String> transformedCommands = transformCommand( command, getServices() );
+                for (String cmd : transformedCommands) {
+                    shell.executeCommand( cmd, out, err );
+                }
             } catch ( Exception e ) {
                 e.printStackTrace();
             }
         }, () -> System.out.println( "Shell service is unavailable" ) );
+    }
+
+    static List<String> transformCommand( String command, Collection<CommandModifier> modifiers ) {
+        List<String> nextCommands = new ArrayList<>();
+        for (CommandModifier modifier : modifiers) {
+            List<String> commands = new ArrayList<>( modifier.apply( command ) );
+            if ( commands.isEmpty() ) {
+                return commands;
+            }
+            command = commands.remove( 0 );
+            nextCommands.addAll( commands );
+        }
+
+        if ( nextCommands.isEmpty() ) {
+            return Collections.singletonList( command );
+        } else {
+            List<String> result = new ArrayList<>();
+            result.add( command );
+            for (String cmd : nextCommands) {
+                result.addAll( transformCommand( cmd, modifiers ) );
+            }
+            return result;
+        }
     }
 
     @Override
@@ -95,6 +128,14 @@ public class StandardCli implements Cli, CliProperties {
 
     public void removeShellService( ShellService shellService ) {
         this.shellService.set( null );
+    }
+
+    public void addCommandModifier( CommandModifier commandModifier ) {
+        addService( commandModifier );
+    }
+
+    public void removeCommandModifier( CommandModifier commandModifier ) {
+        removeService( commandModifier );
     }
 
     @Override

@@ -17,6 +17,12 @@ component( xmlns: "http://www.osgi.org/xmlns/scr/v1.3.0",
             'policy': 'dynamic',
             'bind': 'setShellService',
             'unbind': 'removeShellService' )
+    reference( name: 'commandModifiers',
+            'interface': 'com.athaydes.osgiaas.api.cli.CommandModifier',
+            'cardinality': '0..n',
+            'policy': 'dynamic',
+            'bind': 'addCommandModifier',
+            'unbind': 'removeCommandModifier' )
 }
 
 component( name: 'colorCommand', immediate: true ) {
@@ -47,4 +53,20 @@ component( name: 'promptCommand', immediate: true ) {
             'policy': 'static',
             'bind': 'setCli',
             'unbind': 'removeCli' )
+}
+
+component( name: 'aliasCommand', immediate: true ) {
+    commonProperties()
+    implementation( 'class': 'com.athaydes.osgiaas.cli.command.AliasCommand' )
+    property( name: 'service.description', value: 'OsgiAAS Cli Alias Command' )
+    service {
+        provide( 'interface': 'org.apache.felix.shell.Command' )
+        provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandModifier' )
+    }
+    reference( name: 'osgiaasStandardCli',
+            'interface': 'com.athaydes.osgiaas.api.cli.CliProperties',
+            'cardinality': '0..1',
+            'policy': 'dynamic',
+            'bind': 'setCliProperties',
+            'unbind': 'removeCliProperties' )
 }
