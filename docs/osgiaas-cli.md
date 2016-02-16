@@ -36,6 +36,7 @@ Example `.osgiaas_cli_init` file:
 prompt "? "
 color red prompt
 color yellow error
+alias shutdown exit
 ```
 
 ## Sample OSGi environment
