@@ -10,6 +10,7 @@ monitoring the OSGi system itself), this bundle adds the following Commands:
 
 * `prompt` - changes the shell prompt (to use whitespaces, quote the prompt as in `" > "`).
 * `color` - set the default colors of the CLI.
+* `alias` - alias a command with a different name.
 
 For more information about the commands, type `help <command>` in the CLI itself.
 
