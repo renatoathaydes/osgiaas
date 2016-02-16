@@ -20,3 +20,13 @@ Command history is supported by JLine (see the JLine docs for configuring it).
 Persistent history is saved on the `<user.home>/.osgiaas_cli_history` file by default.
 To change the location of this file, set the `osgiaas.cli.history` System property
 (with a -D option) when starting the JVM.
+
+## Sample OSGi environment
+
+A Gradle script for setting up an OSGi environment quickly and easily with
+[osgi-run](https://github.com/renatoathaydes/osgiaas-run)
+can be found in the [samples directory](../samples/osgiaas-cli.gradle).
+
+You can just copy the contents of this file into a `build.gradle` file and create the
+OSGi environment with `gradle createOsgiRuntime`, then run with `bash build/osgi/run.sh` or
+`build/osgi/run.bat` in Windows.

@@ -1,0 +1,54 @@
+/**
+ * This Gradle build file uses the osgi-run plugin to create an OSGi environment that
+ * includes the osgiaas-cli bundle, amongst other bundles (see the dependencies section).
+ *
+ * Build with:
+ *     gradle -b osgiaas-cli.gradle createOsgiRuntime
+ *
+ * Then, run with:
+ *     bash build/osgi/run.sh
+ * or, in Windows:
+ *     build/osgi/run.bat
+ */
+
+buildscript {
+    repositories {
+        jcenter()
+        mavenLocal()
+    }
+    dependencies {
+        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.4.1-SNAPSHOT"
+    }
+}
+
+apply plugin: 'com.athaydes.osgi-run'
+
+repositories {
+    mavenLocal()
+    jcenter()
+}
+
+dependencies {
+    // the osgiaas-cli bundle
+    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli:1.0-SNAPSHOT', {
+        exclude group: 'org.osgi'
+    }
+
+    // OSGi framework services
+    osgiRuntime 'org.apache.felix:org.apache.felix.scr:2.0.2'
+    osgiRuntime 'org.apache.felix:org.apache.felix.log:1.0.1', {
+        exclude group: '*'
+    }
+
+    // OBR CLI commands
+    osgiRuntime 'org.apache.felix:org.apache.felix.bundlerepository:2.0.6', {
+        exclude group: '*'
+    }
+
+    // OSGi container
+    osgiMain "org.apache.felix:org.apache.felix.main:5.4.0"
+}
+
+runOsgi {
+    bundles = [] // all bundles added as osgiRuntime dependencies
+}

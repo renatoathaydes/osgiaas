@@ -1,6 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'osgi'
 apply plugin: 'com.athaydes.osgi-ds'
+apply plugin: 'maven'
 
 repositories {
     jcenter()
