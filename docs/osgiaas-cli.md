@@ -21,6 +21,22 @@ Persistent history is saved on the `<user.home>/.osgiaas_cli_history` file by de
 To change the location of this file, set the `osgiaas.cli.history` System property
 (with a -D option) when starting the JVM.
 
+## Init file
+
+If you want certain commands to be emitted every time you start the CLI, you can create a
+file at `<user.home>/.osgiaas_cli_init` containing all the commands you want to run, one
+in each line.
+
+The location of this file can be configured using the `osgiaas.cli.init` System property.
+
+Example `.osgiaas_cli_init` file:
+
+```
+prompt "? "
+color red prompt
+color yellow error
+```
+
 ## Sample OSGi environment
 
 A Gradle script for setting up an OSGi environment quickly and easily with
