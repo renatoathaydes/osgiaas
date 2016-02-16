@@ -62,6 +62,14 @@ public class StandardCli implements Cli, CliProperties {
     }
 
     @Override
+    public String[] availableCommands() {
+        AtomicReference<String[]> result = new AtomicReference<>( new String[ 0 ] );
+        withShellService( shell -> result.set( shell.getCommands() ), () ->
+                System.out.println( "Shell service is unavailable" ) );
+        return result.get();
+    }
+
+    @Override
     public void setPrompt( String prompt ) {
         this.prompt = prompt;
     }

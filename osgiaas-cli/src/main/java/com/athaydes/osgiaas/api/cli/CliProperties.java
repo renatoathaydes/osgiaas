@@ -5,6 +5,8 @@ package com.athaydes.osgiaas.api.cli;
  */
 public interface CliProperties {
 
+    String[] availableCommands();
+
     String getPrompt();
 
     AnsiColor getPromptColor();
