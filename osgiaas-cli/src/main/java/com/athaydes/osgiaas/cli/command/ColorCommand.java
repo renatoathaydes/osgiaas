@@ -9,6 +9,8 @@ import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.Arrays;
 
+import static com.athaydes.osgiaas.cli.util.CommandHelper.printError;
+
 /**
  * Implements the shell color command.
  */
@@ -49,14 +51,9 @@ public class ColorCommand extends UsesCli implements Command {
                 String target = arguments[ 1 ];
                 setColor( err, cli, color, target );
             } else {
-                printError( err, "Wrong number of arguments provided." );
+                printError( err, getUsage(), "Wrong number of arguments provided." );
             }
         } );
-    }
-
-    private void printError( PrintStream err, String message ) {
-        err.println( message );
-        err.println( "Usage: " + getUsage() );
     }
 
     private void setColor( PrintStream err, Cli cli, String color,
@@ -65,7 +62,7 @@ public class ColorCommand extends UsesCli implements Command {
         try {
             ansiColor = AnsiColor.valueOf( color.toUpperCase() );
         } catch ( IllegalArgumentException e ) {
-            printError( err, "Invalid color: " + color );
+            printError( err, getUsage(), "Invalid color: " + color );
             return;
         }
 
@@ -75,7 +72,7 @@ public class ColorCommand extends UsesCli implements Command {
                     ColorTarget.ALL :
                     ColorTarget.valueOf( target.toUpperCase() );
         } catch ( IllegalArgumentException e ) {
-            printError( err, "Invalid target: " + color );
+            printError( err, getUsage(), "Invalid target: " + color );
             return;
         }
 
