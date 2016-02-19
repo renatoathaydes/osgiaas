@@ -70,3 +70,12 @@ component( name: 'aliasCommand', immediate: true ) {
             'bind': 'setCliProperties',
             'unbind': 'removeCliProperties' )
 }
+
+component( name: 'andCommandModifier', immediate: true ) {
+    commonProperties()
+    implementation( 'class': 'com.athaydes.osgiaas.cli.command.AndCommandModifier' )
+    property( name: 'service.description', value: 'OsgiAAS Cli && CommandModifier' )
+    service {
+        provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandModifier' )
+    }
+}
