@@ -14,6 +14,14 @@ monitoring the OSGi system itself), this bundle adds the following Commands:
 
 For more information about the commands, type `help <command>` in the CLI itself.
 
+## Command modifier
+
+Raw commands given by the user may be modified by OSGi services implementing the `CommandModifier` interface.
+
+The following command modifiers are exported by this bundle:
+
+* `&&` - breaks up a single line into several commands.
+
 ## Command history
 
 Command history is supported by JLine (see the JLine docs for configuring it).

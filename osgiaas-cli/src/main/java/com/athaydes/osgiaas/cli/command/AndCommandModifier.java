@@ -9,9 +9,19 @@ import java.util.List;
 
 public class AndCommandModifier implements CommandModifier {
 
+    private final String commandSeparator;
+
+    public AndCommandModifier( String commandSeparator ) {
+        this.commandSeparator = commandSeparator;
+    }
+
+    public AndCommandModifier() {
+        this( "&&" );
+    }
+
     @Override
     public List<String> apply( String line ) {
-        if ( line.trim().isEmpty() || !line.contains( "&&" ) ) {
+        if ( line.trim().isEmpty() || !line.contains( commandSeparator ) ) {
             return Collections.singletonList( line );
         }
 
@@ -20,7 +30,7 @@ public class AndCommandModifier implements CommandModifier {
         List<String> partBuilder = new ArrayList<>();
 
         for (String part : parts) {
-            if ( part.equals( "&&" ) ) {
+            if ( part.equals( commandSeparator ) ) {
                 addParts( result, partBuilder );
                 partBuilder.clear();
             } else {
