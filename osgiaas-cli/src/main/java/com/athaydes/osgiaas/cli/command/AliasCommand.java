@@ -63,7 +63,6 @@ public class AliasCommand extends UsesCliProperties
         } else {
             CommandHelper.printError( err, getUsage(),
                     "No arguments given" );
-            //"Unknown alias command directive: " + arguments[ 1 ] );
         }
     }
 

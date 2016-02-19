@@ -3,6 +3,7 @@ package com.athaydes.osgiaas.cli;
 import com.athaydes.osgiaas.api.cli.AnsiColor;
 import com.athaydes.osgiaas.api.cli.CliProperties;
 import com.athaydes.osgiaas.cli.util.InterruptableInputStream;
+import com.athaydes.osgiaas.cli.util.NoOpPrintStream;
 import com.athaydes.osgiaas.cli.util.OsgiaasPrintStream;
 import jline.console.ConsoleReader;
 import jline.console.completer.StringsCompleter;
@@ -11,6 +12,7 @@ import jline.console.history.FileHistory;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -78,7 +80,11 @@ public class CliRun implements Runnable {
             if ( initFile.exists() ) {
                 Scanner fileScanner = new Scanner( initFile );
                 while ( fileScanner.hasNextLine() ) {
-                    runCommand( fileScanner.nextLine() );
+                    PrintStream out = new NoOpPrintStream();
+                    OsgiaasPrintStream err = new OsgiaasPrintStream(
+                            System.err, cliProperties.getErrorColor() );
+
+                    runCommand( fileScanner.nextLine(), out, err );
                 }
             }
         } catch ( Exception e ) {
@@ -127,6 +133,10 @@ public class CliRun implements Runnable {
         }
     }
 
+    private void runCommand( String line, PrintStream out, PrintStream err ) {
+        commandRunner.runCommand( line, out, err );
+    }
+
     private void runCommand( String line ) {
         OsgiaasPrintStream out = new OsgiaasPrintStream(
                 System.out, cliProperties.getTextColor() );
@@ -134,7 +144,7 @@ public class CliRun implements Runnable {
         OsgiaasPrintStream err = new OsgiaasPrintStream(
                 System.err, cliProperties.getErrorColor() );
 
-        commandRunner.runCommand( line, out, err );
+        runCommand( line, out, err );
     }
 
     static String colored( String text, AnsiColor color ) {
