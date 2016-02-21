@@ -2,6 +2,7 @@ package com.athaydes.osgiaas.cli.command;
 
 import com.athaydes.osgiaas.api.cli.AnsiColor;
 import com.athaydes.osgiaas.api.cli.Cli;
+import com.athaydes.osgiaas.cli.util.CommandHelper;
 import com.athaydes.osgiaas.cli.util.UsesCli;
 import org.apache.felix.shell.Command;
 
@@ -42,7 +43,7 @@ public class ColorCommand extends UsesCli implements Command {
     @Override
     public void execute( String line, PrintStream out, PrintStream err ) {
         withCli( cli -> {
-            String[] parts = line.split( " " );
+            String[] parts = CommandHelper.breakupArguments( line );
             String[] arguments = Arrays.copyOfRange( parts, 1, parts.length );
             if ( arguments.length == 1 ) {
                 setColor( err, cli, arguments[ 0 ], null );

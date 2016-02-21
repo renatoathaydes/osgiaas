@@ -1,5 +1,6 @@
 package com.athaydes.osgiaas.cli.command;
 
+import com.athaydes.osgiaas.cli.util.CommandHelper;
 import com.athaydes.osgiaas.cli.util.UsesCli;
 import org.apache.felix.shell.Command;
 
@@ -28,21 +29,12 @@ public class PromptCommand extends UsesCli implements Command {
     @Override
     public void execute( String line, PrintStream out, PrintStream err ) {
         withCli( cli -> {
-            String command = line.trim();
+            String[] parts = CommandHelper.breakupArguments( line );
 
-            if ( !command.contains( " " ) ) {
-                err.println( "No argument provided" );
-                err.println( "Usage: " + getUsage() );
+            if ( parts.length != 2 ) {
+                CommandHelper.printError( err, getUsage(), "Wrong number of arguments provided" );
             } else {
-                String newPrompt = command.substring( getName().length() );
-                newPrompt = newPrompt.trim();
-                if ( newPrompt.startsWith( "\"" ) ) {
-                    newPrompt = newPrompt.substring( 1 );
-                    int index = newPrompt.indexOf( '"' );
-                    if ( index >= 0 ) {
-                        newPrompt = newPrompt.substring( 0, index );
-                    }
-                }
+                String newPrompt = parts[ 1 ];
                 cli.setPrompt( newPrompt );
             }
         } );

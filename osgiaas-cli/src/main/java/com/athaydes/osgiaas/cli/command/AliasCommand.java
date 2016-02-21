@@ -45,7 +45,7 @@ public class AliasCommand extends UsesCliProperties
 
     @Override
     public void execute( String line, PrintStream out, PrintStream err ) {
-        String[] parts = line.split( " " );
+        String[] parts = CommandHelper.breakupArguments( line );
         String[] arguments = Arrays.copyOfRange( parts, 1, parts.length );
         if ( arguments.length >= 1 ) {
             String directive = arguments[ 0 ];

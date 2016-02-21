@@ -14,13 +14,19 @@ class CommandHelperSpec extends Specification {
         result == expectedResult as String[]
 
         where:
-        args                  | expectedResult
-        ''                    | [ '' ]
-        'abc'                 | [ 'abc' ]
-        'ab c'                | [ 'ab', 'c' ]
-//        'ab "c"'              | [ 'ab', ' c' ]
-//        'ab " c "'            | [ 'ab', ' c ' ]
-//        'ab " c c" "d" e "f"' | [ 'ab', ' c c', 'd', 'e', 'f' ]
+        args                    | expectedResult
+        ''                      | [ ]
+        'abc'                   | [ 'abc' ]
+        'ab c'                  | [ 'ab', 'c' ]
+        '  a   b   '            | [ 'a', 'b' ]
+        'ab "c"'                | [ 'ab', 'c' ]
+        'ab " c "'              | [ 'ab', ' c ' ]
+        'ab " c  "  '           | [ 'ab', ' c  ' ]
+        'ab " c c" "d" e "f"'   | [ 'ab', ' c c', 'd', 'e', 'f' ]
+        'ab \\"cd\\"'           | [ 'ab', '"cd"' ]
+        'ab "c\\"d e\\"" "f g"' | [ 'ab', 'c"d e"', 'f g' ]
+        'ab "c\\"d e" "\\"f g"' | [ 'ab', 'c"d e', '"f g' ]
+        'ab\\\\c \\"d'          | [ 'ab\\c', '"d' ]
     }
 
 }
