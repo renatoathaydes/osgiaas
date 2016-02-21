@@ -15,7 +15,7 @@ dependencies {
         exclude group: 'org.osgi' // felix.shell uses an older one
     }
 
-    testCompile 'org.codehaus:groovy-all:2.4.5'
+    testCompile 'org.codehaus.groovy:groovy-all:2.4.5'
     testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
     testCompile 'org.osgi:org.osgi.core:6.0.0'
 }
