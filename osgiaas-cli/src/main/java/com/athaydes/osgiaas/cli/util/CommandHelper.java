@@ -12,13 +12,26 @@ public class CommandHelper {
     }
 
     public static String[] breakupArguments( String arguments ) {
+        return breakupArguments( arguments, -1 );
+    }
+
+    public static String[] breakupArguments( String arguments, int limit ) {
         boolean inQuote = false;
         boolean escaped = false;
         String currentArg = "";
         List<String> result = new ArrayList<>();
+        boolean applyLimit = limit > 0;
 
         for (char c : arguments.toCharArray()) {
-            boolean escapeNext = !escaped && ( c == '\\' );
+            boolean escapeNext;
+
+            if ( applyLimit && result.size() >= limit - 1 ) {
+                // no more splitting
+                inQuote = true;
+                escapeNext = false;
+            } else {
+                escapeNext = !escaped && ( c == '\\' );
+            }
 
             if ( inQuote ) {
                 if ( c == '"' && !escaped ) {
