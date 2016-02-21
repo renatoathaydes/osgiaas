@@ -8,6 +8,8 @@ import com.athaydes.osgiaas.cli.util.DynamicServiceHelper;
 import com.athaydes.osgiaas.cli.util.HasManyServices;
 import org.apache.felix.shell.ShellService;
 
+import javax.annotation.Nullable;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -63,12 +65,48 @@ public class StandardCli extends HasManyServices<CommandModifier>
             try {
                 List<String> transformedCommands = transformCommand( command, getServices() );
                 for (String cmd : transformedCommands) {
-                    shell.executeCommand( cmd, out, err );
+                    if ( cmd.contains( "|" ) ) {
+                        runWithPipes( cmd, shell, out, err );
+                    } else {
+                        shell.executeCommand( cmd, out, err );
+                    }
                 }
             } catch ( Exception e ) {
                 e.printStackTrace();
             }
         }, () -> System.out.println( "Shell service is unavailable" ) );
+    }
+
+    private void runWithPipes( String command, ShellService shell,
+                               PrintStream out, PrintStream err ) throws Exception {
+        String[] parts = command.split( "\\|" );
+
+        if ( parts.length <= 1 ) {
+            shell.executeCommand( command, out, err );
+        } else {
+            @Nullable String prevOutput = null;
+            int index = parts.length;
+
+            for (String currCmd : parts) {
+                index--;
+
+                if ( prevOutput != null ) {
+                    currCmd += " " + prevOutput;
+                }
+
+                boolean lastItem = index == 0;
+
+                if ( lastItem ) {
+                    shell.executeCommand( currCmd, out, err );
+                } else {
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream( 1024 );
+                    try ( PrintStream currOut = new PrintStream( baos, true, "UTF-8" ) ) {
+                        shell.executeCommand( currCmd, currOut, err );
+                    }
+                    prevOutput = baos.toString( "UTF-8" );
+                }
+            }
+        }
     }
 
     static List<String> transformCommand( String command, Collection<CommandModifier> modifiers ) {
