@@ -71,6 +71,15 @@ component( name: 'aliasCommand', immediate: true ) {
             'unbind': 'removeCliProperties' )
 }
 
+component( name: 'grepCommandModifier', immediate: true ) {
+    commonProperties()
+    implementation( 'class': 'com.athaydes.osgiaas.cli.command.GrepCommand' )
+    property( name: 'service.description', value: 'OsgiAAS Cli Grep Command' )
+    service {
+        provide( 'interface': 'org.apache.felix.shell.Command' )
+    }
+}
+
 component( name: 'andCommandModifier', immediate: true ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.command.AndCommandModifier' )
