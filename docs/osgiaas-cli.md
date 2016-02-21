@@ -11,6 +11,7 @@ monitoring the OSGi system itself), this bundle adds the following Commands:
 * `prompt` - changes the shell prompt (to use whitespaces, quote the prompt as in `" > "`).
 * `color` - set the default colors of the CLI.
 * `alias` - alias a command with a different name.
+* `grep` - filter lines matching a regular expression.
 
 For more information about the commands, type `help <command>` in the CLI itself.
 
@@ -21,6 +22,21 @@ Raw commands given by the user may be modified by OSGi services implementing the
 The following command modifiers are exported by this bundle:
 
 * `&&` - breaks up a single line into several commands.
+* '|' - pipes the output of a command as the input of the next command.
+
+Examples:
+
+* Run the `color blue` command, then run the `color red prompt` command:
+
+```
+color blue && color red prompt
+```
+
+* Grep all lines matching the `osgiaas.*api` regular expression from the output of the `ps` command:
+
+```
+ps | grep "osgiaas.*api"
+```
 
 ## Command history
 
