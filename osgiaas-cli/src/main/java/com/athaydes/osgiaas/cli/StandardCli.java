@@ -63,7 +63,7 @@ public class StandardCli extends HasManyServices<CommandModifier>
     private void runCommand( String command, PrintStream out, PrintStream err ) {
         withShellService( shell -> {
             try {
-                List<String> transformedCommands = transformCommand( command, getServices() );
+                List<String> transformedCommands = transformCommand( command.trim(), getServices() );
                 for (String cmd : transformedCommands) {
                     if ( cmd.contains( "|" ) ) {
                         runWithPipes( cmd, out, err );
@@ -82,7 +82,7 @@ public class StandardCli extends HasManyServices<CommandModifier>
         String[] parts = command.split( "\\|" );
 
         if ( parts.length <= 1 ) {
-            runCommand( command, out, err );
+            throw new RuntimeException( "runWithPipes called without pipe" );
         } else {
             @Nullable String prevOutput = null;
             int index = parts.length;
@@ -211,10 +211,5 @@ public class StandardCli extends HasManyServices<CommandModifier>
                 "/ /_/ /___/ / /_/ / / /_/ / /_/ /___/ /  / /___/ /____/ /   \n" +
                 "\\____//____/\\____/_/\\__,_/\\__,_//____/   \\____/_____/___/   \n";
     }
-
-//    public static void main( String[] args ) {
-    //      new StandardCli().start();
-    //}
-
 
 }
