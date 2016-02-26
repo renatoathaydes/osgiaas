@@ -8,7 +8,6 @@ import com.athaydes.osgiaas.cli.util.DynamicServiceHelper;
 import com.athaydes.osgiaas.cli.util.HasManyServices;
 import org.apache.felix.shell.ShellService;
 
-import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -61,6 +60,10 @@ public class StandardCli extends HasManyServices<CommandModifier>
     }
 
     private void runCommand( String command, PrintStream out, PrintStream err ) {
+        runCommand( command, out, err, "" );
+    }
+
+    private void runCommand( String command, PrintStream out, PrintStream err, String argument ) {
         withShellService( shell -> {
             try {
                 List<String> transformedCommands = transformCommand( command.trim(), getServices() );
@@ -68,7 +71,7 @@ public class StandardCli extends HasManyServices<CommandModifier>
                     if ( cmd.contains( "|" ) ) {
                         runWithPipes( cmd, out, err );
                     } else {
-                        shell.executeCommand( cmd, out, err );
+                        shell.executeCommand( cmd + " " + argument, out, err );
                     }
                 }
             } catch ( Exception e ) {
@@ -84,24 +87,20 @@ public class StandardCli extends HasManyServices<CommandModifier>
         if ( parts.length <= 1 ) {
             throw new RuntimeException( "runWithPipes called without pipe" );
         } else {
-            @Nullable String prevOutput = null;
+            String prevOutput = "";
             int index = parts.length;
 
             for (String currCmd : parts) {
                 index--;
 
-                if ( prevOutput != null ) {
-                    currCmd += " " + prevOutput;
-                }
-
                 boolean lastItem = index == 0;
 
                 if ( lastItem ) {
-                    runCommand( currCmd, out, err );
+                    runCommand( currCmd, out, err, prevOutput );
                 } else {
                     ByteArrayOutputStream baos = new ByteArrayOutputStream( 1024 );
                     try ( PrintStream currOut = new PrintStream( baos, true, "UTF-8" ) ) {
-                        runCommand( currCmd, currOut, err );
+                        runCommand( currCmd, currOut, err, prevOutput );
                     }
                     prevOutput = baos.toString( "UTF-8" );
                 }
