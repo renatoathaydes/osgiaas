@@ -72,9 +72,9 @@ public class StandardCli extends HasManyServices<CommandModifier>
                     }
                 }
             } catch ( Exception e ) {
-                e.printStackTrace();
+                e.printStackTrace( err );
             }
-        }, () -> System.out.println( "Shell service is unavailable" ) );
+        }, () -> err.println( "Shell service is unavailable" ) );
     }
 
     private void runWithPipes( String command, PrintStream out, PrintStream err )
