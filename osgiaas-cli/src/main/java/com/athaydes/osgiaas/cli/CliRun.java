@@ -128,8 +128,12 @@ public class CliRun implements Runnable {
             history.flush();
             System.out.println( colored( "Bye!", AnsiColor.BLUE ) );
             consoleReader.shutdown();
-        } catch ( IOException e ) {
-            e.printStackTrace();
+        } catch ( Exception e ) {
+            // only print stacktrace if the CLI was not interrupted by the user
+            //noinspection ConstantConditions
+            if ( !( e instanceof InterruptedException ) ) {
+                e.printStackTrace();
+            }
         }
     }
 
