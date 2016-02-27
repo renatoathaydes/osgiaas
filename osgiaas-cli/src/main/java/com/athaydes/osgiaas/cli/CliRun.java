@@ -6,7 +6,6 @@ import com.athaydes.osgiaas.cli.util.InterruptableInputStream;
 import com.athaydes.osgiaas.cli.util.NoOpPrintStream;
 import com.athaydes.osgiaas.cli.util.OsgiaasPrintStream;
 import jline.console.ConsoleReader;
-import jline.console.completer.StringsCompleter;
 import jline.console.history.FileHistory;
 
 import javax.annotation.Nullable;
@@ -40,8 +39,7 @@ public class CliRun implements Runnable {
                 new InterruptableInputStream( System.in ),
                 System.out );
 
-        // simple completer for the initial basic commands
-        consoleReader.addCompleter( new StringsCompleter( cliProperties.availableCommands() ) );
+        consoleReader.addCompleter( new OsgiaasCommandCompleter( cliProperties ) );
 
         started = new AtomicBoolean( false );
         consoleReader.setPrompt( getPrompt() );
