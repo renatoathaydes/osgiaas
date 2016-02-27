@@ -3,9 +3,12 @@ package com.athaydes.osgiaas.cli;
 import com.athaydes.osgiaas.api.cli.AnsiColor;
 import com.athaydes.osgiaas.api.cli.Cli;
 import com.athaydes.osgiaas.api.cli.CliProperties;
+import com.athaydes.osgiaas.api.cli.CommandCompleter;
 import com.athaydes.osgiaas.api.cli.CommandModifier;
 import com.athaydes.osgiaas.cli.util.DynamicServiceHelper;
+import com.athaydes.osgiaas.cli.util.HasManyCommandCompleters;
 import com.athaydes.osgiaas.cli.util.HasManyServices;
+import jline.console.completer.Completer;
 import org.apache.felix.shell.ShellService;
 
 import java.io.ByteArrayOutputStream;
@@ -24,6 +27,18 @@ public class StandardCli extends HasManyServices<CommandModifier>
     private final AtomicReference<CliRun> currentRun = new AtomicReference<>();
     private final AtomicReference<ShellService> shellService = new AtomicReference<>();
 
+    private final HasManyCommandCompleters completers = new HasManyCommandCompleters() {
+        @Override
+        protected void addCompleter( Completer completer ) {
+            withCli( cli -> cli.addCompleter( completer ) );
+        }
+
+        @Override
+        protected void removeCompleter( Completer completer ) {
+            withCli( cli -> cli.removeCompleter( completer ) );
+        }
+    };
+
     private volatile String prompt = ">> ";
     private volatile AnsiColor promptColor = AnsiColor.RESET;
     private volatile AnsiColor textColor = AnsiColor.RESET;
@@ -41,10 +56,12 @@ public class StandardCli extends HasManyServices<CommandModifier>
         }
 
         try {
-            CliRun cli = new CliRun( this::runCommand, this );
-            Thread thread = new Thread( cli );
-            currentRun.set( cli );
-            thread.start();
+            synchronized (currentRun) {
+                CliRun cli = new CliRun( this::runCommand, this, completers.getCompleters() );
+                Thread thread = new Thread( cli );
+                currentRun.set( cli );
+                thread.start();
+            }
         } catch ( IOException e ) {
             e.printStackTrace();
         }
@@ -173,6 +190,14 @@ public class StandardCli extends HasManyServices<CommandModifier>
 
     public void removeCommandModifier( CommandModifier commandModifier ) {
         removeService( commandModifier );
+    }
+
+    public void addCommandCompleter( CommandCompleter commandCompleter ) {
+        completers.addService( commandCompleter );
+    }
+
+    public void removeCommandCompleter( CommandCompleter commandCompleter ) {
+        completers.removeService( commandCompleter );
     }
 
     @Override

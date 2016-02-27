@@ -2,6 +2,15 @@ commonProperties = { ->
     property( name: 'service.vendor', value: 'com.athaydes' )
 }
 
+cliPropertiesReference = {->
+    reference( name: 'osgiaasStandardCli',
+            'interface': 'com.athaydes.osgiaas.api.cli.CliProperties',
+            'cardinality': '0..1',
+            'policy': 'dynamic',
+            'bind': 'setCliProperties',
+            'unbind': 'removeCliProperties' )
+}
+
 component( xmlns: "http://www.osgi.org/xmlns/scr/v1.3.0",
         name: 'osgiaasStandardCli', immediate: 'true',
         activate: 'start', deactivate: 'stop' ) {
@@ -23,6 +32,22 @@ component( xmlns: "http://www.osgi.org/xmlns/scr/v1.3.0",
             'policy': 'dynamic',
             'bind': 'addCommandModifier',
             'unbind': 'removeCommandModifier' )
+    reference( name: 'commandCompleter',
+            'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter',
+            'cardinality': '0..n',
+            'policy': 'dynamic',
+            'bind': 'addCommandCompleter',
+            'unbind': 'removeCommandCompleter' )
+}
+
+component(name: 'osgiaasCommandCompleter', immediate: true) {
+    commonProperties()
+    implementation( 'class': 'com.athaydes.osgiaas.cli.OsgiaasCommandCompleter' )
+    property( name: 'service.description', value: 'OsgiAAS Cli Command Completer' )
+    service {
+        provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter' )
+    }
+    cliPropertiesReference()
 }
 
 component( name: 'colorCommand', immediate: true ) {
@@ -63,12 +88,7 @@ component( name: 'aliasCommand', immediate: true ) {
         provide( 'interface': 'org.apache.felix.shell.Command' )
         provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandModifier' )
     }
-    reference( name: 'osgiaasStandardCli',
-            'interface': 'com.athaydes.osgiaas.api.cli.CliProperties',
-            'cardinality': '0..1',
-            'policy': 'dynamic',
-            'bind': 'setCliProperties',
-            'unbind': 'removeCliProperties' )
+    cliPropertiesReference()
 }
 
 component( name: 'grepCommandModifier', immediate: true ) {
