@@ -1,6 +1,6 @@
 package com.athaydes.osgiaas.cli;
 
-import com.athaydes.osgiaas.api.cli.AnsiColor;
+import com.athaydes.osgiaas.api.ansi.AnsiColor;
 import com.athaydes.osgiaas.api.cli.Cli;
 import com.athaydes.osgiaas.api.cli.CliProperties;
 import com.athaydes.osgiaas.api.cli.CommandCompleter;

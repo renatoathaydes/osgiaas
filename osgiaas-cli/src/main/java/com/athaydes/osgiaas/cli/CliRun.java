@@ -1,6 +1,7 @@
 package com.athaydes.osgiaas.cli;
 
-import com.athaydes.osgiaas.api.cli.AnsiColor;
+import com.athaydes.osgiaas.api.ansi.Ansi;
+import com.athaydes.osgiaas.api.ansi.AnsiColor;
 import com.athaydes.osgiaas.api.cli.CliProperties;
 import com.athaydes.osgiaas.cli.util.InterruptableInputStream;
 import com.athaydes.osgiaas.cli.util.NoOpPrintStream;
@@ -111,7 +112,7 @@ public class CliRun implements Runnable {
     }
 
     private String getPrompt() {
-        return colored(
+        return Ansi.applyColor(
                 cliProperties.getPrompt(),
                 cliProperties.getPromptColor() );
     }
@@ -136,7 +137,7 @@ public class CliRun implements Runnable {
             }
             FileHistory history = ( FileHistory ) consoleReader.getHistory();
             history.flush();
-            System.out.println( colored( "Bye!", AnsiColor.BLUE ) );
+            System.out.println( Ansi.applyColor( "Bye!", AnsiColor.BLUE ) );
             consoleReader.shutdown();
         } catch ( Exception e ) {
             // only print stacktrace if the CLI was not interrupted by the user
@@ -159,10 +160,6 @@ public class CliRun implements Runnable {
                 System.err, cliProperties.getErrorColor() );
 
         runCommand( line, out, err );
-    }
-
-    static String colored( String text, AnsiColor color ) {
-        return color + text + AnsiColor.RESET;
     }
 
 }

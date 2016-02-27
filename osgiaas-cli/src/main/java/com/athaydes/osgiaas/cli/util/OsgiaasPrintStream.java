@@ -1,6 +1,6 @@
 package com.athaydes.osgiaas.cli.util;
 
-import com.athaydes.osgiaas.api.cli.AnsiColor;
+import com.athaydes.osgiaas.api.ansi.AnsiColor;
 
 import java.io.PrintStream;
 import java.util.concurrent.atomic.AtomicBoolean;

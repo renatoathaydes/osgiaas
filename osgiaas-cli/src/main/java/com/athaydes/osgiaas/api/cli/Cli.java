@@ -1,5 +1,7 @@
 package com.athaydes.osgiaas.api.cli;
 
+import com.athaydes.osgiaas.api.ansi.AnsiColor;
+
 /**
  * The Cli (command-line-interface) service.
  */
