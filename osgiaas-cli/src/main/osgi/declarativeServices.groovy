@@ -34,7 +34,7 @@ component( xmlns: "http://www.osgi.org/xmlns/scr/v1.3.0",
             'unbind': 'removeCommandModifier' )
     reference( name: 'commandCompleter',
             'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter',
-            'cardinality': '0..n',
+            'cardinality': '1..n',
             'policy': 'dynamic',
             'bind': 'addCommandCompleter',
             'unbind': 'removeCommandCompleter' )
