@@ -91,6 +91,16 @@ component( name: 'aliasCommand', immediate: true ) {
     cliPropertiesReference()
 }
 
+component( name: 'highlightCommand', immediate: true ) {
+    commonProperties()
+    implementation( 'class': 'com.athaydes.osgiaas.cli.command.HighlightCommand' )
+    property( name: 'service.description', value: 'OsgiAAS Cli Highlight Command' )
+    service {
+        provide( 'interface': 'org.apache.felix.shell.Command' )
+    }
+    cliPropertiesReference()
+}
+
 component( name: 'grepCommandModifier', immediate: true ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.command.GrepCommand' )

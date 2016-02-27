@@ -24,4 +24,9 @@ public class UsesCliProperties {
         DynamicServiceHelper.with( cliProperties, consumer );
     }
 
+    protected void withCliProperties( Consumer<CliProperties> consumer,
+                                      Runnable onUnavailable ) {
+        DynamicServiceHelper.with( cliProperties, consumer, onUnavailable );
+    }
+
 }
