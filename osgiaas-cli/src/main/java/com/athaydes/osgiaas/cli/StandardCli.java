@@ -47,7 +47,7 @@ public class StandardCli extends HasManyServices<CommandModifier>
     @Override
     public void start() {
         System.out.println( asciiArtLogo() );
-        System.out.println( ":: cli.athaydes.com ::" );
+        System.out.println( ":: https://github.com/renatoathaydes/osgiaas ::" );
         System.out.println();
 
         if ( currentRun.get() != null ) {
@@ -56,12 +56,15 @@ public class StandardCli extends HasManyServices<CommandModifier>
         }
 
         try {
-            synchronized (currentRun) {
+            Thread thread;
+
+            synchronized ( currentRun ) {
                 CliRun cli = new CliRun( this::runCommand, this, completers.getCompleters() );
-                Thread thread = new Thread( cli );
+                thread = new Thread( cli );
                 currentRun.set( cli );
-                thread.start();
             }
+
+            thread.start();
         } catch ( IOException e ) {
             e.printStackTrace();
         }
