@@ -9,6 +9,7 @@ buildscript {
 }
 
 apply plugin: 'com.athaydes.osgi-run'
+apply plugin: 'idea'
 
 allprojects {
     group = 'com.athaydes.osgiaas'
