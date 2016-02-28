@@ -114,7 +114,7 @@ public class CliRun implements Runnable {
     private String getPrompt() {
         return Ansi.applyColor(
                 cliProperties.getPrompt(),
-                cliProperties.getPromptColor() );
+                cliProperties.getPromptColor() ) + AnsiColor.RESET;
     }
 
     @Override

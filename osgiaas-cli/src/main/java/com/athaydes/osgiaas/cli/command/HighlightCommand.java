@@ -139,7 +139,8 @@ public class HighlightCommand extends UsesCliProperties implements Command {
                 out.print( Ansi.applyAnsi( txtLine,
                         highlightCall.getColors(), highlightCall.getModifiers() ) );
                 withCliProperties(
-                        cliProperties -> out.println( cliProperties.getTextColor() ),
+                        cliProperties -> out.println(
+                                AnsiColor.RESET.toString() + cliProperties.getTextColor() ),
                         () -> out.println( AnsiColor.RESET ) );
             } else {
                 out.println( txtLine );

@@ -17,7 +17,7 @@ public class Ansi {
      * @return formatted text
      */
     public static String applyColor( String text, AnsiColor color ) {
-        return applyAnsi( text, new AnsiColor[]{ color, AnsiColor.RESET } );
+        return applyAnsi( text, new AnsiColor[]{ color } );
     }
 
     /**
