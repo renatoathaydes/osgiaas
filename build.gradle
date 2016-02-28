@@ -49,4 +49,7 @@ runOsgi {
             ( subprojects as List )
 
     copyManifestTo = 'generated-sources/MANIFEST.MF'
+
+    // required by Groovy
+    config += [ 'org.osgi.framework.system.packages.extra': 'sun.reflect' ]
 }
