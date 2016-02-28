@@ -210,7 +210,7 @@ of the previous command goes into a named variable (`var_name` in this case) whi
 
 This operator is mostly useful with more advanced commands.
 
-For example, the `groovy` command (exported by `osgiaas-cli-extra`), which executes Groovy scripts,
+For example, the `groovy` command (exported by `osgiaas-cli-groovy`), which executes Groovy scripts,
 can make use of this operator in very interesting ways:
 
 ```

@@ -1,4 +1,4 @@
-package com.athaydes.osgiaas.cli.extra.command
+package com.athaydes.osgiaas.cli.groovy.command
 
 import com.athaydes.osgiaas.api.cli.CommandHelper
 import groovy.transform.CompileStatic
