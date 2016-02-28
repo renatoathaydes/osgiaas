@@ -25,6 +25,8 @@ public enum AnsiColor {
     _CYAN( 46 ),
     _WHITE( 47 );
 
+    public static final AnsiColor DEFAULT_BG = _YELLOW;
+
     private final int code;
 
     AnsiColor( int code ) {

@@ -10,7 +10,10 @@ import org.apache.felix.shell.Command;
 import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,6 +33,31 @@ public class HighlightCommand extends UsesCliProperties implements Command {
     private static final Pattern fbPattern = Pattern.compile(
             "\\s*highlight\\s+(-F\\s+([A-z\\+]+)\\s+)?(-B\\s+([A-z]+)\\s+)?(.+)\\s+(.+)",
             Pattern.DOTALL );
+
+    private static final Function<String, String> argumentByShortArg;
+
+    static {
+        Map<String, String> argumentByShortArgMap = new HashMap<>();
+
+        BiConsumer<String, String> map = ( k, v ) -> {
+            @Nullable Object existing = argumentByShortArgMap.put( k, v );
+            if ( existing != null ) {
+                throw new IllegalArgumentException( "Value for '" + k + "' already exists: " + existing );
+            }
+        };
+
+        map.accept( "i", AnsiModifier.ITALIC.name() );
+        map.accept( "r", AnsiModifier.RESET.name() );
+        map.accept( "b", AnsiModifier.BLINK.name() );
+        map.accept( "hi", AnsiModifier.HIGH_INTENSITY.name() );
+        map.accept( "li", AnsiModifier.LOW_INTENSITy.name() );
+        map.accept( "it", AnsiModifier.INVISIBLE_TEXT.name() );
+        map.accept( "rb", AnsiModifier.RAPID_BLINK.name() );
+        map.accept( "u", AnsiModifier.UNDERLINE.name() );
+        map.accept( "rv", AnsiModifier.REVERSE_VIDEO.name() );
+
+        argumentByShortArg = argumentByShortArgMap::get;
+    }
 
     @Override
     public String getName() {
@@ -171,12 +199,12 @@ public class HighlightCommand extends UsesCliProperties implements Command {
                     back == null && fore == null ? 0 : 1;
 
             AnsiColor background = back == null ?
-                    AnsiColor._YELLOW :
-                    parse( "_" + back, AnsiColor::valueOf );
+                    AnsiColor.DEFAULT_BG :
+                    parse( "_" + back, AnsiColor::valueOf, null );
 
             if ( fore != null ) {
                 String[] foreParts = fore.split( Pattern.quote( "+" ) );
-                AnsiColor foreColor = parse( foreParts[ 0 ], AnsiColor::valueOf );
+                AnsiColor foreColor = parse( foreParts[ 0 ], AnsiColor::valueOf, null );
                 this.colors = new AnsiColor[]{ background, foreColor };
                 this.modifiers = getAnsiModifiers( foreParts );
             } else {
@@ -188,14 +216,20 @@ public class HighlightCommand extends UsesCliProperties implements Command {
         private AnsiModifier[] getAnsiModifiers( String[] foreParts ) {
             List<AnsiModifier> modifiers = new ArrayList<>( 2 );
             for (int i = 1; i < foreParts.length; i++) {
-                modifiers.add( parse( foreParts[ i ], AnsiModifier::valueOf ) );
+                modifiers.add( parse( foreParts[ i ], AnsiModifier::valueOf, argumentByShortArg ) );
             }
             return modifiers.toArray( new AnsiModifier[ modifiers.size() ] );
         }
 
-        private static <T> T parse( String text, Function<String, T> convert ) {
+        private static <T> T parse( String text, Function<String, T> convert,
+                                    @Nullable Function<String, String> argMapper ) {
+            @Nullable String mappedText = argMapper == null ? null : argMapper.apply( text );
             try {
-                return convert.apply( text.toUpperCase() );
+                if ( mappedText != null ) {
+                    return convert.apply( mappedText );
+                } else {
+                    return convert.apply( text.toUpperCase() );
+                }
             } catch ( IllegalArgumentException e ) {
                 throw new RuntimeException( "Invalid argument: '" + text + "'" );
             }
