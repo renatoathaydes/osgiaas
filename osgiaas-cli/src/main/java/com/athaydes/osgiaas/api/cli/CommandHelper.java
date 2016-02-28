@@ -1,16 +1,34 @@
-package com.athaydes.osgiaas.cli.util;
+package com.athaydes.osgiaas.api.cli;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Utility that can be used to implement Felix Commands.
+ */
 public class CommandHelper {
 
+    /**
+     * Prints an error message in a standard way.
+     *
+     * @param err     err stream
+     * @param usage   command usage
+     * @param message error message
+     */
     public static void printError( PrintStream err, String usage, String message ) {
         err.println( message );
         err.println( "Usage: " + usage );
     }
 
+    /**
+     * Breaks up a command arguments into separate parts.
+     * It uses a space as a separator, but takes into consideration doubly-quoted values, making the whole
+     * quoted value a single argument.
+     *
+     * @param arguments space-separated arguments
+     * @return split arguments
+     */
     public static String[] breakupArguments( String arguments ) {
         return breakupArguments( arguments, -1 );
     }

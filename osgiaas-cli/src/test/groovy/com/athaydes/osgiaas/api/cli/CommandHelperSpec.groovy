@@ -1,4 +1,4 @@
-package com.athaydes.osgiaas.cli.util
+package com.athaydes.osgiaas.api.cli
 
 import spock.lang.Specification
 import spock.lang.Unroll

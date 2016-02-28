@@ -3,7 +3,7 @@ package com.athaydes.osgiaas.cli.command;
 import com.athaydes.osgiaas.api.ansi.Ansi;
 import com.athaydes.osgiaas.api.ansi.AnsiColor;
 import com.athaydes.osgiaas.api.ansi.AnsiModifier;
-import com.athaydes.osgiaas.cli.util.CommandHelper;
+import com.athaydes.osgiaas.api.cli.CommandHelper;
 import com.athaydes.osgiaas.cli.util.UsesCliProperties;
 import org.apache.felix.shell.Command;
 

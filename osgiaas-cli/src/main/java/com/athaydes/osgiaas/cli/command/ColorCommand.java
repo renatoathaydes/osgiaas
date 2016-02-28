@@ -2,7 +2,7 @@ package com.athaydes.osgiaas.cli.command;
 
 import com.athaydes.osgiaas.api.ansi.AnsiColor;
 import com.athaydes.osgiaas.api.cli.Cli;
-import com.athaydes.osgiaas.cli.util.CommandHelper;
+import com.athaydes.osgiaas.api.cli.CommandHelper;
 import com.athaydes.osgiaas.cli.util.UsesCli;
 import org.apache.felix.shell.Command;
 
@@ -10,7 +10,7 @@ import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.Arrays;
 
-import static com.athaydes.osgiaas.cli.util.CommandHelper.printError;
+import static com.athaydes.osgiaas.api.cli.CommandHelper.printError;
 
 /**
  * Implements the shell color command.

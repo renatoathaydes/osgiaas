@@ -1,6 +1,6 @@
 package com.athaydes.osgiaas.cli.command;
 
-import com.athaydes.osgiaas.cli.util.CommandHelper;
+import com.athaydes.osgiaas.api.cli.CommandHelper;
 import com.athaydes.osgiaas.cli.util.UsesCli;
 import org.apache.felix.shell.Command;
 
