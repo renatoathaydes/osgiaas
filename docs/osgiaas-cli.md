@@ -1,7 +1,9 @@
-# OSGi-aaS CLI
+# OSGiaaS CLI
 
 A Command Line Interface (CLI) based on on [JLine](http://jline.github.io/jline2/)
 and [Apache Felix Shell](http://felix.apache.org/documentation/subprojects/apache-felix-shell.html).
+
+![OSGiaaS Banner](images/banner.png)
 
 ## Commands
 
@@ -14,7 +16,15 @@ monitoring the OSGi system itself), this bundle adds the following Commands:
 * `grep` - filter lines matching a regular expression.
 * `highlight` - color-highlight lines matching a regular expression.
 
-For more information about the commands, type `help <command>` in the CLI itself.
+The [`osgiaas-cli-groovy`](osgiaas-cli-groovy.md) bundle exports the following commands:
+
+* `groovy` - runs a Groovy script.
+
+To see help information about a command in the CLI, type `help <command>`.
+
+*Highlight command:*
+
+![Simple Highlight](images/simple-highlight.png)
 
 ## Command details
 
