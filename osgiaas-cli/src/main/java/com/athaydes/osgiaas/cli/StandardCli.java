@@ -113,7 +113,7 @@ public class StandardCli extends HasManyServices<CommandModifier>
             String prevOutput = "";
             int index = parts.length;
 
-            final Pattern specialPipePattern = Pattern.compile( ">([A-z]*)\\s+.*" );
+            final Pattern specialPipePattern = Pattern.compile( ">([A-z_]*)\\s+.*" );
 
             for (String currCmd : parts) {
                 index--;
