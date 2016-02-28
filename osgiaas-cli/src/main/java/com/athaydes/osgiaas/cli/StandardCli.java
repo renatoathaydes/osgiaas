@@ -11,6 +11,7 @@ import com.athaydes.osgiaas.cli.util.HasManyServices;
 import jline.console.completer.Completer;
 import org.apache.felix.shell.ShellService;
 
+import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -20,6 +21,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class StandardCli extends HasManyServices<CommandModifier>
         implements Cli, CliProperties {
@@ -110,13 +113,39 @@ public class StandardCli extends HasManyServices<CommandModifier>
             String prevOutput = "";
             int index = parts.length;
 
+            final Pattern specialPipePattern = Pattern.compile( ">([A-z]*)\\s+.*" );
+
             for (String currCmd : parts) {
                 index--;
+
+                Matcher specialPipe = specialPipePattern.matcher( currCmd );
+
+                @Nullable
+                String specialPipeVariable;
+
+                if ( specialPipe.matches() &&
+                        ( specialPipeVariable = specialPipe.group( 1 ) ) != null ) {
+                    if ( specialPipeVariable.isEmpty() ) {
+                        currCmd = currCmd.substring( 1 );
+                        specialPipeVariable = "it";
+                    } else {
+                        currCmd = currCmd.substring( specialPipeVariable.length() + 1 );
+                    }
+                } else {
+                    specialPipeVariable = null;
+                }
 
                 boolean lastItem = index == 0;
 
                 if ( lastItem ) {
-                    runCommand( currCmd, out, err, prevOutput );
+                    if ( specialPipeVariable != null ) {
+                        String cmd = currCmd.replaceAll(
+                                Pattern.quote( "$(" + specialPipeVariable + ")" ),
+                                prevOutput );
+                        runCommand( cmd, out, err, "" );
+                    } else {
+                        runCommand( currCmd, out, err, prevOutput );
+                    }
                 } else {
                     ByteArrayOutputStream baos = new ByteArrayOutputStream( 1024 );
                     try ( PrintStream currOut = new PrintStream( baos, true, "UTF-8" ) ) {
