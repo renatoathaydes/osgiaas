@@ -136,7 +136,7 @@ public class HighlightCommand extends UsesCliProperties implements Command {
         for (String txtLine : textLines) {
             boolean match = highlightCall != null && txtLine.matches( regex );
             if ( match ) {
-                out.print( Ansi.applyAnsi( txtLine,
+                out.print( Ansi.applyAnsi( txtLine.replaceAll( "(\\u001B)?\\[\\d*m", "" ),
                         highlightCall.getColors(), highlightCall.getModifiers() ) );
                 withCliProperties(
                         cliProperties -> out.println(
