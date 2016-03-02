@@ -5,7 +5,7 @@ import java.io.OutputStream;
 import java.util.function.Consumer;
 
 /**
- * OutputStream that receives a line of text at a time.
+ * OutputStream that can be used to receive a line of text at a time from a writer.
  */
 public final class LineOutputStream extends OutputStream {
 
