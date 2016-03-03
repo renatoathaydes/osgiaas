@@ -45,13 +45,14 @@ class CommandHelperSpec extends Specification {
         'a b'             | 1     | [ 'a b' ]
         'a b'             | 2     | [ 'a', 'b' ]
         'a b c'           | 2     | [ 'a', 'b c' ]
-        'a "b c" d e'     | 2     | [ 'a', 'b c d e' ]
+        'a "b c" d e'     | 2     | [ 'a', '"b c" d e' ]
         'a "b c" d e'     | 3     | [ 'a', 'b c', 'd e' ]
         'a "b c" d e'     | 4     | [ 'a', 'b c', 'd', 'e' ]
         'a "b c" d e'     | 5     | [ 'a', 'b c', 'd', 'e' ]
         'a "b c" d e f g' | 12345 | [ 'a', 'b c', 'd', 'e', 'f', 'g' ]
-        'a "b c" d e f g' | 1     | [ 'a b c d e f g' ]
-        'a "b c" d e f g' | 2     | [ 'a', 'b c d e f g' ]
+        'a "b c" d e f g' | 1     | [ 'a "b c" d e f g' ]
+        'a "b c" d e f g' | 2     | [ 'a', '"b c" d e f g' ]
+        'a "b c" d e f g' | 3     | [ 'a', 'b c', 'd e f g' ]
     }
 
 }

@@ -36,17 +36,21 @@ public class CommandHelper {
     public static String[] breakupArguments( String arguments, int limit ) {
         boolean inQuote = false;
         boolean escaped = false;
-        String currentArg = "";
+        StringBuilder currentArg = new StringBuilder();
         List<String> result = new ArrayList<>();
         boolean applyLimit = limit > 0;
 
-        for (char c : arguments.toCharArray()) {
+        char[] chars = arguments.toCharArray();
+        for (int i = 0; i < chars.length; i++) {
+            char c = chars[ i ];
             boolean escapeNext;
 
             if ( applyLimit && result.size() >= limit - 1 ) {
                 // no more splitting
-                inQuote = true;
-                escapeNext = false;
+                char[] rest = new char[ chars.length - i ];
+                System.arraycopy( chars, i, rest, 0, rest.length );
+                result.add( new String( rest ) );
+                break;
             } else {
                 escapeNext = !escaped && ( c == '\\' );
             }
@@ -55,19 +59,19 @@ public class CommandHelper {
                 if ( c == '"' && !escaped ) {
                     inQuote = false;
                 } else if ( !escapeNext ) {
-                    currentArg += c;
+                    currentArg.append( c );
                 }
             } else {
                 if ( c == '"' && !escaped ) {
                     inQuote = true;
                 } else {
                     if ( c == ' ' ) {
-                        if ( !currentArg.isEmpty() ) {
-                            result.add( currentArg );
-                            currentArg = "";
+                        if ( currentArg.length() > 0 ) {
+                            result.add( currentArg.toString() );
+                            currentArg.delete( 0, currentArg.length() );
                         }
                     } else if ( !escapeNext ) {
-                        currentArg += c;
+                        currentArg.append( c );
                     }
                 }
             }
@@ -75,8 +79,8 @@ public class CommandHelper {
             escaped = escapeNext;
         }
 
-        if ( !currentArg.isEmpty() ) {
-            result.add( currentArg );
+        if ( currentArg.length() > 0 ) {
+            result.add( currentArg.toString() );
         }
 
         return result.toArray( new String[ result.size() ] );
