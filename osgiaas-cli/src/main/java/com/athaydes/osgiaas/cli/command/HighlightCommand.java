@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -84,7 +85,6 @@ public class HighlightCommand extends UsesCliProperties implements Command {
 
     @Override
     public void execute( String line, PrintStream out, PrintStream err ) {
-
         try {
             @Nullable HighlightCall highlightCall = highlightCall( line );
             int limit = getLimit( highlightCall );
@@ -129,19 +129,24 @@ public class HighlightCommand extends UsesCliProperties implements Command {
     void highlight( String regex, String text,
                     @Nullable HighlightCall highlightCall,
                     PrintStream out ) {
-        regex = ".*" + regex + ".*";
+        Pattern matchPattern = Pattern.compile( ".*" + regex + ".*" );
         String[] textLines = text.split( "\n" );
+        boolean mayMatch = highlightCall != null;
+
+        AtomicReference<String> textColorRef = new AtomicReference<>();
+        withCliProperties( cliProperties ->
+                        textColorRef.set( AnsiColor.RESET.toString() + cliProperties.getTextColor() ),
+                () -> textColorRef.set( AnsiColor.RESET.toString() ) );
+        String textColor = textColorRef.get();
 
         //noinspection ForLoopReplaceableByForEach
         for (String txtLine : textLines) {
-            boolean match = highlightCall != null && txtLine.matches( regex );
+            boolean match = mayMatch && matchPattern.matcher( txtLine ).matches();
             if ( match ) {
-                out.print( Ansi.applyAnsi( txtLine.replaceAll( "(\\u001B)?\\[\\d*m", "" ),
+                out.print( Ansi.applyAnsi(
+                        Ansi.ANSI_PATTERN.matcher( txtLine ).replaceAll( "" ),
                         highlightCall.getColors(), highlightCall.getModifiers() ) );
-                withCliProperties(
-                        cliProperties -> out.println(
-                                AnsiColor.RESET.toString() + cliProperties.getTextColor() ),
-                        () -> out.println( AnsiColor.RESET ) );
+                out.println( textColor );
             } else {
                 out.println( txtLine );
             }

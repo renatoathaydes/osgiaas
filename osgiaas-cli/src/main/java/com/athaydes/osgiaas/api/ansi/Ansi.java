@@ -1,9 +1,13 @@
 package com.athaydes.osgiaas.api.ansi;
 
+import java.util.regex.Pattern;
+
 /**
  * Functions to help format text with ANSI.
  */
 public class Ansi {
+
+    public static final Pattern ANSI_PATTERN = Pattern.compile( "(\\u001B)?\\[\\d*m" );
 
     static String stringFromCode( int code ) {
         return "\u001B[" + code + "m";
