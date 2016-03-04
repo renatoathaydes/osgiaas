@@ -5,8 +5,7 @@ import org.apache.felix.shell.Command;
 
 import javax.annotation.Nullable;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -54,7 +53,7 @@ public class GrepCommand implements Command {
             String regex = parts[ limit - 2 ];
             String text = parts[ limit - 1 ];
             try {
-                grep( regex, text, grepCall ).forEach( out::println );
+                grep( regex, text, grepCall, out::println );
             } catch ( PatternSyntaxException e ) {
                 err.println( "Pattern syntax error in [" + regex + "]: " + e.getMessage() );
             }
@@ -64,10 +63,9 @@ public class GrepCommand implements Command {
         }
     }
 
-    static List<String> grep( String regex, String text,
-                              @Nullable GrepCall grepCall ) {
-        regex = ".*" + regex + ".*";
-        List<String> result = new ArrayList<>();
+    static void grep( String regex, String text,
+                      @Nullable GrepCall grepCall, Consumer<String> lineConsumer ) {
+        Pattern regexPattern = Pattern.compile( ".*" + regex + ".*" );
         String[] textLines = text.split( "\n" );
 
         // large number that can be safely added to without overflow
@@ -79,25 +77,23 @@ public class GrepCommand implements Command {
         //noinspection ForLoopReplaceableByForEach
         for (int i = 0; i < textLines.length; i++) {
             final String txtLine = textLines[ i ];
-            boolean match = txtLine.matches( regex );
+            boolean match = regexPattern.matcher( txtLine ).matches();
             if ( match ) {
                 pastLastMatch = 0;
                 int indexToAdd = Math.max( 0, Math.max( latestAddedIndex + 1, i - beforeLines ) );
                 while ( indexToAdd < i ) {
-                    result.add( textLines[ indexToAdd ] );
+                    lineConsumer.accept( textLines[ indexToAdd ] );
                     indexToAdd++;
                 }
             }
 
             if ( pastLastMatch <= afterLines ) {
                 latestAddedIndex = i;
-                result.add( txtLine );
+                lineConsumer.accept( txtLine );
             }
 
             pastLastMatch++;
         }
-
-        return result;
     }
 
     private static int getLimit( @Nullable GrepCall grepCall ) {

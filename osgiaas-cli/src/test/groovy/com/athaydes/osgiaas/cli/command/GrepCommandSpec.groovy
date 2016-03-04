@@ -60,7 +60,8 @@ class GrepCommandSpec extends Specification {
             |abcdefghi'''.stripMargin()
 
         when: 'We grep using the regex = #regex'
-        def result = GrepCommand.grep( regex, text, grepCall )
+        def result = []
+        GrepCommand.grep( regex, text, grepCall, result.&add )
 
         then: 'The selected lines are as expected'
         result == expectedResult
