@@ -1,16 +1,18 @@
 package com.athaydes.osgiaas.cli.command;
 
 import com.athaydes.osgiaas.api.cli.CommandHelper;
-import org.apache.felix.shell.Command;
+import com.athaydes.osgiaas.api.cli.StreamingCommand;
 
 import javax.annotation.Nullable;
 import java.io.PrintStream;
+import java.util.LinkedList;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-public class GrepCommand implements Command {
+public class GrepCommand implements StreamingCommand {
 
     private static final Pattern baPattern = Pattern.compile(
             "\\s*grep\\s+(-B\\s+(\\d+)\\s+)?(-A\\s+(\\d+)\\s+)?(.+)\\s+(.+)",
@@ -42,7 +44,22 @@ public class GrepCommand implements Command {
     }
 
     @Override
+    public Consumer<String> pipe( String line, PrintStream out, PrintStream err ) {
+        @Nullable Consumer<String> consumer = grepAndConsume( line, out, err );
+        if ( consumer != null ) {
+            return consumer;
+        } else {
+            return ( ignore ) -> {
+            };
+        }
+    }
+
+    @Override
     public void execute( String line, PrintStream out, PrintStream err ) {
+        grepAndConsume( line, out, err );
+    }
+
+    Consumer<String> grepAndConsume( String line, PrintStream out, PrintStream err ) {
         @Nullable GrepCall grepCall = grepCall( line );
 
         int limit = getLimit( grepCall );
@@ -53,7 +70,11 @@ public class GrepCommand implements Command {
             String regex = parts[ limit - 2 ];
             String text = parts[ limit - 1 ];
             try {
-                grep( regex, text, grepCall, out::println );
+                Consumer<String> consumer = grep( regex, grepCall, out::println );
+                for (String txtLine : text.split( "\n" )) {
+                    consumer.accept( txtLine );
+                }
+                return consumer;
             } catch ( PatternSyntaxException e ) {
                 err.println( "Pattern syntax error in [" + regex + "]: " + e.getMessage() );
             }
@@ -61,39 +82,40 @@ public class GrepCommand implements Command {
             CommandHelper.printError( err, getUsage(),
                     "Wrong number of arguments provided." );
         }
+
+        return null;
     }
 
-    static void grep( String regex, String text,
-                      @Nullable GrepCall grepCall, Consumer<String> lineConsumer ) {
+    static Consumer<String> grep( String regex,
+                                  @Nullable GrepCall grepCall,
+                                  Consumer<String> lineConsumer ) {
         Pattern regexPattern = Pattern.compile( ".*" + regex + ".*" );
-        String[] textLines = text.split( "\n" );
 
         // large number that can be safely added to without overflow
-        int pastLastMatch = 1 << 30;
-        int latestAddedIndex = -1;
+        final AtomicInteger pastLastMatch = new AtomicInteger( 1 << 30 );
         int beforeLines = grepCall == null ? 0 : grepCall.beforeLines;
         int afterLines = grepCall == null ? 0 : grepCall.afterLines;
 
-        //noinspection ForLoopReplaceableByForEach
-        for (int i = 0; i < textLines.length; i++) {
-            final String txtLine = textLines[ i ];
+        LinkedList<String> textLines = new LinkedList<>();
+
+        return txtLine -> {
             boolean match = regexPattern.matcher( txtLine ).matches();
             if ( match ) {
-                pastLastMatch = 0;
-                int indexToAdd = Math.max( 0, Math.max( latestAddedIndex + 1, i - beforeLines ) );
-                while ( indexToAdd < i ) {
-                    lineConsumer.accept( textLines[ indexToAdd ] );
-                    indexToAdd++;
+                pastLastMatch.set( 0 );
+                while ( !textLines.isEmpty() ) {
+                    lineConsumer.accept( textLines.removeFirst() );
                 }
             }
 
-            if ( pastLastMatch <= afterLines ) {
-                latestAddedIndex = i;
+            if ( pastLastMatch.getAndIncrement() <= afterLines ) {
                 lineConsumer.accept( txtLine );
+            } else if ( beforeLines > 0 ) {
+                textLines.add( txtLine );
+                if ( textLines.size() > beforeLines ) {
+                    textLines.removeFirst();
+                }
             }
-
-            pastLastMatch++;
-        }
+        };
     }
 
     private static int getLimit( @Nullable GrepCall grepCall ) {

@@ -1,5 +1,6 @@
 package com.athaydes.osgiaas.cli.command
 
+import com.athaydes.osgiaas.api.stream.LineOutputStream
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -49,22 +50,25 @@ class GrepCommandSpec extends Specification {
 
     @Unroll
     def "Can grep text as expected"() {
-        given: 'a GrepCall with beforeLines = #before and afterLines = #after'
-        def grepCall = new GrepCommand.GrepCall( before, true, after, true )
-
-        and: 'A sample text'
+        given: 'A sample text'
         def text = '''\
             |abc
             |def
             |ghi
             |abcdefghi'''.stripMargin()
 
-        when: 'We grep using the regex = #regex'
-        def result = []
-        GrepCommand.grep( regex, text, grepCall, result.&add )
+        when: 'We grep the text using the regex = #regex'
+        def result = [ ]
+        def errors = [ ]
+        new GrepCommand().grepAndConsume( "grep -B $before -A $after $regex $text",
+                new PrintStream( new LineOutputStream( result.&add ) ),
+                new PrintStream( new LineOutputStream( errors.&add ) ) )
 
         then: 'The selected lines are as expected'
         result == expectedResult
+
+        and: 'No errors are printed'
+        errors.empty
 
         where:
         regex | before | after | expectedResult
@@ -78,6 +82,7 @@ class GrepCommandSpec extends Specification {
         'a'   | 1      | 0     | [ 'abc', 'ghi', 'abcdefghi' ]
         'a'   | 0      | 1     | [ 'abc', 'def', 'abcdefghi' ]
         'd'   | 1      | 1     | [ 'abc', 'def', 'ghi', 'abcdefghi' ]
+        'd'   | 1      | 0     | [ 'abc', 'def', 'ghi', 'abcdefghi' ]
         'd'   | 2      | 2     | [ 'abc', 'def', 'ghi', 'abcdefghi' ]
         'c$'  | 2      | 2     | [ 'abc', 'def', 'ghi' ]
         'cd'  | 2      | 2     | [ 'def', 'ghi', 'abcdefghi' ]

@@ -37,13 +37,10 @@ public class OsgiaasShell {
         userCommand = userCommand.trim();
         int cmdLastIndex = userCommand.indexOf( ' ' );
         String command;
-        String args;
         if ( cmdLastIndex < 0 ) {
             command = userCommand;
-            args = "";
         } else {
             command = userCommand.substring( 0, cmdLastIndex );
-            args = userCommand.substring( cmdLastIndex + 1, userCommand.length() );
         }
 
         @Nullable
@@ -51,10 +48,9 @@ public class OsgiaasShell {
 
         if ( cmd != null ) {
             if ( cmd instanceof StreamingCommand ) {
-                out.println( "Piping " + cmd );
                 StreamingCommand streamingCommand = ( StreamingCommand ) cmd;
                 executePiped( new LinkedList<>(
-                                Arrays.asList( new Cmd( streamingCommand, args ) ) ),
+                                Arrays.asList( new Cmd( streamingCommand, userCommand ) ) ),
                         out, err );
             } else {
                 cmd.execute( userCommand, out, err );
@@ -70,7 +66,7 @@ public class OsgiaasShell {
 
         while ( !cmds.isEmpty() ) {
             Cmd current = cmds.removeLast();
-            lineConsumer = current.cmd.pipe( current.args,
+            lineConsumer = current.cmd.pipe( current.userCommand,
                     new PrintStream( new LineOutputStream( lineConsumer ), true ), err );
         }
     }
@@ -87,11 +83,11 @@ public class OsgiaasShell {
 
     static class Cmd {
         final StreamingCommand cmd;
-        final String args;
+        final String userCommand;
 
         public Cmd( StreamingCommand cmd, String args ) {
             this.cmd = cmd;
-            this.args = args;
+            this.userCommand = args;
         }
     }
 
