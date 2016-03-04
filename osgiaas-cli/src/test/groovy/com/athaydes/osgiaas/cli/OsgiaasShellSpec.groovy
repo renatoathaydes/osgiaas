@@ -1,6 +1,6 @@
 package com.athaydes.osgiaas.cli
 
-import com.athaydes.osgiaas.api.cli.OsgiaasCommand
+import com.athaydes.osgiaas.api.cli.StreamingCommand
 import com.athaydes.osgiaas.api.stream.LineOutputStream
 import spock.lang.Specification
 
@@ -72,8 +72,8 @@ class OsgiaasShellSpec extends Specification {
         receiver3 == [ 'c2', 'c22' ]
     }
 
-    private OsgiaasCommand mockCommand( List receiver, String... linesToPrint ) {
-        Stub( OsgiaasCommand ) {
+    private StreamingCommand mockCommand( List receiver, String... linesToPrint ) {
+        Stub( StreamingCommand ) {
             //noinspection GroovyAssignabilityCheck
             pipe( _, _, _ ) >> { String line, PrintStream out, PrintStream err ->
                 linesToPrint.each( out.&println )

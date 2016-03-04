@@ -6,11 +6,14 @@ import java.io.PrintStream;
 import java.util.function.Consumer;
 
 /**
- * OSGiaaS Command.
+ * OSGiaaS streaming-capable Command.
  * <p>
- * Extends FelixShell Command to add support for streaming, which allows efficient pipes.
+ * Extends FelixShell Command to add support for streaming, which allows for efficient pipes.
+ * <p>
+ * If a Command implements this interface, then its pipe() method will be used during piping
+ * operations, instead of {@link Command}'s execute().
  */
-public interface OsgiaasCommand extends Command {
+public interface StreamingCommand extends Command {
 
     /**
      * Run this command in a pipe, returning a String consumer which can be used

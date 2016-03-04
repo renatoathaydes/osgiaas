@@ -1,6 +1,6 @@
 package com.athaydes.osgiaas.cli;
 
-import com.athaydes.osgiaas.api.cli.OsgiaasCommand;
+import com.athaydes.osgiaas.api.cli.StreamingCommand;
 import com.athaydes.osgiaas.api.stream.LineOutputStream;
 import com.athaydes.osgiaas.cli.util.HasManyServices;
 import org.apache.felix.shell.Command;
@@ -33,10 +33,10 @@ public class OsgiaasShell extends HasManyServices<Command> {
                 .findFirst();
 
         if ( cmd.isPresent() ) {
-            if ( cmd.get() instanceof OsgiaasCommand ) {
-                OsgiaasCommand osgiaasCommand = ( OsgiaasCommand ) cmd.get();
+            if ( cmd.get() instanceof StreamingCommand ) {
+                StreamingCommand streamingCommand = ( StreamingCommand ) cmd.get();
                 executePiped( new LinkedList<>(
-                                Arrays.asList( new Cmd( osgiaasCommand, args ) ) ),
+                                Arrays.asList( new Cmd( streamingCommand, args ) ) ),
                         out, err );
             }
         } else {
@@ -56,10 +56,10 @@ public class OsgiaasShell extends HasManyServices<Command> {
     }
 
     static class Cmd {
-        final OsgiaasCommand cmd;
+        final StreamingCommand cmd;
         final String args;
 
-        public Cmd( OsgiaasCommand cmd, String args ) {
+        public Cmd( StreamingCommand cmd, String args ) {
             this.cmd = cmd;
             this.args = args;
         }
