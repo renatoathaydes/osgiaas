@@ -1,15 +1,15 @@
 package com.athaydes.osgiaas.cli;
 
 import com.athaydes.osgiaas.api.cli.OsgiaasCommand;
+import com.athaydes.osgiaas.api.stream.LineOutputStream;
 import com.athaydes.osgiaas.cli.util.HasManyServices;
 import org.apache.felix.shell.Command;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * OSGiaaS Shell.
@@ -46,19 +46,12 @@ public class OsgiaasShell extends HasManyServices<Command> {
     }
 
     void executePiped( LinkedList<Cmd> cmds, PrintStream out, PrintStream err ) {
-        OutputStream outputStream = out;
+        Consumer<String> lineConsumer = out::println;
 
         while ( !cmds.isEmpty() ) {
             Cmd current = cmds.removeLast();
-            outputStream = current.cmd.pipe( current.args,
-                    new PrintStream( outputStream, true ), err );
-        }
-
-        // no input for the first cmd in the pipeline
-        try {
-            outputStream.close();
-        } catch ( IOException e ) {
-            e.printStackTrace();
+            lineConsumer = current.cmd.pipe( current.args,
+                    new PrintStream( new LineOutputStream( lineConsumer ), true ), err );
         }
     }
 

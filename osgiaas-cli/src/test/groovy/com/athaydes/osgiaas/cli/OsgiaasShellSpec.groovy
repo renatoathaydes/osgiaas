@@ -1,81 +1,59 @@
 package com.athaydes.osgiaas.cli
 
 import com.athaydes.osgiaas.api.cli.OsgiaasCommand
+import com.athaydes.osgiaas.api.stream.LineOutputStream
 import spock.lang.Specification
 
-@SuppressWarnings( "GroovyAssignabilityCheck" )
 class OsgiaasShellSpec extends Specification {
 
     def shell = new OsgiaasShell()
 
     def "OSGiaaS Shell can execute simple commands"() {
         given: 'a simple command is added to the shell'
-        def commandReceiver = Mock( OutputStream )
-        def command = Stub( OsgiaasCommand ) {
-            pipe( _, _, _ ) >> { String line, PrintStream out, PrintStream err ->
-                out.println( 'hello simple' )
-                return commandReceiver
-            }
-            getName() >> 'simple'
-        }
+        def commandReceiver = [ ]
+        def command = mockCommand( commandReceiver, 'hello simple' )
         shell.addService( command )
 
         and: 'mocked out streams'
         def output = [ ]
-        def out = outputStreamWith( output )
-        def err = Mock( OutputStream )
+        def out = new LineOutputStream( output.&add )
+        def errorOut = [ ]
+        def err = new LineOutputStream( errorOut.&add )
 
         when: 'the command is executed'
         shell.executePiped( [ new OsgiaasShell.Cmd( command, '' ) ] as LinkedList<OsgiaasShell.Cmd>,
                 new PrintStream( out ), new PrintStream( err ) )
 
-        then: 'the OutputStream gets the text printed by the simple command'
-        output == 'hello simple\n'.bytes.collect { it as int }
+        then: 'the Out stream gets the text printed by the simple command'
+        output == [ 'hello simple' ]
 
-        and: 'the command receiver gets no input but is closed'
-        1 * commandReceiver.close()
+        and: 'the error stream does not receive any input'
+        errorOut.empty
+
+        and: 'the command receives no input'
+        commandReceiver.empty
     }
 
     def "OSGiaaS Shell can execute piped commands"() {
         given: 'a few simple commands are added to the shell'
         def receiver1 = [ ]
-        def commandReceiver1 = outputStreamWith( receiver1 )
-        def command1 = Stub( OsgiaasCommand ) {
-            pipe( _, _, _ ) >> { String line, PrintStream out, PrintStream err ->
-                out.println( 'c1' )
-                return commandReceiver1
-            }
-            getName() >> 'c1'
-        }
+        def command1 = mockCommand( receiver1, 'c1' )
 
         def receiver2 = [ ]
-        def commandReceiver2 = outputStreamWith( receiver2 )
-        def command2 = Stub( OsgiaasCommand ) {
-            pipe( _, _, _ ) >> { String line, PrintStream out, PrintStream err ->
-                out.println( 'c2' )
-                return commandReceiver2
-            }
-            getName() >> 'c2'
-        }
+        def command2 = mockCommand( receiver2, 'c2', 'c22' )
 
         def receiver3 = [ ]
-        def commandReceiver3 = outputStreamWith( receiver3 )
-        def command3 = Stub( OsgiaasCommand ) {
-            pipe( _, _, _ ) >> { String line, PrintStream out, PrintStream err ->
-                out.println( 'c3' )
-                return commandReceiver3
-            }
-            getName() >> 'c3'
-        }
+        def command3 = mockCommand( receiver3, 'c3', 'again c3' )
 
         shell.addService( command1 )
         shell.addService( command2 )
         shell.addService( command3 )
 
-        and: 'mocked out streams'
+        and: 'mocked out output streams'
         def output = [ ]
-        def out = outputStreamWith( output )
-        def err = Mock( OutputStream )
+        def out = new LineOutputStream( output.&add )
+        def errorOut = [ ]
+        def err = new LineOutputStream( errorOut.&add )
 
         when: 'the commands are executed piped'
         shell.executePiped( [
@@ -86,31 +64,22 @@ class OsgiaasShellSpec extends Specification {
                 new PrintStream( out ), new PrintStream( err ) )
 
         then: 'the OutputStream gets the text printed by the last command'
-        output == 'c3\n'.bytes.collect { it as int }
+        output == [ 'c3', 'again c3' ]
 
-        and: 'the command receivers for the second and third commands get the expected input'
+        and: 'the commands get the expected streamed input'
         receiver1 == [ ]
-        receiver2 == 'c1\n'.bytes.collect { it as int }
-        receiver3 == 'c2\n'.bytes.collect { it as int }
-
-        and: 'only the first command receiver is closed (the others may be the actual user out and should not be closed)'
-        1 * commandReceiver1.close()
-        0 * commandReceiver2.close()
-        0 * commandReceiver3.close()
+        receiver2 == [ 'c1' ]
+        receiver3 == [ 'c2', 'c22' ]
     }
 
-    private OutputStream outputStreamWith( List collector ) {
-        def delegate = new OutputStream() {
-            @Override
-            void write( int b ) {
-                collector << b
+    private OsgiaasCommand mockCommand( List receiver, String... linesToPrint ) {
+        Stub( OsgiaasCommand ) {
+            //noinspection GroovyAssignabilityCheck
+            pipe( _, _, _ ) >> { String line, PrintStream out, PrintStream err ->
+                linesToPrint.each( out.&println )
+                return receiver.&add
             }
-        }
-        Mock( OutputStream ) {
-            write( _ ) >> { int b -> delegate.write( b ) }
-            write( _, _, _ ) >> { byte[] bs, int off, int len ->
-                delegate.write( bs, off, len )
-            }
+            getName() >> UUID.randomUUID().toString()
         }
     }
 
