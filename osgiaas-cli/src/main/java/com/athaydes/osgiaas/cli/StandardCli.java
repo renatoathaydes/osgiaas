@@ -9,7 +9,7 @@ import com.athaydes.osgiaas.cli.util.DynamicServiceHelper;
 import com.athaydes.osgiaas.cli.util.HasManyCommandCompleters;
 import com.athaydes.osgiaas.cli.util.HasManyServices;
 import jline.console.completer.Completer;
-import org.apache.felix.shell.ShellService;
+import org.apache.felix.shell.Command;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
@@ -18,7 +18,9 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
@@ -28,7 +30,8 @@ public class StandardCli extends HasManyServices<CommandModifier>
         implements Cli, CliProperties {
 
     private final AtomicReference<CliRun> currentRun = new AtomicReference<>();
-    private final AtomicReference<ShellService> shellService = new AtomicReference<>();
+    private final AtomicReference<Set<Command>> commands = new AtomicReference<>( new HashSet<>( 2 ) );
+    private final OsgiaasShell shell = new OsgiaasShell( commands::get );
 
     private final HasManyCommandCompleters completers = new HasManyCommandCompleters() {
         @Override
@@ -87,20 +90,18 @@ public class StandardCli extends HasManyServices<CommandModifier>
     }
 
     private void runCommand( String command, PrintStream out, PrintStream err, String argument ) {
-        withShellService( shell -> {
-            try {
-                List<String> transformedCommands = transformCommand( command.trim(), getServices() );
-                for (String cmd : transformedCommands) {
-                    if ( cmd.contains( "|" ) ) {
-                        runWithPipes( cmd, out, err );
-                    } else {
-                        shell.executeCommand( cmd + " " + argument, out, err );
-                    }
+        try {
+            List<String> transformedCommands = transformCommand( command.trim(), getServices() );
+            for (String cmd : transformedCommands) {
+                if ( cmd.contains( "|" ) ) {
+                    runWithPipes( cmd, out, err );
+                } else {
+                    shell.executeCommand( cmd + " " + argument, out, err );
                 }
-            } catch ( Exception e ) {
-                e.printStackTrace( err );
             }
-        }, () -> err.println( "Shell service is unavailable" ) );
+        } catch ( Exception e ) {
+            e.printStackTrace( err );
+        }
     }
 
     private void runWithPipes( String command, PrintStream out, PrintStream err )
@@ -182,10 +183,7 @@ public class StandardCli extends HasManyServices<CommandModifier>
 
     @Override
     public String[] availableCommands() {
-        AtomicReference<String[]> result = new AtomicReference<>( new String[ 0 ] );
-        withShellService( shell -> result.set( shell.getCommands() ), () ->
-                System.out.println( "Shell service is unavailable" ) );
-        return result.get();
+        return shell.getCommands();
     }
 
     @Override
@@ -208,14 +206,6 @@ public class StandardCli extends HasManyServices<CommandModifier>
         textColor = color;
     }
 
-    public void setShellService( ShellService shellService ) {
-        this.shellService.set( shellService );
-    }
-
-    public void removeShellService( ShellService shellService ) {
-        this.shellService.set( null );
-    }
-
     public void addCommandModifier( CommandModifier commandModifier ) {
         addService( commandModifier );
     }
@@ -230,6 +220,21 @@ public class StandardCli extends HasManyServices<CommandModifier>
 
     public void removeCommandCompleter( CommandCompleter commandCompleter ) {
         completers.removeService( commandCompleter );
+    }
+
+    public void addCommand( Command command ) {
+        commands.updateAndGet( cmds -> {
+            cmds.add( command );
+            return new HashSet<>( cmds );
+        } );
+
+    }
+
+    public void removeCommand( Command command ) {
+        commands.updateAndGet( cmds -> {
+            cmds.remove( command );
+            return new HashSet<>( cmds );
+        } );
     }
 
     @Override
@@ -254,10 +259,6 @@ public class StandardCli extends HasManyServices<CommandModifier>
 
     private void withCli( Consumer<CliRun> consumer ) {
         DynamicServiceHelper.with( currentRun, consumer );
-    }
-
-    private void withShellService( Consumer<ShellService> consumer, Runnable onUnavailable ) {
-        DynamicServiceHelper.with( shellService, consumer, onUnavailable );
     }
 
     private String asciiArtLogo() {

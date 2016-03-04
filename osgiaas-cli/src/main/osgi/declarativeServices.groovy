@@ -2,7 +2,7 @@ commonProperties = { ->
     property( name: 'service.vendor', value: 'com.athaydes' )
 }
 
-cliPropertiesReference = {->
+cliPropertiesReference = { ->
     reference( name: 'osgiaasStandardCli',
             'interface': 'com.athaydes.osgiaas.api.cli.CliProperties',
             'cardinality': '0..1',
@@ -20,12 +20,12 @@ component( xmlns: "http://www.osgi.org/xmlns/scr/v1.3.0",
         provide( 'interface': 'com.athaydes.osgiaas.api.cli.Cli' )
         provide( 'interface': 'com.athaydes.osgiaas.api.cli.CliProperties' )
     }
-    reference( name: 'shellService',
-            'interface': 'org.apache.felix.shell.ShellService',
-            'cardinality': '0..1',
+    reference( name: 'commands',
+            'interface': 'org.apache.felix.shell.Command',
+            'cardinality': '0..n',
             'policy': 'dynamic',
-            'bind': 'setShellService',
-            'unbind': 'removeShellService' )
+            'bind': 'addCommand',
+            'unbind': 'removeCommand' )
     reference( name: 'commandModifiers',
             'interface': 'com.athaydes.osgiaas.api.cli.CommandModifier',
             'cardinality': '0..n',
@@ -40,7 +40,7 @@ component( xmlns: "http://www.osgi.org/xmlns/scr/v1.3.0",
             'unbind': 'removeCommandCompleter' )
 }
 
-component(name: 'osgiaasCommandCompleter', immediate: true) {
+component( name: 'osgiaasCommandCompleter', immediate: true ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.OsgiaasCommandCompleter' )
     property( name: 'service.description', value: 'OsgiAAS Cli Command Completer' )

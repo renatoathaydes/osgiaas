@@ -6,13 +6,12 @@ import spock.lang.Specification
 
 class OsgiaasShellSpec extends Specification {
 
-    def shell = new OsgiaasShell()
-
     def "OSGiaaS Shell can execute simple commands"() {
-        given: 'a simple command is added to the shell'
+        given: 'a OSGiaaS Shell with a simple command'
         def commandReceiver = [ ]
         def command = mockCommand( commandReceiver, 'hello simple' )
-        shell.addService( command )
+
+        def shell = new OsgiaasShell( { [ command ] as Set } )
 
         and: 'mocked out streams'
         def output = [ ]
@@ -45,9 +44,7 @@ class OsgiaasShellSpec extends Specification {
         def receiver3 = [ ]
         def command3 = mockCommand( receiver3, 'c3', 'again c3' )
 
-        shell.addService( command1 )
-        shell.addService( command2 )
-        shell.addService( command3 )
+        def shell = new OsgiaasShell( { [ command1, command2, command3 ] as Set } )
 
         and: 'mocked out output streams'
         def output = [ ]
