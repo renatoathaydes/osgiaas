@@ -2,6 +2,7 @@ package com.athaydes.osgiaas.cli.command;
 
 import com.athaydes.osgiaas.api.cli.CommandHelper;
 import com.athaydes.osgiaas.api.cli.StreamingCommand;
+import com.athaydes.osgiaas.api.stream.LineOutputStream;
 
 import javax.annotation.Nullable;
 import java.io.PrintStream;
@@ -15,11 +16,11 @@ import java.util.regex.PatternSyntaxException;
 public class GrepCommand implements StreamingCommand {
 
     private static final Pattern baPattern = Pattern.compile(
-            "\\s*grep\\s+(-B\\s+(\\d+)\\s+)?(-A\\s+(\\d+)\\s+)?(.+)\\s+(.+)",
+            "\\s*grep\\s+(-B\\s+(\\d+)\\s+)?(-A\\s+(\\d+)\\s+)?([^\\s]+)(\\s+(.*))?",
             Pattern.DOTALL );
 
     private static final Pattern abPattern = Pattern.compile(
-            "\\s*grep\\s+(-A\\s+(\\d+)\\s+)?(-B\\s+(\\d+)\\s+)?(.+)\\s+(.+)",
+            "\\s*grep\\s+(-A\\s+(\\d+)\\s+)?(-B\\s+(\\d+)\\s+)?([^\\s]+)(\\s+(.*))?",
             Pattern.DOTALL );
 
     @Override
@@ -44,13 +45,13 @@ public class GrepCommand implements StreamingCommand {
     }
 
     @Override
-    public Consumer<String> pipe( String line, PrintStream out, PrintStream err ) {
+    public LineOutputStream pipe( String line, PrintStream out, PrintStream err ) {
         @Nullable Consumer<String> consumer = grepAndConsume( line, out, err );
         if ( consumer != null ) {
-            return consumer;
+            return new LineOutputStream( consumer, out );
         } else {
-            return ( ignore ) -> {
-            };
+            return new LineOutputStream( ( ignore ) -> {
+            }, out );
         }
     }
 
@@ -62,13 +63,11 @@ public class GrepCommand implements StreamingCommand {
     Consumer<String> grepAndConsume( String line, PrintStream out, PrintStream err ) {
         @Nullable GrepCall grepCall = grepCall( line );
 
-        int limit = getLimit( grepCall );
 
-        String[] parts = CommandHelper.breakupArguments( line, limit );
+        if ( grepCall != null ) {
+            String regex = grepCall.regex;
+            String text = grepCall.text;
 
-        if ( limit > 0 && parts.length == limit ) {
-            String regex = parts[ limit - 2 ];
-            String text = parts[ limit - 1 ];
             try {
                 Consumer<String> consumer = grep( regex, grepCall, out::println );
                 for (String txtLine : text.split( "\n" )) {
@@ -118,54 +117,51 @@ public class GrepCommand implements StreamingCommand {
         };
     }
 
-    private static int getLimit( @Nullable GrepCall grepCall ) {
-        int limit;
-        if ( grepCall == null ) {
-            limit = -1; // just cause printError to be called
-        } else if ( grepCall.beforeGiven && grepCall.afterGiven ) {
-            limit = 7;
-        } else if ( grepCall.beforeGiven ^ grepCall.afterGiven ) { // either -B or -A given
-            limit = 5;
-        } else { // neither -B nor -A given
-            limit = 3;
-        }
-        return limit;
-    }
-
     @Nullable
     static GrepCall grepCall( String line ) {
         Matcher abMatch = abPattern.matcher( line );
         Matcher baMatch = baPattern.matcher( line );
 
         if ( abMatch.matches() && baMatch.matches() ) {
-            String text = abMatch.group( 6 );
-            if ( text == null || text.isEmpty() ) {
-                return null;
-            }
-
+            String regex;
+            @Nullable String text;
             @Nullable String after;
             @Nullable String before;
 
-            int abGroupCount = groupCount( abMatch );
-            int baGroupCount = groupCount( baMatch );
+            Matcher matcher = selectBestMatcher( abMatch, baMatch );
 
-            if ( abGroupCount > baGroupCount ) {
-                after = abMatch.group( 2 );
-                before = abMatch.group( 4 );
-            } else {
-                before = baMatch.group( 2 );
-                after = baMatch.group( 4 );
-            }
+            after = matcher.group( matcher == abMatch ? 2 : 4 );
+            before = matcher.group( matcher == baMatch ? 2 : 4 );
+            regex = matcher.group( 5 );
+            text = matcher.group( 7 );
 
             int beforeLines = parseInt( before );
             int afterLines = parseInt( after );
 
             return new GrepCall(
                     beforeLines, before != null,
-                    afterLines, after != null );
+                    afterLines, after != null,
+                    regex, text == null ? "" : text );
         } else {
             return null;
         }
+    }
+
+    private static Matcher selectBestMatcher( Matcher m1, Matcher m2 ) {
+        int count1 = optionalValuesCount( m1 );
+        int count2 = optionalValuesCount( m2 );
+        if ( count1 > count2 ) {
+            return m1;
+        } else {
+            return m2;
+        }
+    }
+
+    private static int optionalValuesCount( Matcher matcher ) {
+        int count = 0;
+        if ( matcher.group( 2 ) != null ) count++;
+        if ( matcher.group( 4 ) != null ) count++;
+        return count;
     }
 
     private static int parseInt( @Nullable String arg ) {
@@ -174,28 +170,35 @@ public class GrepCommand implements StreamingCommand {
                 Integer.parseInt( arg );
     }
 
-    private static int groupCount( Matcher matcher ) {
-        int result = 0;
-        for (int i = 1; i <= matcher.groupCount(); i++) {
-            if ( matcher.group( i ) != null ) {
-                result++;
-            }
-        }
-        return result;
-    }
-
     static class GrepCall {
         final int beforeLines;
         final boolean beforeGiven;
         final int afterLines;
         final boolean afterGiven;
+        final String regex;
+        final String text;
 
         public GrepCall( int beforeLines, boolean beforeGiven,
-                         int afterLines, boolean afterGiven ) {
+                         int afterLines, boolean afterGiven,
+                         String regex, String text ) {
             this.beforeLines = beforeLines;
             this.beforeGiven = beforeGiven;
             this.afterLines = afterLines;
             this.afterGiven = afterGiven;
+            this.regex = regex;
+            this.text = text;
+        }
+
+        @Override
+        public String toString() {
+            return "GrepCall{" +
+                    "beforeLines=" + beforeLines +
+                    ", beforeGiven=" + beforeGiven +
+                    ", afterLines=" + afterLines +
+                    ", afterGiven=" + afterGiven +
+                    ", regex=" + regex +
+                    ", textLength=" + text.length() +
+                    '}';
         }
     }
 

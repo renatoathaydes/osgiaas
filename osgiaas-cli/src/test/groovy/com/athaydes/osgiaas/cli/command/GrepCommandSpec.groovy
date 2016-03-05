@@ -19,19 +19,25 @@ class GrepCommandSpec extends Specification {
         result.beforeGiven == beforeGiven
         result.afterLines == after
         result.afterGiven == afterGiven
+        result.regex == regex
+        result.text == text
 
         where:
-        line                 | before | after | beforeGiven | afterGiven
-        'grep a b'           | 0      | 0     | false       | false
-        'grep a b c'         | 0      | 0     | false       | false
-        'grep -B 2 a b'      | 2      | 0     | true        | false
-        'grep -B 2 -A 6 a b' | 2      | 6     | true        | true
-        'grep -A 2 a b'      | 0      | 2     | false       | true
-        'grep -A 2 -B 3 a b' | 3      | 2     | true        | true
-        'grep -A b'          | 0      | 0     | false       | false
-        'grep -B b'          | 0      | 0     | false       | false
-        'grep -B -A b'       | 0      | 0     | false       | false
-        'grep -b x'          | 0      | 0     | false       | false
+        line                 | before | after | beforeGiven | afterGiven | regex          | text
+        'grep a b'           | 0      | 0     | false       | false      | 'a'            | 'b'
+        'grep a b c'         | 0      | 0     | false       | false      | 'a'            | 'b c'
+        'grep -B 2 a b'      | 2      | 0     | true        | false      | 'a'            | 'b'
+        'grep -B 2 -A 6 a b' | 2      | 6     | true        | true       | 'a'            | 'b'
+        'grep -A 2 a b'      | 0      | 2     | false       | true       | 'a'            | 'b'
+        'grep -A 2 -B 3 a b' | 3      | 2     | true        | true       | 'a'            | 'b'
+        'grep -A b'          | 0      | 0     | false       | false      | '-A'           | 'b'
+        'grep -B b'          | 0      | 0     | false       | false      | '-B'           | 'b'
+        'grep -B -A b'       | 0      | 0     | false       | false      | '-B'           | '-A b'
+        'grep -b x'          | 0      | 0     | false       | false      | '-b'           | 'x'
+        'grep  -A 3 -B 1 hi' | 1      | 3     | true        | true       | 'hi'           | ''
+        'grep  -B 1 -A 3 hi' | 1      | 3     | true        | true       | 'hi'           | ''
+        'grep rx'            | 0      | 0     | false       | false      | 'rx'           | ''
+        'grep .*a[a-Z]+\\s'  | 0      | 0     | false       | false      | '.*a[a-Z]+\\s' | ''
     }
 
     @Unroll
@@ -44,7 +50,7 @@ class GrepCommandSpec extends Specification {
 
         where:
         line << [
-                '', 'abc', 'grepme', 'grep', 'grep abc'
+                '', 'abc', 'grepme', 'grep'
         ]
     }
 
@@ -61,8 +67,8 @@ class GrepCommandSpec extends Specification {
         def result = [ ]
         def errors = [ ]
         new GrepCommand().grepAndConsume( "grep -B $before -A $after $regex $text",
-                new PrintStream( new LineOutputStream( result.&add ) ),
-                new PrintStream( new LineOutputStream( errors.&add ) ) )
+                new PrintStream( new LineOutputStream( result.&add, { -> } ) ),
+                new PrintStream( new LineOutputStream( errors.&add, { -> } ) ) )
 
         then: 'The selected lines are as expected'
         result == expectedResult
@@ -86,6 +92,42 @@ class GrepCommandSpec extends Specification {
         'd'   | 2      | 2     | [ 'abc', 'def', 'ghi', 'abcdefghi' ]
         'c$'  | 2      | 2     | [ 'abc', 'def', 'ghi' ]
         'cd'  | 2      | 2     | [ 'def', 'ghi', 'abcdefghi' ]
+    }
+
+    @Unroll
+    def "Grep can be called without immediate text input"() {
+        when: 'the grep command is called with some options, but no immediate text input'
+        def result = [ ]
+        def errors = [ ]
+        def consumer = new GrepCommand().grepAndConsume( "grep $args",
+                new PrintStream( new LineOutputStream( result.&add, { -> } ) ),
+                new PrintStream( new LineOutputStream( errors.&add, { -> } ) ) )
+
+        then: 'No output or error is sent out'
+        result.empty
+        errors.empty
+
+        when: 'some input is provided via the grep consumer'
+        consumer.accept( lateInput )
+
+        then: 'the expected output is sent out'
+        result == expectedOutput
+
+        and: 'no errors are reported'
+        errors.empty
+
+        where:
+        args              | lateInput | expectedOutput
+        'regex'           | 'hi'      | [ ]
+        'hi'              | 'hi'      | [ 'hi' ]
+        '-B 1 regex'      | 'hi'      | [ ]
+        '-B 1 hi'         | 'hi'      | [ 'hi' ]
+        '-B 1 -A 2 regex' | 'hi'      | [ ]
+        '-B 1 -A 2 hi'    | 'hi'      | [ 'hi' ]
+        '-A 3 -B 1 regex' | 'hi'      | [ ]
+        '-A 3 -B 1 hi'    | 'hi'      | [ 'hi' ]
+        '-A 4 regex'      | 'hi'      | [ ]
+        '-A 4 hi'         | 'hi'      | [ 'hi' ]
     }
 
 }
