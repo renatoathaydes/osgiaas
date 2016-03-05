@@ -2,8 +2,8 @@ package com.athaydes.osgiaas.api.cli;
 
 import org.apache.felix.shell.Command;
 
+import java.io.OutputStream;
 import java.io.PrintStream;
-import java.util.function.Consumer;
 
 /**
  * OSGiaaS streaming-capable Command.
@@ -16,13 +16,14 @@ import java.util.function.Consumer;
 public interface StreamingCommand extends Command {
 
     /**
-     * Run this command in a pipe, returning a String consumer which can be used
+     * Run this command in a pipe, returning a stream which can be used
      * by this command to receive text lines as input.
      *
      * @param command command invocation line. May include the first line of text input.
      * @param out     output stream
      * @param err     error stream
+     * @return stream that can be used to write to this command.
      */
-    Consumer<String> pipe( String command, PrintStream out, PrintStream err );
+    OutputStream pipe( String command, PrintStream out, PrintStream err );
 
 }

@@ -2,23 +2,20 @@ package com.athaydes.osgiaas.cli;
 
 import com.athaydes.osgiaas.api.cli.CommandModifier;
 import com.athaydes.osgiaas.api.cli.StreamingCommand;
+import com.athaydes.osgiaas.api.stream.LineAccumulatorOutputStream;
 import com.athaydes.osgiaas.api.stream.LineOutputStream;
 import org.apache.felix.shell.Command;
 
 import javax.annotation.Nullable;
-import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * OSGiaaS Shell.
@@ -44,46 +41,33 @@ public class OsgiaasShell {
         return result;
     }
 
-    public void executeCommand( String userCommand, PrintStream out, PrintStream err ) {
-        userCommand = userCommand.trim();
-        int cmdLastIndex = userCommand.indexOf( ' ' );
-        String command;
-        if ( cmdLastIndex < 0 ) {
-            command = userCommand;
-        } else {
-            command = userCommand.substring( 0, cmdLastIndex );
-        }
+    public void runCommand( String userCommand, PrintStream out, PrintStream err ) {
+        Set<CommandModifier> commandModifiers = modifiersProvider.get();
+        LinkedList<List<Cmd>> commandsPipeline = new LinkedList<>();
+        String[] pipes = userCommand.split( "\\|" );
 
-        @Nullable
-        Command cmd = findCommand( command );
-
-        if ( cmd != null ) {
-            if ( cmd instanceof StreamingCommand ) {
-                StreamingCommand streamingCommand = ( StreamingCommand ) cmd;
-                executePiped( new LinkedList<>(
-                                Arrays.asList( new Cmd( streamingCommand, userCommand ) ) ),
-                        out, err );
-            } else {
-                cmd.execute( userCommand, out, err );
-            }
-        } else {
-            err.println( "Command not found: " + command );
-        }
-
-    }
-
-    public void runCommand( String command, PrintStream out, PrintStream err ) {
-        runCommand( command, out, err, "" );
-    }
-
-    private void runCommand( String command, PrintStream out, PrintStream err, String argument ) {
         try {
-            List<String> transformedCommands = transformCommand( command.trim(), modifiersProvider.get() );
-            for (String cmd : transformedCommands) {
-                if ( cmd.contains( "|" ) ) {
-                    runWithPipes( cmd, out, err );
-                } else {
-                    executeCommand( cmd + " " + argument, out, err );
+            for (String pipe : pipes) {
+                List<String> transformedCommands = transformCommand( pipe.trim(), commandModifiers );
+                List<Cmd> commands = new ArrayList<>( transformedCommands.size() );
+
+                for (String command : transformedCommands) {
+                    @Nullable Command actualCommand = tryGetCommand( command, err );
+                    if ( actualCommand == null ) {
+                        return;
+                    }
+                    commands.add( new Cmd( actualCommand, command ) );
+                }
+
+                commandsPipeline.add( commands );
+            }
+
+            if ( commandsPipeline.size() > 1 ) {
+                executePiped( commandsPipeline, out, err );
+            } else if ( commandsPipeline.size() == 1 ) {
+                List<Cmd> commandInvocations = commandsPipeline.get( 0 );
+                for (Cmd command : commandInvocations) {
+                    command.cmd.execute( command.userCommand, out, err );
                 }
             }
         } catch ( Exception e ) {
@@ -114,67 +98,60 @@ public class OsgiaasShell {
         }
     }
 
-    void executePiped( LinkedList<Cmd> cmds, PrintStream out, PrintStream err ) {
-        Consumer<String> lineConsumer = out::println;
+    void executePiped( LinkedList<List<Cmd>> pipeline, PrintStream out, PrintStream err ) throws Exception {
+        OutputStream lineConsumer = new LineOutputStream( out::println, () -> {
+        } );
 
-        while ( !cmds.isEmpty() ) {
-            Cmd current = cmds.removeLast();
-            lineConsumer = current.cmd.pipe( current.userCommand,
-                    new PrintStream( new LineOutputStream( lineConsumer ), true ), err );
+        while ( !pipeline.isEmpty() ) {
+            List<Cmd> currentCmds = pipeline.removeLast();
+            if ( currentCmds.isEmpty() ) {
+                continue;
+            }
+            Cmd current = executeAllButLast( currentCmds, out, err );
+            Command cmd = current.cmd;
+            if ( cmd instanceof StreamingCommand ) {
+                lineConsumer = ( ( StreamingCommand ) cmd ).pipe( current.userCommand,
+                        new PrintStream( lineConsumer, true ), err );
+            } else {
+                final OutputStream nextLineConsumer = lineConsumer;
+                lineConsumer = new LineAccumulatorOutputStream( ( allLines ) ->
+                        cmd.execute( current.userCommand + " " + allLines,
+                                new PrintStream( nextLineConsumer, true ), err )
+                        , nextLineConsumer );
+            }
+        }
+
+        // the first consumer in the pipeline is closed without further input
+        lineConsumer.close();
+    }
+
+    private Cmd executeAllButLast( List<Cmd> currentCmds, PrintStream out, PrintStream err ) {
+        for (int i = 0; i < currentCmds.size() - 1; i++) {
+            Cmd command = currentCmds.get( i );
+            command.cmd.execute( command.userCommand, out, err );
+        }
+        return currentCmds.get( currentCmds.size() - 1 );
+    }
+
+    private Command tryGetCommand( String userCommand, PrintStream err ) {
+        String commandName = extractCommandNameFrom( userCommand );
+        @Nullable Command cmd = findCommand( commandName );
+        if ( cmd == null ) {
+            err.println( "Command not found: " + commandName );
+            return null;
+        } else {
+            return cmd;
         }
     }
 
-    private void runWithPipes( String command, PrintStream out, PrintStream err )
-            throws Exception {
-        String[] parts = command.split( "\\|" );
+    private static String extractCommandNameFrom( String userCommand ) {
+        userCommand = userCommand.trim();
+        int cmdLastIndex = userCommand.indexOf( ' ' );
 
-        if ( parts.length <= 1 ) {
-            throw new RuntimeException( "runWithPipes called without pipe" );
+        if ( cmdLastIndex < 0 ) {
+            return userCommand;
         } else {
-            String prevOutput = "";
-            int index = parts.length;
-
-            final Pattern specialPipePattern = Pattern.compile( ">([A-z_]*)\\s+.*" );
-
-            for (String currCmd : parts) {
-                index--;
-
-                Matcher specialPipe = specialPipePattern.matcher( currCmd );
-
-                @Nullable
-                String specialPipeVariable;
-
-                if ( specialPipe.matches() &&
-                        ( specialPipeVariable = specialPipe.group( 1 ) ) != null ) {
-                    if ( specialPipeVariable.isEmpty() ) {
-                        currCmd = currCmd.substring( 1 );
-                        specialPipeVariable = "it";
-                    } else {
-                        currCmd = currCmd.substring( specialPipeVariable.length() + 1 );
-                    }
-                } else {
-                    specialPipeVariable = null;
-                }
-
-                boolean lastItem = index == 0;
-
-                if ( lastItem ) {
-                    if ( specialPipeVariable != null ) {
-                        String cmd = currCmd.replaceAll(
-                                Pattern.quote( "$(" + specialPipeVariable + ")" ),
-                                prevOutput );
-                        runCommand( cmd, out, err );
-                    } else {
-                        runCommand( currCmd, out, err, prevOutput );
-                    }
-                } else {
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream( 1024 );
-                    try ( PrintStream currOut = new PrintStream( baos, true, "UTF-8" ) ) {
-                        runCommand( currCmd, currOut, err, prevOutput );
-                    }
-                    prevOutput = baos.toString( "UTF-8" );
-                }
-            }
+            return userCommand.substring( 0, cmdLastIndex );
         }
     }
 
@@ -189,12 +166,12 @@ public class OsgiaasShell {
     }
 
     static class Cmd {
-        final StreamingCommand cmd;
+        final Command cmd;
         final String userCommand;
 
-        public Cmd( StreamingCommand cmd, String args ) {
+        public Cmd( Command cmd, String userCommand ) {
             this.cmd = cmd;
-            this.userCommand = args;
+            this.userCommand = userCommand;
         }
     }
 

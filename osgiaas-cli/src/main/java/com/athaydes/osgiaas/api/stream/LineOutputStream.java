@@ -13,10 +13,12 @@ public final class LineOutputStream extends OutputStream {
 
     private final Consumer<String> onLine;
     private StringBuilder builder;
+    private final AutoCloseable closeWhenDone;
 
-    public LineOutputStream( Consumer<String> onLine ) {
+    public LineOutputStream( Consumer<String> onLine, AutoCloseable closeWhenDone ) {
         this.onLine = onLine;
-        builder = new StringBuilder( BUFFER_CAPACITY );
+        this.builder = new StringBuilder( BUFFER_CAPACITY );
+        this.closeWhenDone = closeWhenDone;
     }
 
     @Override
@@ -29,13 +31,20 @@ public final class LineOutputStream extends OutputStream {
     }
 
     private void consumeLine() {
-        onLine.accept( builder.toString() );
-        builder = new StringBuilder( BUFFER_CAPACITY );
+        if ( builder.length() > 0 ) {
+            onLine.accept( builder.toString() );
+            builder = new StringBuilder( BUFFER_CAPACITY );
+        }
     }
 
     @Override
     public void close() throws IOException {
         consumeLine();
+        try {
+            closeWhenDone.close();
+        } catch ( Exception e ) {
+            throw new IOException( e );
+        }
     }
 
 }
