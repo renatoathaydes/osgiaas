@@ -23,8 +23,7 @@ dependencies {
 
 jar {
     manifest {
-        instruction 'Export-Package',
-                'com.athaydes.osgiaas.api.cli', 'com.athaydes.osgiaas.api.ansi'
+        instruction 'Export-Package', 'com.athaydes.osgiaas.api.*'
     }
 }
 
