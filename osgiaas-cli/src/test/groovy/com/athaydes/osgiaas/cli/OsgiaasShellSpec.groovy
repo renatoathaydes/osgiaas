@@ -1,5 +1,6 @@
 package com.athaydes.osgiaas.cli
 
+import com.athaydes.osgiaas.api.cli.CommandModifier
 import com.athaydes.osgiaas.api.cli.StreamingCommand
 import com.athaydes.osgiaas.api.stream.LineOutputStream
 import spock.lang.Specification
@@ -11,7 +12,7 @@ class OsgiaasShellSpec extends Specification {
         def commandReceiver = [ ]
         def command = mockCommand( commandReceiver, 'hello simple' )
 
-        def shell = new OsgiaasShell( { [ command ] as Set } )
+        def shell = new OsgiaasShell( { [ command ] as Set }, { [ ] as Set } )
 
         and: 'mocked out streams'
         def output = [ ]
@@ -44,7 +45,7 @@ class OsgiaasShellSpec extends Specification {
         def receiver3 = [ ]
         def command3 = mockCommand( receiver3, 'c3', 'again c3' )
 
-        def shell = new OsgiaasShell( { [ command1, command2, command3 ] as Set } )
+        def shell = new OsgiaasShell( { [ command1, command2, command3 ] as Set }, { [ ] as Set } )
 
         and: 'mocked out output streams'
         def output = [ ]
@@ -67,6 +68,45 @@ class OsgiaasShellSpec extends Specification {
         receiver1 == [ ]
         receiver2 == [ 'c1' ]
         receiver3 == [ 'c2', 'c22' ]
+    }
+
+    def "CommandModifiers are applied in turn, and added commands are also transformed"() {
+        given: 'A set of known command modifiers'
+        def modifiers = [
+                { cmd -> if ( cmd == 'hi' ) [ cmd ] else [ cmd, 'hi' ] },
+                { cmd -> [ cmd + '$' ] }
+        ].collect { it as CommandModifier }
+
+        when: 'A command is transformed with the modifiers'
+        def commands = OsgiaasShell.transformCommand( command, modifiers )
+
+        then: 'The expected commands are returned'
+        commands == expectedResult
+
+        where:
+        command   | expectedResult
+        'command' | [ 'command$', 'hi$' ]
+        'a'       | [ 'a$', 'hi$' ]
+    }
+
+    def "CommandModifiers are applied in turn, and transformers may remove commands"() {
+        given: 'A set of known command modifiers'
+        def modifiers = [
+                { cmd -> if ( cmd == 'hi' ) [ ] else [ cmd ] },
+                { cmd -> [ cmd + '$' ] }
+        ].collect { it as CommandModifier }
+
+        when: 'A command is transformed with the modifiers'
+        def commands = OsgiaasShell.transformCommand( command, modifiers )
+
+        then: 'The expected commands are returned'
+        commands == expectedResult
+
+        where:
+        command   | expectedResult
+        'command' | [ 'command$' ]
+        'a'       | [ 'a$' ]
+        'hi'      | [ ]
     }
 
     private StreamingCommand mockCommand( List receiver, String... linesToPrint ) {
