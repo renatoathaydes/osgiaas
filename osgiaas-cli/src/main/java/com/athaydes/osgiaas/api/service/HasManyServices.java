@@ -1,4 +1,4 @@
-package com.athaydes.osgiaas.cli.util;
+package com.athaydes.osgiaas.api.service;
 
 import java.util.HashSet;
 import java.util.Set;

@@ -1,4 +1,4 @@
-package com.athaydes.osgiaas.cli.util;
+package com.athaydes.osgiaas.api.service;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicReference;

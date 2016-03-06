@@ -5,9 +5,9 @@ import com.athaydes.osgiaas.api.cli.Cli;
 import com.athaydes.osgiaas.api.cli.CliProperties;
 import com.athaydes.osgiaas.api.cli.CommandCompleter;
 import com.athaydes.osgiaas.api.cli.CommandModifier;
-import com.athaydes.osgiaas.cli.util.DynamicServiceHelper;
+import com.athaydes.osgiaas.api.service.DynamicServiceHelper;
 import com.athaydes.osgiaas.cli.util.HasManyCommandCompleters;
-import com.athaydes.osgiaas.cli.util.HasManyServices;
+import com.athaydes.osgiaas.api.service.HasManyServices;
 import jline.console.completer.Completer;
 import org.apache.felix.shell.Command;
 

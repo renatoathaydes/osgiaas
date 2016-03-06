@@ -1,6 +1,7 @@
 package com.athaydes.osgiaas.cli.util;
 
 import com.athaydes.osgiaas.api.cli.CliProperties;
+import com.athaydes.osgiaas.api.service.DynamicServiceHelper;
 
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
