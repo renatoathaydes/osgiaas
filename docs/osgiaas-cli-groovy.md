@@ -41,3 +41,16 @@ When using the groovy command in pipelines, as above, the closure's opening and 
 ps | groovy l -> println "**** $l ****"
 ```
 
+**Hint:** If you use groovy often, consider adding an alias for it:
+
+```
+alias gr="groovy it -> "
+```
+
+Now, you can run:
+
+```groovy
+ps | gr println "**** $it ****"
+```
+
+Pretty convenient.
