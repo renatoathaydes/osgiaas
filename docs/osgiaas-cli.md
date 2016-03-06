@@ -108,7 +108,7 @@ Grep filters the input it is given, showing only lines that match the given regu
 
 It is usually used with the pipe operator.
 
-For example, to list all installed OSGi bundles (which the `ls` command does) that contain the word "cli":
+For example, to list all installed OSGi bundles (which the `ps` command does) that contain the word "cli":
 
 ```
 ps | grep cli
@@ -189,7 +189,6 @@ The following command modifiers, or operators, are exported by this bundle:
 
 * `&&` - breaks up a single line into several commands.
 * '|' - pipes the output of a command as the input of the next command.
-* '|>' - takes the output of a command as a variable that can be replaced anywhere in the next command.
 
 Examples:
 
@@ -205,26 +204,6 @@ color blue && color red prompt
 ```
 # Grep all lines matching the `osgiaas.*api` regular expression from the output of the `ps` command:
 ps | grep "osgiaas.*api"
-```
-
-### |> operator
-
-The `|>` operator should be used instead of the simpler `|` operator when the output of the previous
-command is part of, but not the full, or last, argument it takes.
-
-The `$(it)` variable holder is used by default to refer to the output of the previous command.
-
-To change that, you can use the form `prevCmd |>var_name cmd $(var_name) etc`. In this form, the output
-of the previous command goes into a named variable (`var_name` in this case) which is referred to as
-`$(var_name)` by the command being invoked.
-
-This operator is mostly useful with more advanced commands.
-
-For example, the `groovy` command (exported by `osgiaas-cli-groovy`), which executes Groovy scripts,
-can make use of this operator in very interesting ways:
-
-```
-help |>cmds groovy '''$(cmds)'''.split('\n').takeWhile { it.trim().empty == false }.sort()
 ```
 
 ## Command history

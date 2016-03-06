@@ -3,16 +3,27 @@
 The OSGiaaS CLI Groovy extension bundle exports a command which allows users to run arbitrary Groovy
 scripts from the shell.
 
-To use the command is extremely simple:
+To use the command is extremely simple. Any argument is treated as groovy code:
 
 ```
 groovy 2 + 2
 ```
 
+The above prints `4`.
+
+The value returned by the Groovy script is printed unless it is `null`.
+
+## Using the Groovy command in pipelines
+
 You may pipe the output of a Groovy script into another command:
 
 ![Groovy highlight file](images/groovy-highlight-file.png)
 
-Or use the output of a command in your Groovy script:
+Make sure to send data out with `out.println`, not just `println`, or the next command will not receive it.
+
+To receive data in a pipeline, the Groovy script must return a closure that takes a String.
+This closure will run for each line of input received.
+
+For example:
 
 ![Groovy Pipes](images/groovy-pipes.png)
