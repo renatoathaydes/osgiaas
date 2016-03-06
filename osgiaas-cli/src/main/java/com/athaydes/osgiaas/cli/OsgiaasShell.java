@@ -107,9 +107,12 @@ public class OsgiaasShell {
             if ( currentCmds.isEmpty() ) {
                 continue;
             }
+
             Cmd current = executeAllButLast( currentCmds, out, err );
+            boolean firstCommand = pipeline.isEmpty();
             Command cmd = current.cmd;
-            if ( cmd instanceof StreamingCommand ) {
+
+            if ( !firstCommand && cmd instanceof StreamingCommand ) {
                 lineConsumer = ( ( StreamingCommand ) cmd ).pipe( current.userCommand,
                         new PrintStream( lineConsumer, true ), err );
             } else {
