@@ -13,6 +13,14 @@ The above prints `4`.
 
 The value returned by the Groovy script is printed unless it is `null`.
 
+## Available bindings
+
+Groovy scripts have access to the following variables:
+
+* `out`: cli standard output (`println` and `out.println` are equivalent)
+* `err`: cli error output (as `out`, an instance of `PrintStream`)
+* `ctx`: the service's `ComponentContext` which can be used to access the OSGi framework
+
 ## Using the Groovy command in pipelines
 
 You may pipe the output of a Groovy script into another command:

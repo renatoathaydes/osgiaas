@@ -4,11 +4,15 @@ import com.athaydes.osgiaas.api.cli.CommandHelper
 import com.athaydes.osgiaas.api.cli.StreamingCommand
 import com.athaydes.osgiaas.api.stream.LineOutputStream
 import groovy.transform.CompileStatic
+import org.osgi.service.component.ComponentContext
 
+import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Consumer
 
 @CompileStatic
 class GroovyCommand implements StreamingCommand {
+
+    private final AtomicReference<ComponentContext> contextRef = new AtomicReference<>()
 
     @Override
     String getName() { 'groovy' }
@@ -51,9 +55,17 @@ class GroovyCommand implements StreamingCommand {
         }
     }
 
-    private static run( String script, PrintStream out, PrintStream err ) {
+    void activate( ComponentContext context ) throws Exception {
+        contextRef.set context
+    }
+
+    void deactivate( ComponentContext context ) throws Exception {
+        contextRef.set null
+    }
+
+    private run( String script, PrintStream out, PrintStream err ) {
         try {
-            return new GroovyShell( new Binding( out: out, err: err ) )
+            return new GroovyShell( new Binding( out: out, err: err, ctx: contextRef.get() ) )
                     .evaluate( script )
         } catch ( Exception e ) {
             err.println( e )
