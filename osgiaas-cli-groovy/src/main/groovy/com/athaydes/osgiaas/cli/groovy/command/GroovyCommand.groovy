@@ -25,7 +25,12 @@ class GroovyCommand implements StreamingCommand {
 
     @Override
     OutputStream pipe( String line, PrintStream out, PrintStream err ) {
-        def callback = run( line.trim() - 'groovy', out, err )
+        def command = ( line.trim() - 'groovy' ).trim()
+        if ( !command.startsWith( "{" ) && !command.endsWith( "}" ) ) {
+            command = "{ " + command + " }"
+        }
+
+        def callback = run( command, out, err )
         if ( callback instanceof Closure ) {
             new LineOutputStream( callback as Consumer<String>, out )
         } else {

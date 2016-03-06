@@ -19,11 +19,16 @@ You may pipe the output of a Groovy script into another command:
 
 ![Groovy highlight file](images/groovy-highlight-file.png)
 
-Make sure to send data out with `out.println`, not just `println`, or the next command will not receive it.
-
 To receive data in a pipeline, the Groovy script must return a closure that takes a String.
 This closure will run for each line of input received.
 
 For example:
 
 ![Groovy Pipes](images/groovy-pipes.png)
+
+When using the groovy command in pipelines, as above, the closure `{` and `}` may be omitted:
+
+```groovy
+ps | groovy l -> println "**** $l ****"
+```
+
