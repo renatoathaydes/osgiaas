@@ -35,8 +35,8 @@ To change the prompt, simply type the prompt command followed by the new prompt.
 To add spaces after a prompt, you can quote the new prompt:
  
 ```
-**>>** prompt "renato> "
-**renato>** |
+>> prompt "renato> "
+renato> |
 ```
 
 ### color
