@@ -34,7 +34,8 @@ For example:
 
 ![Groovy Pipes](images/groovy-pipes.png)
 
-When using the groovy command in pipelines, as above, the closure `{` and `}` may be omitted:
+When using the groovy command in pipelines, as above, the closure's opening and closing braces
+(`{` and `}`) may be omitted:
 
 ```groovy
 ps | groovy l -> println "**** $l ****"
