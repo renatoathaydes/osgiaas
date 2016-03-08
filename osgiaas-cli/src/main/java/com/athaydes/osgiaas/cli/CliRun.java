@@ -132,7 +132,11 @@ public class CliRun implements Runnable {
             String line;
             while ( ( line = consoleReader.readLine( getPrompt() ) ) != null ) {
                 if ( !line.trim().isEmpty() ) {
-                    runCommand( line );
+                    try {
+                        runCommand( line );
+                    } catch ( Throwable e ) {
+                        e.printStackTrace();
+                    }
                 }
             }
             FileHistory history = ( FileHistory ) consoleReader.getHistory();
