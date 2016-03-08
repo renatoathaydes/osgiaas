@@ -1,3 +1,4 @@
 rootProject.name = 'osgiaas'
 
-include 'osgiaas-api', 'osgiaas-cli', 'osgiaas-cli-groovy'
+include 'osgiaas-api', 'osgiaas-cli', 'osgiaas-cli-groovy', 'osgiaas-maven-grab'
+
