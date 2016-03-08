@@ -30,7 +30,7 @@ class GroovyCommand implements StreamingCommand {
     @Override
     OutputStream pipe( String line, PrintStream out, PrintStream err ) {
         def command = ( line.trim() - 'groovy' ).trim()
-        if ( !command.startsWith( "{" ) && !command.endsWith( "}" ) ) {
+        if ( !command.startsWith( "{" ) || !command.endsWith( "}" ) ) {
             command = "{ " + command + " }"
         }
 
