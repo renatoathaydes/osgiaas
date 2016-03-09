@@ -1,5 +1,6 @@
 package com.athaydes.osgiaas.cli.command
 
+import com.athaydes.osgiaas.api.stream.LineOutputStream
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -21,14 +22,22 @@ class HighlightCommandSpec extends Specification {
 
     @Unroll
     def "HighlightCall is created as appropriate"() {
+        given: 'A mocked out PrintStream'
+        def errors = [ ]
+        def errStream = new PrintStream( new LineOutputStream( errors.&add, Stub( AutoCloseable ) ) )
+
         when: 'A highlightCall is created from an example #line'
-        def result = HighlightCommand.highlightCall( "highlight $args regex input" )
+        def result = new HighlightCommand()
+                .highlightCall( "highlight $args regex input", errStream )
 
         then: 'all values are correctly read'
         result != null
         result.argumentsGiven == expectedArgumentsGiven
         result.colors.toList() == expectedColors
         result.modifiers.toList() == expectedModifiers
+
+        and: 'No error is reported'
+        errors.empty
 
         where:
         args                       | expectedArgumentsGiven | expectedColors        | expectedModifiers
@@ -46,14 +55,22 @@ class HighlightCommandSpec extends Specification {
 
     @Unroll
     def "HighlightCall can be created from short modifier names"() {
+        given: 'A mocked out PrintStream'
+        def errors = [ ]
+        def errStream = new PrintStream( new LineOutputStream( errors.&add, Stub( AutoCloseable ) ) )
+
         when: 'A highlightCall is created from an example #line using short names'
-        def result = HighlightCommand.highlightCall( "highlight $args regex input" )
+        def result = new HighlightCommand()
+                .highlightCall( "highlight $args regex input", errStream )
 
         then: 'all values are correctly read'
         result != null
         result.argumentsGiven == expectedArgumentsGiven
         result.colors.toList() == expectedColors
         result.modifiers.toList() == expectedModifiers
+
+        and: 'No error is reported'
+        errors.empty
 
         where:
         args                  | expectedArgumentsGiven | expectedColors        | expectedModifiers

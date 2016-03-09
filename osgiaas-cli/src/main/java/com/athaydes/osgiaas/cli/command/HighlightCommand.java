@@ -4,10 +4,13 @@ import com.athaydes.osgiaas.api.ansi.Ansi;
 import com.athaydes.osgiaas.api.ansi.AnsiColor;
 import com.athaydes.osgiaas.api.ansi.AnsiModifier;
 import com.athaydes.osgiaas.api.cli.CommandHelper;
+import com.athaydes.osgiaas.api.cli.StreamingCommand;
+import com.athaydes.osgiaas.api.stream.LineOutputStream;
+import com.athaydes.osgiaas.cli.util.NoOpPrintStream;
 import com.athaydes.osgiaas.cli.util.UsesCliProperties;
-import org.apache.felix.shell.Command;
 
 import javax.annotation.Nullable;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,7 +29,7 @@ import java.util.regex.PatternSyntaxException;
  * <p>
  * Similar to grep, but instead of filtering input, it highlights input using different colors.
  */
-public class HighlightCommand extends UsesCliProperties implements Command {
+public class HighlightCommand extends UsesCliProperties implements StreamingCommand {
 
     private static final Pattern bfPattern = Pattern.compile(
             "\\s*highlight\\s+(-B\\s+([A-z]+)\\s+)?(-F\\s+([A-z\\+]+)\\s+)?(.+)\\s+(.+)",
@@ -84,77 +88,55 @@ public class HighlightCommand extends UsesCliProperties implements Command {
     }
 
     @Override
-    public void execute( String line, PrintStream out, PrintStream err ) {
-        try {
-            @Nullable HighlightCall highlightCall = highlightCall( line );
-            int limit = getLimit( highlightCall );
-            String[] parts = CommandHelper.breakupArguments( line, limit );
-            highlightMatchingLines( out, err, highlightCall, limit, parts );
-        } catch ( RuntimeException e ) {
-            CommandHelper.printError( err, getUsage(), "Invalid arguments: " + e.getMessage() );
-        }
-    }
+    public OutputStream pipe( String command, PrintStream out, PrintStream err ) {
+        @Nullable HighlightCall highlightCall = highlightCall( command, err );
 
-    private void highlightMatchingLines( PrintStream out, PrintStream err,
-                                         @Nullable HighlightCall highlightCall,
-                                         int limit, String[] parts ) {
-        if ( limit > 0 && parts.length == limit ) {
-            String regex = parts[ limit - 2 ];
-            String text = parts[ limit - 1 ];
-            try {
-                highlight( regex, text, highlightCall, out );
-            } catch ( PatternSyntaxException e ) {
-                err.println( "Pattern syntax error in [" + regex + "]: " + e.getMessage() );
-            }
-        } else {
-            CommandHelper.printError( err, getUsage(),
-                    "Wrong number of arguments provided." );
-        }
-    }
-
-    private static int getLimit( @Nullable HighlightCall highlightCall ) {
         if ( highlightCall == null ) {
-            return -1; // just cause printError to be called
-        } else switch ( highlightCall.getArgumentsGiven() ) {
-            case 0:
-                return 3;
-            case 1:
-                return 5;
-            case 2:
-            default:
-                return 7;
+            return new NoOpPrintStream();
+        }
+
+        return new LineOutputStream( highlightMatchingLines( out, highlightCall ), out );
+    }
+
+    @Override
+    public void execute( String line, PrintStream out, PrintStream err ) {
+        @Nullable HighlightCall highlightCall = highlightCall( line, err );
+
+        if ( highlightCall != null ) {
+            Consumer<String> consumer = highlightMatchingLines( out, highlightCall );
+            String[] lines = highlightCall.getText().split( "\n" );
+            for (String txtLine : lines) {
+                consumer.accept( txtLine );
+            }
         }
     }
 
-    void highlight( String regex, String text,
-                    @Nullable HighlightCall highlightCall,
-                    PrintStream out ) {
-        Pattern matchPattern = Pattern.compile( ".*" + regex + ".*" );
-        String[] textLines = text.split( "\n" );
-        boolean mayMatch = highlightCall != null;
 
+    private Consumer<String> highlightMatchingLines( PrintStream out,
+                                                     HighlightCall highlightCall ) {
+        return line -> {
+            boolean match = highlightCall.getPattern().matcher( line ).matches();
+            if ( match ) {
+                out.print( Ansi.applyAnsi(
+                        Ansi.ANSI_PATTERN.matcher( line ).replaceAll( "" ),
+                        highlightCall.getColors(), highlightCall.getModifiers() ) );
+                out.println( highlightCall.getOriginalColor() );
+            } else {
+                out.println( line );
+            }
+        };
+    }
+
+    private String getTextColor() {
         AtomicReference<String> textColorRef = new AtomicReference<>();
         withCliProperties( cliProperties ->
                         textColorRef.set( AnsiColor.RESET.toString() + cliProperties.getTextColor() ),
                 () -> textColorRef.set( AnsiColor.RESET.toString() ) );
-        String textColor = textColorRef.get();
-
-        //noinspection ForLoopReplaceableByForEach
-        for (String txtLine : textLines) {
-            boolean match = mayMatch && matchPattern.matcher( txtLine ).matches();
-            if ( match ) {
-                out.print( Ansi.applyAnsi(
-                        Ansi.ANSI_PATTERN.matcher( txtLine ).replaceAll( "" ),
-                        highlightCall.getColors(), highlightCall.getModifiers() ) );
-                out.println( textColor );
-            } else {
-                out.println( txtLine );
-            }
-        }
+        return textColorRef.get();
     }
 
     @Nullable
-    static HighlightCall highlightCall( String line ) {
+    HighlightCall highlightCall( String line, PrintStream err ) {
         Matcher fbMatch = fbPattern.matcher( line );
         Matcher bfMatch = bfPattern.matcher( line );
 
@@ -178,10 +160,30 @@ public class HighlightCommand extends UsesCliProperties implements Command {
                 foreground = bfMatch.group( 4 );
             }
 
-            return new HighlightCall( background, foreground );
-        } else {
-            return null;
+            int argumentsGiven = ( background != null && foreground != null ? 2 :
+                    ( background == null && foreground == null ? 0 : 1 ) );
+
+            int limit = getLimit( argumentsGiven );
+            String[] parts = CommandHelper.breakupArguments( line, limit );
+
+            if ( limit > 0 && parts.length == limit ) {
+                String regex = parts[ limit - 2 ];
+                String textColor = getTextColor();
+
+                try {
+                    Pattern matchPattern = Pattern.compile( ".*" + regex + ".*" );
+
+                    return new HighlightCall( background, foreground, matchPattern, text, textColor );
+                } catch ( PatternSyntaxException e ) {
+                    err.println( "Pattern syntax error in [" + regex + "]: " + e.getMessage() );
+                    return null;
+                }
+            }
         }
+
+        CommandHelper.printError( err, getUsage(),
+                "Wrong number of arguments provided." );
+        return null;
     }
 
     private static int groupCount( Matcher matcher ) {
@@ -194,15 +196,34 @@ public class HighlightCommand extends UsesCliProperties implements Command {
         return result;
     }
 
+    private static int getLimit( int argumentsGiven ) {
+        switch ( argumentsGiven ) {
+            case 0:
+                return 3;
+            case 1:
+                return 5;
+            case 2:
+            default:
+                return 7;
+        }
+    }
+
     static class HighlightCall {
 
         private final AnsiColor[] colors;
         private final AnsiModifier[] modifiers;
         private final int argumentsGiven;
+        private final Pattern pattern;
+        private final String text;
+        private final String originalColor;
 
-        public HighlightCall( @Nullable String back, @Nullable String fore ) {
-            this.argumentsGiven = back != null && fore != null ? 2 :
-                    back == null && fore == null ? 0 : 1;
+        public HighlightCall( @Nullable String back, @Nullable String fore,
+                              Pattern pattern, String text, String originalColor ) {
+            this.argumentsGiven = ( back != null && fore != null ? 2 :
+                    ( back == null && fore == null ? 0 : 1 ) );
+            this.pattern = pattern;
+            this.text = text;
+            this.originalColor = originalColor;
 
             AnsiColor background = back == null ?
                     AnsiColor.DEFAULT_BG :
@@ -251,6 +272,18 @@ public class HighlightCommand extends UsesCliProperties implements Command {
 
         public AnsiModifier[] getModifiers() {
             return modifiers;
+        }
+
+        public Pattern getPattern() {
+            return pattern;
+        }
+
+        public String getText() {
+            return text;
+        }
+
+        public String getOriginalColor() {
+            return originalColor;
         }
     }
 
