@@ -1,0 +1,31 @@
+apply plugin: 'groovy'
+apply plugin: 'osgi'
+apply plugin: 'com.athaydes.osgi-ds'
+apply plugin: 'maven'
+
+repositories {
+    maven {
+        url 'https://repo.gradle.org/gradle/libs-releases-local'
+    }
+}
+
+jar {
+    manifest {
+        instruction 'Export-Package', ''
+    }
+}
+
+declarativeServices {
+    declarations = project.file( 'src/main/osgi/declarativeServices.groovy' )
+}
+
+dependencies {
+    compile 'biz.aQute.bnd:biz.aQute.bndlib:3.1.0'
+    compile project( ':osgiaas-cli' )
+    compile 'org.codehaus.groovy:groovy-all:2.4.5'
+
+    // allows Groovy Grapes to work
+    runtime 'org.apache.ivy:ivy:2.4.0'
+
+    testRuntime 'org.slf4j:slf4j-simple:1.7.13'
+}
