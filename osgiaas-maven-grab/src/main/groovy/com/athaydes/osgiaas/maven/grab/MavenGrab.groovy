@@ -22,12 +22,17 @@ class MavenGrab implements Command {
         if ( parts.size() != 2 ) {
             CommandHelper.printError( err, getUsage(), "Wrong number of arguments" )
         } else try {
-            def grapes = System.getProperty( 'grape.root' ) ?: ( System.getProperty( 'user.home' ) + '/.groovy/grapes' )
-            if ( !grapes || !new File( grapes ).exists() ) {
-                err.println "Grapes directory is unknown. Set the 'grape.root' system property."
-            } else {
-                grab parts[ 1 ], out, err, grapes
+            def grapes = ( System.getProperty( 'grape.root' ) ?:
+                    ( System.getProperty( 'user.home' ) + '/.groovy' ) ) + '/grapes'
+
+            def grapesDir = new File( grapes )
+
+            if ( !grapesDir.directory ) {
+                grapesDir.mkdirs()
             }
+
+            grab parts[ 1 ], out, err, grapes
+
         } catch ( e ) {
             err.println e
         }
@@ -44,7 +49,12 @@ class MavenGrab implements Command {
             def grabInstruction = "@Grab(group='$group', module='$name', version='$version'"
             grabInstruction += ( classifier ? ", classifier='$classifier')" : ')' )
 
-            Eval.me( grabInstruction + ' import java.util.List' )
+            try {
+                Eval.me( grabInstruction + ' import java.util.List' )
+            } catch ( Throwable e ) {
+                err.println( "Unable to download artifact: $artifact" )
+                return
+            }
 
             def grapeLocation = new File( grapes, "$group/$name/jars/$name-${version}.jar" )
             if ( grapeLocation.exists() ) {
