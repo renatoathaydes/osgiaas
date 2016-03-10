@@ -1,6 +1,5 @@
 package com.athaydes.osgiaas.api.cli;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -9,23 +8,17 @@ import java.util.Map;
  */
 public class CommandInvocation {
 
-    private final List<CommandArgument> arguments;
+    private final Map<String, List<String>> arguments;
     private final String unprocessedInput;
 
-    public CommandInvocation( List<CommandArgument> arguments,
+    public CommandInvocation( Map<String, List<String>> arguments,
                               String unprocessedInput ) {
         this.arguments = arguments;
         this.unprocessedInput = unprocessedInput;
     }
 
-    public List<CommandArgument> getArguments() {
+    public Map<String, List<String>> getArguments() {
         return arguments;
-    }
-
-    public Map<String, List<String>> getArgumentsAsMap() {
-        Map<String, List<String>> result = new HashMap<>( arguments.size() );
-        arguments.forEach( arg -> result.put( arg.getArgumentKey(), arg.getArgumentValues() ) );
-        return result;
     }
 
     public String getUnprocessedInput() {

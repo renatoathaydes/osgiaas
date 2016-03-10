@@ -46,7 +46,8 @@ class GroovyCommand implements StreamingCommand {
 
     @Override
     void execute( String line, PrintStream out, PrintStream err ) {
-        def args = CommandHelper.breakupArguments( line, 2 )
+        int currentCount = 0
+        def args = CommandHelper.breakupArguments( line, { arg -> ( ++currentCount ) < 2 } )
         if ( args.size() != 2 ) {
             CommandHelper.printError( err, getUsage(), 'Wrong number of arguments provided.' )
         } else {

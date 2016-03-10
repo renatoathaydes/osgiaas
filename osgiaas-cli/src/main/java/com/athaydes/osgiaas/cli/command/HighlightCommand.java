@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -164,21 +165,22 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
                     ( background == null && foreground == null ? 0 : 1 ) );
 
             int limit = getLimit( argumentsGiven );
-            String[] parts = CommandHelper.breakupArguments( line, limit );
+            final AtomicInteger currentArgs = new AtomicInteger( 0 );
+            String unprocessed = CommandHelper.breakupArguments( line, arg -> currentArgs.getAndIncrement() < limit );
 
-            if ( limit > 0 && parts.length == limit ) {
-                String regex = parts[ limit - 2 ];
-                String textColor = getTextColor();
-
-                try {
-                    Pattern matchPattern = Pattern.compile( ".*" + regex + ".*" );
-
-                    return new HighlightCall( background, foreground, matchPattern, text, textColor );
-                } catch ( PatternSyntaxException e ) {
-                    err.println( "Pattern syntax error in [" + regex + "]: " + e.getMessage() );
-                    return null;
-                }
-            }
+//            if ( limit > 0 && parts.size() == limit ) {
+//                String regex = parts.get( limit - 2 );
+//                String textColor = getTextColor();
+//
+//                try {
+//                    Pattern matchPattern = Pattern.compile( ".*" + regex + ".*" );
+//
+//                    return new HighlightCall( background, foreground, matchPattern, text, textColor );
+//                } catch ( PatternSyntaxException e ) {
+//                    err.println( "Pattern syntax error in [" + regex + "]: " + e.getMessage() );
+//                    return null;
+//                }
+//            }
         }
 
         CommandHelper.printError( err, getUsage(),

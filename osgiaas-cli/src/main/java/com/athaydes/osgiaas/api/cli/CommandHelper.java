@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
@@ -33,8 +34,13 @@ public class CommandHelper {
      * @param arguments space-separated arguments
      * @return split arguments
      */
-    public static String[] breakupArguments( String arguments ) {
-        return breakupArguments( arguments, -1 );
+    public static List<String> breakupArguments( String arguments ) {
+        List<String> result = new ArrayList<>();
+        breakupArguments( arguments, arg -> {
+            result.add( arg );
+            return true;
+        } );
+        return result;
     }
 
     /**
@@ -42,31 +48,19 @@ public class CommandHelper {
      * It uses a space as a separator, but takes into consideration doubly-quoted values, making the whole
      * quoted value a single argument.
      *
-     * @param arguments command arguments or full command
-     * @param limit     maximum number of argument parts to consider. Each part is separated by one or more whitespaces.
+     * @param arguments     command arguments or full command
+     * @param limitFunction ??
      * @return split arguments
      */
-    public static String[] breakupArguments( String arguments, int limit ) {
+    public static String breakupArguments( String arguments, Function<String, Boolean> limitFunction ) {
         boolean inQuote = false;
         boolean escaped = false;
         StringBuilder currentArg = new StringBuilder();
-        List<String> result = new ArrayList<>();
-        boolean applyLimit = limit > 0;
 
         char[] chars = arguments.toCharArray();
         for (int i = 0; i < chars.length; i++) {
             char c = chars[ i ];
-            boolean escapeNext;
-
-            if ( applyLimit && result.size() >= limit - 1 ) {
-                // no more splitting
-                char[] rest = new char[ chars.length - i ];
-                System.arraycopy( chars, i, rest, 0, rest.length );
-                result.add( new String( rest ) );
-                break;
-            } else {
-                escapeNext = !escaped && ( c == '\\' );
-            }
+            boolean escapeNext = !escaped && ( c == '\\' );
 
             if ( inQuote ) {
                 if ( c == '"' && !escaped ) {
@@ -80,8 +74,14 @@ public class CommandHelper {
                 } else {
                     if ( c == ' ' ) {
                         if ( currentArg.length() > 0 ) {
-                            result.add( currentArg.toString() );
+                            String arg = currentArg.toString();
                             currentArg.delete( 0, currentArg.length() );
+                            if ( !limitFunction.apply( arg ) ) {
+                                // no more splitting
+                                char[] rest = new char[ chars.length - i ];
+                                System.arraycopy( chars, i, rest, 0, rest.length );
+                                return new String( rest );
+                            }
                         }
                     } else if ( !escapeNext ) {
                         currentArg.append( c );
@@ -92,11 +92,7 @@ public class CommandHelper {
             escaped = escapeNext;
         }
 
-        if ( currentArg.length() > 0 ) {
-            result.add( currentArg.toString() );
-        }
-
-        return result.toArray( new String[ result.size() ] );
+        return currentArg.toString();
     }
 
     /**
@@ -110,7 +106,7 @@ public class CommandHelper {
      * @return parsed command invocation
      */
     public static CommandInvocation parseCommandInvocation( String line, int maxArgs ) {
-        String[] parts = breakupArguments( line, maxArgs + 1 );
+        String[] parts = { line };// breakupArguments( line, maxArgs + 1 );
         Map<String, List<String>> keyValues = new HashMap<>();
         @Nullable String currentKey = null;
 
@@ -146,13 +142,7 @@ public class CommandHelper {
                     .reduce( unprocessed, String::concat );
         }
 
-        return new CommandInvocation( toArguments( keyValues ), unprocessed );
-    }
-
-    private static List<CommandArgument> toArguments( Map<String, List<String>> keyValues ) {
-        List<CommandArgument> result = new ArrayList<>( keyValues.size() );
-        keyValues.forEach( ( key, values ) -> result.add( new CommandArgument( key, values ) ) );
-        return result;
+        return new CommandInvocation( keyValues, unprocessed );
     }
 
 }

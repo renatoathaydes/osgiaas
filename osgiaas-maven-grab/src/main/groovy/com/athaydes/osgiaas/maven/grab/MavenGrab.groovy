@@ -18,24 +18,43 @@ class MavenGrab implements Command {
 
     @Override
     void execute( String line, PrintStream out, PrintStream err ) {
-        String[] parts = CommandHelper.breakupArguments( line, 2 )
-        if ( parts.size() != 2 ) {
+        def invocation = CommandHelper.parseCommandInvocation( line - getName(), 2 )
+
+        def argMap = invocation.argumentsAsMap
+        println "ARGS MAP: $argMap"
+
+        if ( invocation.unprocessedInput || argMap.isEmpty() ) {
             CommandHelper.printError( err, getUsage(), "Wrong number of arguments" )
-        } else try {
-            def grapes = ( System.getProperty( 'grape.root' ) ?:
-                    ( System.getProperty( 'user.home' ) + '/.groovy' ) ) + '/grapes'
+        } else {
+            def directive = argMap.keySet()[ 0 ]
+            def directiveArgs = argMap[ directive ]
+            if ( !directiveArgs.isEmpty() ) {
+                switch ( directive ) {
+                    case '--add-repo': addRepo directiveArgs
+                        break
+                    default:
+                        err.println( "$name - Unrecognized option: $directive" )
+                }
+            } else {
+                def grapes = ( System.getProperty( 'grape.root' ) ?:
+                        ( System.getProperty( 'user.home' ) + '/.groovy' ) ) + '/grapes'
 
-            def grapesDir = new File( grapes )
+                def grapesDir = new File( grapes )
 
-            if ( !grapesDir.directory ) {
-                grapesDir.mkdirs()
+                if ( !grapesDir.directory ) {
+                    grapesDir.mkdirs()
+                }
+
+                def artifact = argMap.keySet()[ 0 ]
+                grab artifact, out, err, grapes
             }
 
-            grab parts[ 1 ], out, err, grapes
-
-        } catch ( e ) {
-            err.println e
         }
+
+    }
+
+    private static void addRepo( List<String> repos ) {
+        println "Adding repos $repos"
     }
 
     private static void grab( String artifact, PrintStream out, PrintStream err, String grapes ) {
