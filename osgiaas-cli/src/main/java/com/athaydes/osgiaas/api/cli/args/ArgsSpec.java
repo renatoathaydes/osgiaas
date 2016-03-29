@@ -6,9 +6,11 @@ import com.sun.org.apache.xerces.internal.impl.xpath.regex.RegularExpression;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -21,52 +23,96 @@ import java.util.stream.Collectors;
 public class ArgsSpec {
 
     private final Map<String, Arg> argMap;
-    private final boolean noFurtherArgumentsAllowed;
+    private final Set<String> mandatoryArgs;
 
-    private ArgsSpec( List<Arg> arguments, boolean noFurtherArgumentsAllowed ) {
+    private ArgsSpec( List<Arg> arguments ) {
+        this.mandatoryArgs = new HashSet<>();
+        Function<Arg, String> addIfMandatoryAndGetKey = ( arg ) -> {
+            if ( arg.mandatory ) {
+                mandatoryArgs.add( arg.key );
+            }
+            return arg.key;
+        };
+
         this.argMap = arguments.stream().collect( Collectors.toMap(
-                arg -> arg.key,
+                addIfMandatoryAndGetKey,
                 Function.identity() ) );
-        this.noFurtherArgumentsAllowed = noFurtherArgumentsAllowed;
     }
 
     public CommandInvocation parse( String command ) throws IllegalArgumentException {
-        AtomicReference<List<String>> latestParameterList = new AtomicReference<>();
-        AtomicReference<String> abortedParam = new AtomicReference<>();
-        Map<String, List<String>> result = new HashMap<>();
+        command = removeFirstPartOf( command );
+
+        AtomicReference<String> abortedParameterRef = new AtomicReference<>();
+        AtomicReference<String> currentParameterRef = new AtomicReference<>();
+        Map<String, List<String>> result = new LinkedHashMap<>();
 
         String unprocessedInput = CommandHelper.breakupArguments( command, param -> {
-            @Nullable List<String> latestParams = latestParameterList.getAndSet( null );
-            if ( latestParams != null ) {
-                latestParams.add( param );
+            @Nullable String currentParameter = currentParameterRef.getAndSet( null );
+            if ( currentParameter != null ) {
+                result.get( currentParameter ).add( param );
+                return true; // continue parsing
             } else {
                 @Nullable Arg arg = argMap.get( param );
                 if ( arg == null ) {
-                    abortedParam.set( param );
-                    return false; // cannot understand this parameter
+                    // cannot understand this parameter, stop parsing
+                    abortedParameterRef.set( param );
+                    return false;
                 } else if ( !arg.allowMultiple && result.containsKey( arg.key ) ) {
                     throw new IllegalArgumentException( "Duplicate argument not allowed: " + arg.key );
+                } else {
+                    @Nullable List<String> parameters = result.get( param );
+                    if ( parameters == null ) {
+                        parameters = new ArrayList<>( arg.allowMultiple ? 5 : 1 );
+                        result.put( arg.key, parameters );
+                    }
+                    if ( arg.takesArgument ) {
+                        currentParameterRef.set( param );
+                    }
+                    return true; // continue parsing
                 }
-
-                List<String> params = new ArrayList<>( arg.allowMultiple ? 5 : 1 );
-                if ( arg.takesArgument ) {
-                    latestParameterList.set( params );
-                }
-                result.put( arg.key, params );
             }
-            return true; // continue parsing
         } );
 
-        @Nullable String aborted = abortedParam.get();
+        @Nullable String currentParameter = currentParameterRef.get();
+        if ( currentParameter != null ) {
+            throw new IllegalArgumentException( "Missing argument for parameter " + currentParameter );
+        }
 
-        if ( aborted != null ) {
-            if ( noFurtherArgumentsAllowed ) {
-                throw new IllegalArgumentException( "Illegal argument options provided: " + aborted );
-            }
-            unprocessedInput = aborted + " " + unprocessedInput;
+        Set<String> nonProvidedMandatoryArgs = new HashSet<>( mandatoryArgs );
+        nonProvidedMandatoryArgs.removeAll( result.keySet() );
+        if ( !nonProvidedMandatoryArgs.isEmpty() ) {
+            throw new IllegalArgumentException( "Mandatory arguments not provided: " +
+                    nonProvidedMandatoryArgs );
+        }
+
+        @Nullable String abortedParameter = abortedParameterRef.get();
+        if ( abortedParameter != null ) {
+            unprocessedInput = putBackAbortedParameter( unprocessedInput, abortedParameter );
         }
 
         return new CommandInvocation( result, unprocessedInput );
+    }
+
+    private String putBackAbortedParameter( String unprocessedInput, String abortedParameter ) {
+        StringBuilder unprocessedInputBuilder = new StringBuilder(
+                abortedParameter.length() + unprocessedInput.length() + 1 );
+
+        unprocessedInputBuilder.append( abortedParameter );
+
+        if ( !unprocessedInput.isEmpty() ) {
+            unprocessedInputBuilder.append( ' ' ).append( unprocessedInput );
+        }
+
+        return unprocessedInputBuilder.toString();
+    }
+
+    private static String removeFirstPartOf( String command ) {
+        int index = command.indexOf( ' ' );
+        if ( index < 0 ) {
+            return command;
+        } else {
+            return command.substring( index + 1 );
+        }
     }
 
     public static ArgsSpecBuilder builder() {
@@ -91,16 +137,9 @@ public class ArgsSpec {
     public static class ArgsSpecBuilder {
 
         private final List<Arg> arguments = new ArrayList<>();
-        private int parametersToSkip = 0;
-        private boolean noFurtherArgumentsAllowed = false;
 
         private ArgsSpecBuilder() {
             // use builder factory method
-        }
-
-        public ArgsSpecBuilder skip( int parametersToSkip ) {
-            this.parametersToSkip = parametersToSkip;
-            return this;
         }
 
         public ArgsSpecBuilder accepts( RegularExpression regex ) {
@@ -126,13 +165,8 @@ public class ArgsSpec {
             return this;
         }
 
-        public ArgsSpecBuilder noFurtherArgumentsAllowed() {
-            noFurtherArgumentsAllowed = true;
-            return this;
-        }
-
         public ArgsSpec build() {
-            return new ArgsSpec( arguments, noFurtherArgumentsAllowed );
+            return new ArgsSpec( arguments );
         }
 
     }
