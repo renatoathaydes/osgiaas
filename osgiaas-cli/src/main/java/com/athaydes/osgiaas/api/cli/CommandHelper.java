@@ -73,15 +73,12 @@ public class CommandHelper {
                     inQuote = true;
                 } else {
                     if ( c == ' ' ) {
-                        if ( currentArg.length() > 0 ) {
-                            String arg = currentArg.toString();
-                            currentArg.delete( 0, currentArg.length() );
-                            if ( !limitFunction.apply( arg ) ) {
-                                // no more splitting
-                                char[] rest = new char[ chars.length - i ];
-                                System.arraycopy( chars, i, rest, 0, rest.length );
-                                return new String( rest );
-                            }
+                        boolean keepGoing = addArgument( currentArg, limitFunction );
+                        if ( !keepGoing ) {
+                            // no more splitting
+                            char[] rest = new char[ chars.length - ( i + 1 ) ];
+                            System.arraycopy( chars, i + 1, rest, 0, rest.length );
+                            return new String( rest );
                         }
                     } else if ( !escapeNext ) {
                         currentArg.append( c );
@@ -92,7 +89,21 @@ public class CommandHelper {
             escaped = escapeNext;
         }
 
-        return currentArg.toString();
+        // add last argument if any
+        addArgument( currentArg, limitFunction );
+
+        return "";
+    }
+
+    private static boolean addArgument( StringBuilder currentArg,
+                                        Function<String, Boolean> limitFunction ) {
+        if ( currentArg.length() > 0 ) {
+            String arg = currentArg.toString();
+            currentArg.delete( 0, currentArg.length() );
+            return limitFunction.apply( arg );
+        } else {
+            return true;
+        }
     }
 
     /**

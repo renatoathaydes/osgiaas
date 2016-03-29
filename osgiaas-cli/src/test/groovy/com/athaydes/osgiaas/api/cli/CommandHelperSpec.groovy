@@ -18,6 +18,7 @@ class CommandHelperSpec extends Specification {
         ''                      | [ ]
         'abc'                   | [ 'abc' ]
         'ab c'                  | [ 'ab', 'c' ]
+        'ab -c d'               | [ 'ab', '-c', 'd' ]
         '  a   b   '            | [ 'a', 'b' ]
         'ab "c"'                | [ 'ab', 'c' ]
         'ab " c "'              | [ 'ab', ' c ' ]
@@ -52,7 +53,7 @@ class CommandHelperSpec extends Specification {
         'a b'             | 1     | [ 'a' ]                            | 'b'
         'a b'             | 2     | [ 'a', 'b' ]                       | ''
         'a b c'           | 2     | [ 'a', 'b' ]                       | 'c'
-        'a "b c" d e'     | 0     | [ ]                                | 'a "b c" d e'
+        'a "b c" d e'     | 0     | [ 'a' ]                            | '"b c" d e'
         'a "b c" d e'     | 1     | [ 'a' ]                            | '"b c" d e'
         'a "b c" d e'     | 2     | [ 'a', 'b c' ]                     | 'd e'
         'a "b c" d e'     | 3     | [ 'a', 'b c', 'd' ]                | 'e'
