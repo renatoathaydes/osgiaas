@@ -233,6 +233,9 @@ class OsgiaasShellSpec extends Specification {
                 linesToPrint.each( out.&println )
                 return new LineOutputStream( receiver.&add, out )
             }
+            execute( _, _, _ ) >> { String line, PrintStream out, PrintStream err ->
+                linesToPrint.each( out.&println )
+            }
             getName() >> UUID.randomUUID().toString()
         }
     }
