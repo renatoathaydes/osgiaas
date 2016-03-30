@@ -1,7 +1,7 @@
 package com.athaydes.osgiaas.cli.command;
 
-import com.athaydes.osgiaas.api.cli.CommandModifier;
 import com.athaydes.osgiaas.api.cli.CommandHelper;
+import com.athaydes.osgiaas.api.cli.CommandModifier;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,7 +25,7 @@ public class AndCommandModifier implements CommandModifier {
             return Collections.singletonList( line );
         }
 
-        String[] parts = CommandHelper.breakupArguments( line );
+        List<String> parts = CommandHelper.breakupArguments( line );
         List<String> result = new ArrayList<>();
         List<String> partBuilder = new ArrayList<>();
 
