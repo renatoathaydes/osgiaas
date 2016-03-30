@@ -97,7 +97,7 @@ alias remove hl
 Notice that aliases can include arguments as well if you quote the command with the arguments:
 
 ```
-alias hl="highlight -F red -B yellow"
+alias hl="highlight -f red -b yellow"
 ```
 
 ### grep
@@ -150,8 +150,8 @@ ps | highlight "\\[Active.*\\(1\\.11\\)"
 
 The following flags are accepted:
 
-* -B <color> background color (yellow, by default)
-* -F <color[+format]*> text color and format
+* -b <color> background color (yellow, by default)
+* -f <color[+format]*> text color and format
 
 The accepted colors are the same as for the `color` command.
 
@@ -174,11 +174,11 @@ help | highlight s
 
 # show all installed bundles, highlighting those containing the 'osgi' word
 # with a blue background and green, blinking text 
-ps | highlight -B blue -F green+blink osgi
+ps | highlight -b blue -f green+blink osgi
 
 # show the headers of bundle with ID 10, highlighting the `Bundle-SymbolicName` entry
 # with a red background and yellow, high-intensity, underlined text 
-headers 10 | highlight -B red -F yellow+hi+u "Bundle-SymbolicName"
+headers 10 | highlight -b red -f yellow+hi+u "Bundle-SymbolicName"
 ```
 
 ## Command modifier
