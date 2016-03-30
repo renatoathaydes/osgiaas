@@ -2,7 +2,6 @@ package com.athaydes.osgiaas.api.cli.args;
 
 import com.athaydes.osgiaas.api.cli.CommandHelper;
 import com.athaydes.osgiaas.api.cli.CommandInvocation;
-import com.sun.org.apache.xerces.internal.impl.xpath.regex.RegularExpression;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -140,10 +139,6 @@ public class ArgsSpec {
 
         private ArgsSpecBuilder() {
             // use builder factory method
-        }
-
-        public ArgsSpecBuilder accepts( RegularExpression regex ) {
-            return this;
         }
 
         public ArgsSpecBuilder accepts( String argument ) {
