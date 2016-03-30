@@ -1,13 +1,12 @@
 package com.athaydes.osgiaas.cli.command;
 
-import com.athaydes.osgiaas.api.cli.CommandModifier;
 import com.athaydes.osgiaas.api.cli.CommandHelper;
+import com.athaydes.osgiaas.api.cli.CommandModifier;
 import com.athaydes.osgiaas.cli.util.UsesCliProperties;
 import org.apache.felix.shell.Command;
 
 import javax.annotation.Nullable;
 import java.io.PrintStream;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -45,11 +44,11 @@ public class AliasCommand extends UsesCliProperties
 
     @Override
     public void execute( String line, PrintStream out, PrintStream err ) {
-        String[] parts = CommandHelper.breakupArguments( line );
-        String[] arguments = Arrays.copyOfRange( parts, 1, parts.length );
-        if ( arguments.length >= 1 ) {
-            String directive = arguments[ 0 ];
-            String[] directiveArgs = Arrays.copyOfRange( arguments, 1, arguments.length );
+        List<String> parts = CommandHelper.breakupArguments( line );
+        List<String> arguments = parts.subList( 1, parts.size() );
+        if ( arguments.size() >= 1 ) {
+            String directive = arguments.get( 0 );
+            List<String> directiveArgs = arguments.subList( 1, arguments.size() );
             switch ( directive ) {
                 case "rm":
                     runRmCommand( out, err, directiveArgs );
@@ -66,10 +65,10 @@ public class AliasCommand extends UsesCliProperties
         }
     }
 
-    private void runRmCommand( PrintStream out, PrintStream err, String[] arguments ) {
-        if ( arguments.length == 1 ) {
+    private void runRmCommand( PrintStream out, PrintStream err, List<String> arguments ) {
+        if ( arguments.size() == 1 ) {
             @Nullable
-            String aliasedCommand = aliasMap.remove( arguments[ 0 ] );
+            String aliasedCommand = aliasMap.remove( arguments.get( 0 ) );
             if ( aliasedCommand == null ) {
                 err.println( "Alias not found" );
             } else {
@@ -82,8 +81,8 @@ public class AliasCommand extends UsesCliProperties
         }
     }
 
-    private void runShowCommand( PrintStream out, PrintStream err, String[] arguments ) {
-        if ( arguments.length == 0 ) {
+    private void runShowCommand( PrintStream out, PrintStream err, List<String> arguments ) {
+        if ( arguments.size() == 0 ) {
             out.println( aliasMap );
         } else {
             err.println( "Wrong number of arguments.\n" +
@@ -91,7 +90,7 @@ public class AliasCommand extends UsesCliProperties
         }
     }
 
-    private void runSetCommand( PrintStream out, PrintStream err, String[] arguments ) {
+    private void runSetCommand( PrintStream out, PrintStream err, List<String> arguments ) {
         for (String argument : arguments) {
             int index = argument.indexOf( '=' );
             if ( index < 0 || index == argument.length() - 1 ) {
