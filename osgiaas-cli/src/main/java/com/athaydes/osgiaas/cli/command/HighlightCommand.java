@@ -4,7 +4,9 @@ import com.athaydes.osgiaas.api.ansi.Ansi;
 import com.athaydes.osgiaas.api.ansi.AnsiColor;
 import com.athaydes.osgiaas.api.ansi.AnsiModifier;
 import com.athaydes.osgiaas.api.cli.CommandHelper;
+import com.athaydes.osgiaas.api.cli.CommandInvocation;
 import com.athaydes.osgiaas.api.cli.StreamingCommand;
+import com.athaydes.osgiaas.api.cli.args.ArgsSpec;
 import com.athaydes.osgiaas.api.stream.LineOutputStream;
 import com.athaydes.osgiaas.cli.util.NoOpPrintStream;
 import com.athaydes.osgiaas.cli.util.UsesCliProperties;
@@ -16,12 +18,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -31,14 +31,6 @@ import java.util.regex.PatternSyntaxException;
  * Similar to grep, but instead of filtering input, it highlights input using different colors.
  */
 public class HighlightCommand extends UsesCliProperties implements StreamingCommand {
-
-    private static final Pattern bfPattern = Pattern.compile(
-            "\\s*highlight\\s+(-B\\s+([A-z]+)\\s+)?(-F\\s+([A-z\\+]+)\\s+)?(.+)\\s+(.+)",
-            Pattern.DOTALL );
-
-    private static final Pattern fbPattern = Pattern.compile(
-            "\\s*highlight\\s+(-F\\s+([A-z\\+]+)\\s+)?(-B\\s+([A-z]+)\\s+)?(.+)\\s+(.+)",
-            Pattern.DOTALL );
 
     private static final Function<String, String> argumentByShortArg;
 
@@ -65,6 +57,14 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
         argumentByShortArg = argumentByShortArgMap::get;
     }
 
+    private static final String FOREGROUND_ARG = "-f";
+    private static final String BACKGROUND_ARG = "-b";
+
+    private final ArgsSpec argsSpec = ArgsSpec.builder()
+            .accepts( FOREGROUND_ARG, false, true )
+            .accepts( BACKGROUND_ARG, false, true )
+            .build();
+
     @Override
     public String getName() {
         return "highlight";
@@ -72,7 +72,7 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
 
     @Override
     public String getUsage() {
-        return "highlight [-F <color>] [-B <color>] <regex> <text-to-highlight>";
+        return "highlight [-f <color>] [-b <color>] <regex> <text-to-highlight>";
     }
 
     @Override
@@ -82,10 +82,10 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
                 "output from other commands via the '|' (pipe) operator.\n" +
                 "The highlight command accepts the following flags:\n" +
                 "  \n" +
-                "  * -B <color>: highlighted text background color.\n" +
-                "  * -F <color+modifier>: highlighted text foreground color and modifier(s).\n" +
+                "  * -b <color>: highlighted text background color.\n" +
+                "  * -f <color+modifier>: highlighted text foreground color and modifier(s).\n" +
                 " \n" +
-                "Example: ps | highlight -B red -F yellow+high_intensity";
+                "Example: ps | highlight -b red -f yellow+high_intensity";
     }
 
     @Override
@@ -137,97 +137,67 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
     }
 
     @Nullable
+    private CommandInvocation parseInvocation( String line, PrintStream err ) {
+        try {
+            return argsSpec.parse( line );
+        } catch ( IllegalArgumentException e ) {
+            CommandHelper.printError( err, getUsage(), e.getMessage() );
+            return null;
+        }
+    }
+
+    @Nullable
     HighlightCall highlightCall( String line, PrintStream err ) {
-        Matcher fbMatch = fbPattern.matcher( line );
-        Matcher bfMatch = bfPattern.matcher( line );
+        CommandInvocation invocation = parseInvocation( line, err );
+        if ( invocation == null ) {
+            return null;
+        } else {
+            @Nullable String foreground = invocation.getArgValue( FOREGROUND_ARG );
+            @Nullable String background = invocation.getArgValue( BACKGROUND_ARG );
+            List<String> rest = CommandHelper.breakupArguments(
+                    invocation.getUnprocessedInput(), 2 );
 
-        if ( fbMatch.matches() && bfMatch.matches() ) {
-            String text = fbMatch.group( 6 );
-            if ( text == null || text.isEmpty() ) {
-                return null;
-            }
-
-            @Nullable String foreground;
-            @Nullable String background;
-
-            int abGroupCount = groupCount( fbMatch );
-            int baGroupCount = groupCount( bfMatch );
-
-            if ( abGroupCount > baGroupCount ) {
-                foreground = fbMatch.group( 2 );
-                background = fbMatch.group( 4 );
+            if ( rest.isEmpty() ) {
+                CommandHelper.printError( err, getUsage(), "Wrong number of arguments provided." );
             } else {
-                background = bfMatch.group( 2 );
-                foreground = bfMatch.group( 4 );
+                String regex = rest.get( 0 );
+                String input = ( rest.size() == 2 ) ? rest.get( 1 ) : "";
+                @Nullable Pattern matchPattern = getPattern( regex, err );
+
+                if ( matchPattern != null ) {
+                    return new HighlightCall( background, foreground, matchPattern, input, getTextColor() );
+                }
             }
-
-            int argumentsGiven = ( background != null && foreground != null ? 2 :
-                    ( background == null && foreground == null ? 0 : 1 ) );
-
-            int limit = getLimit( argumentsGiven );
-            final AtomicInteger currentArgs = new AtomicInteger( 0 );
-            String unprocessed = CommandHelper.breakupArguments( line, arg -> currentArgs.getAndIncrement() < limit );
-
-//            if ( limit > 0 && parts.size() == limit ) {
-//                String regex = parts.get( limit - 2 );
-//                String textColor = getTextColor();
-//
-//                try {
-//                    Pattern matchPattern = Pattern.compile( ".*" + regex + ".*" );
-//
-//                    return new HighlightCall( background, foreground, matchPattern, text, textColor );
-//                } catch ( PatternSyntaxException e ) {
-//                    err.println( "Pattern syntax error in [" + regex + "]: " + e.getMessage() );
-//                    return null;
-//                }
-//            }
         }
 
-        CommandHelper.printError( err, getUsage(),
-                "Wrong number of arguments provided." );
         return null;
     }
 
-    private static int groupCount( Matcher matcher ) {
-        int result = 0;
-        for (int i = 1; i <= matcher.groupCount(); i++) {
-            if ( matcher.group( i ) != null ) {
-                result++;
-            }
-        }
-        return result;
-    }
-
-    private static int getLimit( int argumentsGiven ) {
-        switch ( argumentsGiven ) {
-            case 0:
-                return 3;
-            case 1:
-                return 5;
-            case 2:
-            default:
-                return 7;
+    @Nullable
+    private Pattern getPattern( String regex, PrintStream err ) {
+        try {
+            return Pattern.compile( ".*" + regex + ".*" );
+        } catch ( PatternSyntaxException e ) {
+            err.println( "Pattern syntax error in [" + regex + "]: " + e.getMessage() );
+            return null;
         }
     }
 
-    static class HighlightCall {
+    private static class HighlightCall {
 
         private final AnsiColor[] colors;
         private final AnsiModifier[] modifiers;
-        private final int argumentsGiven;
         private final Pattern pattern;
         private final String text;
         private final String originalColor;
 
-        public HighlightCall( @Nullable String back, @Nullable String fore,
-                              Pattern pattern, String text, String originalColor ) {
-            this.argumentsGiven = ( back != null && fore != null ? 2 :
-                    ( back == null && fore == null ? 0 : 1 ) );
+        HighlightCall( @Nullable String back, @Nullable String fore,
+                       Pattern pattern, String text, String originalColor ) {
             this.pattern = pattern;
             this.text = text;
             this.originalColor = originalColor;
 
-            AnsiColor background = back == null ?
+            AnsiColor background = (back == null) ?
                     AnsiColor.DEFAULT_BG :
                     parse( "_" + back, AnsiColor::valueOf, null );
 
@@ -264,27 +234,23 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
             }
         }
 
-        public int getArgumentsGiven() {
-            return argumentsGiven;
-        }
-
-        public AnsiColor[] getColors() {
+        AnsiColor[] getColors() {
             return colors;
         }
 
-        public AnsiModifier[] getModifiers() {
+        AnsiModifier[] getModifiers() {
             return modifiers;
         }
 
-        public Pattern getPattern() {
+        Pattern getPattern() {
             return pattern;
         }
 
-        public String getText() {
+        String getText() {
             return text;
         }
 
-        public String getOriginalColor() {
+        String getOriginalColor() {
             return originalColor;
         }
     }

@@ -32,7 +32,6 @@ class HighlightCommandSpec extends Specification {
 
         then: 'all values are correctly read'
         result != null
-        result.argumentsGiven == expectedArgumentsGiven
         result.colors.toList() == expectedColors
         result.modifiers.toList() == expectedModifiers
 
@@ -42,15 +41,15 @@ class HighlightCommandSpec extends Specification {
         where:
         args                       | expectedArgumentsGiven | expectedColors        | expectedModifiers
         ''                         | 0                      | [ DEFAULT_BG ]        | [ ]
-        '-F red'                   | 1                      | [ DEFAULT_BG, RED ]   | [ ]
-        '-B blue'                  | 1                      | [ _BLUE ]             | [ ]
-        '-F white -B green'        | 2                      | [ _GREEN, WHITE ]     | [ ]
-        '-B purple -F cyan'        | 2                      | [ _PURPLE, CYAN ]     | [ ]
-        '-F cyan+italic'           | 1                      | [ DEFAULT_BG, CYAN ]  | [ ITALIC ]
-        '-F black+blink+underline' | 1                      | [ DEFAULT_BG, BLACK ] | [ BLINK, UNDERLINE ]
-        '-F green+rapid_blink'     | 1                      | [ DEFAULT_BG, GREEN ] | [ RAPID_BLINK ]
-        '-B purple -F cyan+blink'  | 2                      | [ _PURPLE, CYAN ]     | [ BLINK ]
-        '-F cyan+blink -B purple'  | 2                      | [ _PURPLE, CYAN ]     | [ BLINK ]
+        '-f red'                   | 1                      | [ DEFAULT_BG, RED ]   | [ ]
+        '-b blue'                  | 1                      | [ _BLUE ]             | [ ]
+        '-f white -b green'        | 2                      | [ _GREEN, WHITE ]     | [ ]
+        '-b purple -f cyan'        | 2                      | [ _PURPLE, CYAN ]     | [ ]
+        '-f cyan+italic'           | 1                      | [ DEFAULT_BG, CYAN ]  | [ ITALIC ]
+        '-f black+blink+underline' | 1                      | [ DEFAULT_BG, BLACK ] | [ BLINK, UNDERLINE ]
+        '-f green+rapid_blink'     | 1                      | [ DEFAULT_BG, GREEN ] | [ RAPID_BLINK ]
+        '-b purple -f cyan+blink'  | 2                      | [ _PURPLE, CYAN ]     | [ BLINK ]
+        '-f cyan+blink -b purple'  | 2                      | [ _PURPLE, CYAN ]     | [ BLINK ]
     }
 
     @Unroll
@@ -65,7 +64,6 @@ class HighlightCommandSpec extends Specification {
 
         then: 'all values are correctly read'
         result != null
-        result.argumentsGiven == expectedArgumentsGiven
         result.colors.toList() == expectedColors
         result.modifiers.toList() == expectedModifiers
 
@@ -74,11 +72,11 @@ class HighlightCommandSpec extends Specification {
 
         where:
         args                  | expectedArgumentsGiven | expectedColors        | expectedModifiers
-        '-F cyan+i'           | 1                      | [ DEFAULT_BG, CYAN ]  | [ ITALIC ]
-        '-F black+b+u'        | 1                      | [ DEFAULT_BG, BLACK ] | [ BLINK, UNDERLINE ]
-        '-F green+rb'         | 1                      | [ DEFAULT_BG, GREEN ] | [ RAPID_BLINK ]
-        '-B purple -F cyan+b' | 2                      | [ _PURPLE, CYAN ]     | [ BLINK ]
-        '-F cyan+b -B purple' | 2                      | [ _PURPLE, CYAN ]     | [ BLINK ]
+        '-f cyan+i'           | 1                      | [ DEFAULT_BG, CYAN ]  | [ ITALIC ]
+        '-f black+b+u'        | 1                      | [ DEFAULT_BG, BLACK ] | [ BLINK, UNDERLINE ]
+        '-f green+rb'         | 1                      | [ DEFAULT_BG, GREEN ] | [ RAPID_BLINK ]
+        '-b purple -f cyan+b' | 2                      | [ _PURPLE, CYAN ]     | [ BLINK ]
+        '-f cyan+b -b purple' | 2                      | [ _PURPLE, CYAN ]     | [ BLINK ]
     }
 
 }
