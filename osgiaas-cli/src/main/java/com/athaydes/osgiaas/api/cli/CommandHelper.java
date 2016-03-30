@@ -3,6 +3,7 @@ package com.athaydes.osgiaas.api.cli;
 import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +29,7 @@ public class CommandHelper {
 
     /**
      * Breaks up a command arguments into separate parts.
-     * It uses a space as a separator, but takes into consideration doubly-quoted values, making the whole
+     * A whitespace is used as a separator, taking into consideration doubly-quoted values, making the whole
      * quoted value a single argument.
      *
      * @param arguments space-separated arguments
@@ -44,13 +45,46 @@ public class CommandHelper {
     }
 
     /**
-     * Breaks up a command arguments into separate parts.
-     * It uses a space as a separator, but takes into consideration doubly-quoted values, making the whole
+     * Breaks up a command arguments into separate parts, up to the given limit number of parts.
+     * <p>
+     * A whitespace is used as a separator, taking into consideration doubly-quoted values, making the whole
+     * quoted value a single argument.
+     *
+     * @param arguments command arguments or full command
+     * @param limit     maximum number of parts to return
+     * @return split arguments
+     */
+    public static List<String> breakupArguments( String arguments, int limit ) {
+        if ( limit < 2 ) {
+            return arguments.isEmpty() ?
+                    Collections.emptyList() :
+                    Collections.singletonList( arguments );
+        }
+
+        List<String> result = new ArrayList<>();
+        int maxSize = limit - 1;
+        String rest = breakupArguments( arguments, arg -> {
+            result.add( arg );
+            return result.size() < maxSize;
+        } );
+
+        if ( !rest.isEmpty() ) {
+            result.add( rest );
+        }
+
+        return result;
+    }
+
+    /**
+     * Breaks up a command arguments into separate parts using a function receive arguments and determine when to stop.
+     * <p>
+     * A whitespace is used as a separator, taking into consideration doubly-quoted values, making the whole
      * quoted value a single argument.
      *
      * @param arguments     command arguments or full command
-     * @param limitFunction ??
-     * @return split arguments
+     * @param limitFunction function that receives each argument, returning true to continue breaking up the input,
+     *                      or false to stop. The unprocessed input is returned.
+     * @return the unprocessed input.
      */
     public static String breakupArguments( String arguments, Function<String, Boolean> limitFunction ) {
         boolean inQuote = false;
