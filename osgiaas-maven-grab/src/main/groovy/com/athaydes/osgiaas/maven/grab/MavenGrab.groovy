@@ -1,9 +1,19 @@
 package com.athaydes.osgiaas.maven.grab
 
 import com.athaydes.osgiaas.api.cli.CommandHelper
+import com.athaydes.osgiaas.api.cli.args.ArgsSpec
+import groovy.transform.CompileStatic
 import org.apache.felix.shell.Command
 
+@CompileStatic
 class MavenGrab implements Command {
+
+    static final String ADD_REPO = '--add-repo'
+
+    // TODO implement add-repo
+    final ArgsSpec argsSpec = ArgsSpec.builder()
+            .accepts( "--add-repo", false, true, true )
+            .build()
 
     @Override
     String getName() { "grab" }
@@ -18,39 +28,35 @@ class MavenGrab implements Command {
 
     @Override
     void execute( String line, PrintStream out, PrintStream err ) {
-        def invocation = CommandHelper.parseCommandInvocation( line - getName(), 2 )
+        try {
+            def invocation = argsSpec.parse( line )
+            def argMap = invocation.arguments
+            def rest = invocation.unprocessedInput
 
-        def argMap = invocation.argumentsAsMap
-        println "ARGS MAP: $argMap"
-
-        if ( invocation.unprocessedInput || argMap.isEmpty() ) {
-            CommandHelper.printError( err, getUsage(), "Wrong number of arguments" )
-        } else {
-            def directive = argMap.keySet()[ 0 ]
-            def directiveArgs = argMap[ directive ]
-            if ( !directiveArgs.isEmpty() ) {
-                switch ( directive ) {
-                    case '--add-repo': addRepo directiveArgs
-                        break
-                    default:
-                        err.println( "$name - Unrecognized option: $directive" )
-                }
+            if ( !rest && !argMap ) {
+                CommandHelper.printError( err, getUsage(), "Wrong number of arguments" )
             } else {
-                def grapes = ( System.getProperty( 'grape.root' ) ?:
-                        ( System.getProperty( 'user.home' ) + '/.groovy' ) ) + '/grapes'
+                def reposToAdd = argMap[ ADD_REPO ]
+                if ( reposToAdd ) {
+                    addRepo( reposToAdd )
+                } else if ( rest ) {
+                    def grapes = ( System.getProperty( 'grape.root' ) ?:
+                            ( System.getProperty( 'user.home' ) + '/.groovy' ) ) + '/grapes'
 
-                def grapesDir = new File( grapes )
+                    def grapesDir = new File( grapes )
 
-                if ( !grapesDir.directory ) {
-                    grapesDir.mkdirs()
+                    if ( !grapesDir.directory ) {
+                        grapesDir.mkdirs()
+                    }
+
+                    grab rest, out, err, grapes
+                } else {
+                    CommandHelper.printError( err, getUsage(), "Wrong number of arguments" )
                 }
-
-                def artifact = argMap.keySet()[ 0 ]
-                grab artifact, out, err, grapes
             }
-
+        } catch ( IllegalArgumentException e ) {
+            CommandHelper.printError( err, getUsage(), e.message )
         }
-
     }
 
     private static void addRepo( List<String> repos ) {
@@ -65,12 +71,12 @@ class MavenGrab implements Command {
             def version = parts[ 2 ]
             def classifier = ( parts.size() == 4 ? parts[ 3 ] : '' )
 
-            def grabInstruction = "@Grab(group='$group', module='$name', version='$version'"
-            grabInstruction += ( classifier ? ", classifier='$classifier')" : ')' )
+            def grabInstruction = "@Grab(group='$group', module='$name', version='$version'" +
+                    ( classifier ? ", classifier='$classifier')" : ')' )
 
             try {
                 Eval.me( grabInstruction + ' import java.util.List' )
-            } catch ( Throwable e ) {
+            } catch ( Throwable ignore ) {
                 err.println( "Unable to download artifact: $artifact" )
                 return
             }
