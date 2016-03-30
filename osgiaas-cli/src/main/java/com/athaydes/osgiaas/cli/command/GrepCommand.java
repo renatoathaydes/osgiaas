@@ -1,27 +1,29 @@
 package com.athaydes.osgiaas.cli.command;
 
 import com.athaydes.osgiaas.api.cli.CommandHelper;
+import com.athaydes.osgiaas.api.cli.CommandInvocation;
 import com.athaydes.osgiaas.api.cli.StreamingCommand;
+import com.athaydes.osgiaas.api.cli.args.ArgsSpec;
 import com.athaydes.osgiaas.api.stream.LineOutputStream;
 
 import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 public class GrepCommand implements StreamingCommand {
 
-    private static final Pattern baPattern = Pattern.compile(
-            "\\s*grep\\s+(-B\\s+(\\d+)\\s+)?(-A\\s+(\\d+)\\s+)?([^\\s]+)(\\s+(.*))?",
-            Pattern.DOTALL );
+    private static final String BEFORE_ARG = "-B";
+    private static final String AFTER_ARG = "-A";
 
-    private static final Pattern abPattern = Pattern.compile(
-            "\\s*grep\\s+(-A\\s+(\\d+)\\s+)?(-B\\s+(\\d+)\\s+)?([^\\s]+)(\\s+(.*))?",
-            Pattern.DOTALL );
+    private final ArgsSpec argsSpec = ArgsSpec.builder()
+            .accepts( BEFORE_ARG, false, true )
+            .accepts( AFTER_ARG, false, true )
+            .build();
 
     @Override
     public String getName() {
@@ -61,8 +63,7 @@ public class GrepCommand implements StreamingCommand {
     }
 
     Consumer<String> grepAndConsume( String line, PrintStream out, PrintStream err ) {
-        @Nullable GrepCall grepCall = grepCall( line );
-
+        @Nullable GrepCall grepCall = grepCall( line, err );
 
         if ( grepCall != null ) {
             String regex = grepCall.regex;
@@ -85,9 +86,9 @@ public class GrepCommand implements StreamingCommand {
         return null;
     }
 
-    static Consumer<String> grep( String regex,
-                                  @Nullable GrepCall grepCall,
-                                  Consumer<String> lineConsumer ) {
+    private static Consumer<String> grep( String regex,
+                                          @Nullable GrepCall grepCall,
+                                          Consumer<String> lineConsumer ) {
         Pattern regexPattern = Pattern.compile( ".*" + regex + ".*" );
 
         // large number that can be safely added to without overflow
@@ -118,50 +119,39 @@ public class GrepCommand implements StreamingCommand {
     }
 
     @Nullable
-    static GrepCall grepCall( String line ) {
-        Matcher abMatch = abPattern.matcher( line );
-        Matcher baMatch = baPattern.matcher( line );
+    GrepCall grepCall( String line, PrintStream err ) {
+        CommandInvocation invocation;
 
-        if ( abMatch.matches() && baMatch.matches() ) {
-            String regex;
-            @Nullable String text;
-            @Nullable String after;
-            @Nullable String before;
-
-            Matcher matcher = selectBestMatcher( abMatch, baMatch );
-
-            after = matcher.group( matcher == abMatch ? 2 : 4 );
-            before = matcher.group( matcher == baMatch ? 2 : 4 );
-            regex = matcher.group( 5 );
-            text = matcher.group( 7 );
-
-            int beforeLines = parseInt( before );
-            int afterLines = parseInt( after );
-
-            return new GrepCall(
-                    beforeLines, before != null,
-                    afterLines, after != null,
-                    regex, text == null ? "" : text );
-        } else {
+        try {
+            invocation = argsSpec.parse( line );
+        } catch ( IllegalArgumentException e ) {
+            CommandHelper.printError( err, getUsage(), e.getMessage() );
             return null;
         }
-    }
 
-    private static Matcher selectBestMatcher( Matcher m1, Matcher m2 ) {
-        int count1 = optionalValuesCount( m1 );
-        int count2 = optionalValuesCount( m2 );
-        if ( count1 > count2 ) {
-            return m1;
-        } else {
-            return m2;
+        @Nullable String after = invocation.getArgValue( AFTER_ARG );
+        @Nullable String before = invocation.getArgValue( BEFORE_ARG );
+
+        List<String> rest = CommandHelper.breakupArguments( invocation.getUnprocessedInput(), 2 );
+
+        if ( rest.isEmpty() ) {
+            CommandHelper.printError( err, getUsage(), "Wrong number of arguments provided." );
+            return null;
         }
-    }
 
-    private static int optionalValuesCount( Matcher matcher ) {
-        int count = 0;
-        if ( matcher.group( 2 ) != null ) count++;
-        if ( matcher.group( 4 ) != null ) count++;
-        return count;
+        String regex = rest.get( 0 );
+        @Nullable String text = rest.size() > 1 ? rest.get( 1 ) : null;
+
+        try {
+            return new GrepCall(
+                    parseInt( before ), before != null,
+                    parseInt( after ), after != null,
+                    regex, text == null ? "" : text );
+        } catch ( NumberFormatException nfe ) {
+            CommandHelper.printError( err, getUsage(), "Expected integer argument for " +
+                    BEFORE_ARG + " or " + AFTER_ARG );
+            return null;
+        }
     }
 
     private static int parseInt( @Nullable String arg ) {
@@ -178,9 +168,9 @@ public class GrepCommand implements StreamingCommand {
         final String regex;
         final String text;
 
-        public GrepCall( int beforeLines, boolean beforeGiven,
-                         int afterLines, boolean afterGiven,
-                         String regex, String text ) {
+        GrepCall( int beforeLines, boolean beforeGiven,
+                  int afterLines, boolean afterGiven,
+                  String regex, String text ) {
             this.beforeLines = beforeLines;
             this.beforeGiven = beforeGiven;
             this.afterLines = afterLines;

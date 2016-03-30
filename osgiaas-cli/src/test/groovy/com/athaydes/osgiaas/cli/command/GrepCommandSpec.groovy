@@ -9,7 +9,7 @@ class GrepCommandSpec extends Specification {
     @Unroll
     def "GrepCall is created correctly from a command line"() {
         when: 'Parsing a valid grep call'
-        def result = GrepCommand.grepCall( line )
+        def result = new GrepCommand().grepCall( line, new PrintStream( Stub( OutputStream ) ) )
 
         then: 'The grep call is recognized as valid'
         result != null
@@ -30,9 +30,6 @@ class GrepCommandSpec extends Specification {
         'grep -B 2 -A 6 a b' | 2      | 6     | true        | true       | 'a'            | 'b'
         'grep -A 2 a b'      | 0      | 2     | false       | true       | 'a'            | 'b'
         'grep -A 2 -B 3 a b' | 3      | 2     | true        | true       | 'a'            | 'b'
-        'grep -A b'          | 0      | 0     | false       | false      | '-A'           | 'b'
-        'grep -B b'          | 0      | 0     | false       | false      | '-B'           | 'b'
-        'grep -B -A b'       | 0      | 0     | false       | false      | '-B'           | '-A b'
         'grep -b x'          | 0      | 0     | false       | false      | '-b'           | 'x'
         'grep  -A 3 -B 1 hi' | 1      | 3     | true        | true       | 'hi'           | ''
         'grep  -B 1 -A 3 hi' | 1      | 3     | true        | true       | 'hi'           | ''
@@ -43,14 +40,14 @@ class GrepCommandSpec extends Specification {
     @Unroll
     def "Invalid grep calls are not recognized"() {
         when: 'An invalid grep call is made'
-        def result = GrepCommand.grepCall( line )
+        def result = new GrepCommand().grepCall( line, new PrintStream( Stub( OutputStream ) ) )
 
         then: 'The call is not recognized as being valid'
         result == null
 
         where:
         line << [
-                '', 'abc', 'grepme', 'grep'
+                '', 'grep -B', 'grep -A', 'grep -A -B', 'grep -A x', 'grep -B 3 -A f regex text'
         ]
     }
 
