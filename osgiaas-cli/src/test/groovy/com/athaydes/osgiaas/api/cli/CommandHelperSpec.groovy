@@ -27,7 +27,9 @@ class CommandHelperSpec extends Specification {
         'ab \\"cd\\"'           | [ 'ab', '"cd"' ]
         'ab "c\\"d e\\"" "f g"' | [ 'ab', 'c"d e"', 'f g' ]
         'ab "c\\"d e" "\\"f g"' | [ 'ab', 'c"d e', '"f g' ]
-        'ab\\\\c \\"d'          | [ 'ab\\c', '"d' ]
+        'ab\\\\c \\"d'          | [ 'ab\\\\c', '"d' ]
+        'a\\b\\\\c'             | [ 'a\\b\\\\c' ]
+        'a\\ b\\  '             | [ 'a\\', 'b\\' ]
     }
 
     @Unroll

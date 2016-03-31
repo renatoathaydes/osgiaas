@@ -90,33 +90,54 @@ public class CommandHelper {
         char[] chars = arguments.toCharArray();
         for (int i = 0; i < chars.length; i++) {
             char c = chars[ i ];
-            boolean escapeNext = !escaped && ( c == '\\' );
 
-            if ( inQuote ) {
-                if ( c == '"' && !escaped ) {
-                    inQuote = false;
-                } else if ( !escapeNext ) {
-                    currentArg.append( c );
-                }
-            } else {
-                if ( c == '"' && !escaped ) {
-                    inQuote = true;
-                } else {
-                    if ( c == ' ' ) {
-                        boolean keepGoing = addArgument( currentArg, limitFunction );
-                        if ( !keepGoing ) {
-                            // no more splitting
-                            char[] rest = new char[ chars.length - ( i + 1 ) ];
-                            System.arraycopy( chars, i + 1, rest, 0, rest.length );
-                            return new String( rest );
-                        }
-                    } else if ( !escapeNext ) {
-                        currentArg.append( c );
-                    }
-                }
+            boolean isEscape = ( c == '\\' );
+            boolean isQuote = ( c == '"' );
+
+            if ( escaped && !isQuote ) { // put back the escaping char as it was not used
+                currentArg.append( '\\' );
             }
 
-            escaped = escapeNext;
+            if ( isEscape ) {
+                escaped = true;
+                continue;
+            }
+
+            boolean done = false;
+
+            if ( !escaped && isQuote ) {
+                inQuote = !inQuote;
+                done = true;
+            }
+
+            escaped = false;
+
+            if ( done ) {
+                continue;
+            }
+
+            if ( inQuote ) {
+                // when in quotes, we don't care what c is
+                currentArg.append( c );
+            } else {
+                // outside quotes, we need to look for whitespace
+                if ( c == ' ' ) {
+                    boolean keepGoing = addArgument( currentArg, limitFunction );
+                    if ( !keepGoing ) {
+                        // no more splitting
+                        char[] rest = new char[ chars.length - ( i + 1 ) ];
+                        System.arraycopy( chars, i + 1, rest, 0, rest.length );
+                        return new String( rest );
+                    }
+                } else {
+                    currentArg.append( c );
+                }
+            }
+        }
+
+        if ( escaped ) {
+            // don't throw away the last escaping character
+            currentArg.append( '\\' );
         }
 
         // add last argument if any
