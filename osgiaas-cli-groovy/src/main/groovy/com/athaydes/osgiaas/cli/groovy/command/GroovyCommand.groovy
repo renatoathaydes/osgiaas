@@ -14,6 +14,8 @@ class GroovyCommand implements StreamingCommand {
 
     private final AtomicReference<ComponentContext> contextRef = new AtomicReference<>()
 
+    private final GroovyShell shell = new GroovyShell()
+
     @Override
     String getName() { 'groovy' }
 
@@ -65,8 +67,16 @@ class GroovyCommand implements StreamingCommand {
 
     private run( String script, PrintStream out, PrintStream err ) {
         try {
-            return new GroovyShell( new Binding( out: out, err: err, ctx: contextRef.get() ) )
-                    .evaluate( script )
+            shell.context.with {
+                setVariable( 'out', out )
+                setVariable( 'err', err )
+                setVariable( 'ctx', contextRef.get() )
+                setVariable( 'binding', shell.context.variables )
+            }
+
+            def result = shell.evaluate( script )
+
+            return result
         } catch ( Exception e ) {
             err.println( e )
         }
