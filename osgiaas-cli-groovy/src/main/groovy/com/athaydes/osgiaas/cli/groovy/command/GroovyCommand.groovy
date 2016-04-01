@@ -26,7 +26,33 @@ class GroovyCommand implements StreamingCommand {
 
     @Override
     String getShortDescription() {
-        'Executes a Groovy script.'
+        '''
+           Executes a Groovy script.
+
+           If the script returns a non-null value, the value is printed.
+
+           Example:
+
+           >> groovy 2 + 2
+           4
+
+           When run through pipes, the script should return a Closure that takes each input line as an argument.
+
+           For example:
+
+           >> some_command | groovy { line -> println line }
+
+           The curly braces can be omitted:
+
+           >> some_command | groovy line -> println line
+
+           State is maintained between invocations:
+
+           >> groovy x = 10
+           10
+           >> groovy x + 1
+           11
+           '''.stripIndent()
     }
 
     @Override
