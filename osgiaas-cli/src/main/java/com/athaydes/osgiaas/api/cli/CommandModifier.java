@@ -17,4 +17,17 @@ import java.util.function.Function;
  */
 @FunctionalInterface
 public interface CommandModifier extends Function<String, List<String>> {
+
+    /**
+     * @return priority of this CommandModifier.
+     * <p>
+     * The priority value allows establishing ordering between CommandModifiers.
+     * Higher priority modifiers run first.
+     * <p>
+     * The default priority is 10.
+     */
+    default int getPriority() {
+        return 10;
+    }
+
 }
