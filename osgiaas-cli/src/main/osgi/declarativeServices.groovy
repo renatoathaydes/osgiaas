@@ -12,7 +12,7 @@ cliPropertiesReference = { ->
 }
 
 component( xmlns: "http://www.osgi.org/xmlns/scr/v1.3.0",
-        name: 'osgiaasStandardCli', immediate: 'true',
+        name: 'osgiaasStandardCli', immediate: true,
         activate: 'start', deactivate: 'stop' ) {
     implementation( 'class': 'com.athaydes.osgiaas.cli.StandardCli' )
     property( name: 'service.description', value: 'Standard OsgiAAS CLI Service' )
@@ -78,6 +78,16 @@ component( name: 'promptCommand', immediate: true ) {
             'policy': 'static',
             'bind': 'setCli',
             'unbind': 'removeCli' )
+}
+
+component( name: 'useCommand', immediate: true ) {
+    commonProperties()
+    implementation( 'class': 'com.athaydes.osgiaas.cli.command.UseCommand' )
+    property( name: 'service.description', value: 'OsgiAAS Cli Use Command' )
+    service {
+        provide( 'interface': 'org.apache.felix.shell.Command' )
+        provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandModifier' )
+    }
 }
 
 component( name: 'aliasCommand', immediate: true ) {

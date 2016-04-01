@@ -23,10 +23,10 @@ import java.util.function.Supplier;
 public class OsgiaasShell {
 
     private final Supplier<Set<Command>> commandsProvider;
-    private final Supplier<Set<CommandModifier>> modifiersProvider;
+    private final Supplier<List<CommandModifier>> modifiersProvider;
 
     public OsgiaasShell( Supplier<Set<Command>> commandsProvider,
-                         Supplier<Set<CommandModifier>> modifiersProvider ) {
+                         Supplier<List<CommandModifier>> modifiersProvider ) {
         this.commandsProvider = commandsProvider;
         this.modifiersProvider = modifiersProvider;
     }
@@ -42,7 +42,7 @@ public class OsgiaasShell {
     }
 
     public void runCommand( String userCommand, PrintStream out, PrintStream err ) {
-        Set<CommandModifier> commandModifiers = modifiersProvider.get();
+        List<CommandModifier> commandModifiers = modifiersProvider.get();
         LinkedList<List<Cmd>> commandsPipeline = new LinkedList<>();
         String[] pipes = userCommand.split( "\\|" );
 

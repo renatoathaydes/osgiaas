@@ -48,8 +48,6 @@ public class CliRun implements Runnable {
 
         started = new AtomicBoolean( false );
         consoleReader.setPrompt( getPrompt() );
-
-        loadHistory( consoleReader );
     }
 
     void addCompleter( Completer completer ) {
@@ -123,6 +121,8 @@ public class CliRun implements Runnable {
             // already started
             return;
         }
+
+        loadHistory( consoleReader );
 
         runInitialCommands();
 

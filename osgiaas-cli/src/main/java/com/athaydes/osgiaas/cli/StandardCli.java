@@ -6,12 +6,13 @@ import com.athaydes.osgiaas.api.cli.CliProperties;
 import com.athaydes.osgiaas.api.cli.CommandCompleter;
 import com.athaydes.osgiaas.api.cli.CommandModifier;
 import com.athaydes.osgiaas.api.service.DynamicServiceHelper;
-import com.athaydes.osgiaas.cli.util.HasManyCommandCompleters;
 import com.athaydes.osgiaas.api.service.HasManyServices;
+import com.athaydes.osgiaas.cli.util.HasManyCommandCompleters;
 import jline.console.completer.Completer;
 import org.apache.felix.shell.Command;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -40,6 +41,11 @@ public class StandardCli extends HasManyServices<CommandModifier>
     private volatile AnsiColor promptColor = AnsiColor.RESET;
     private volatile AnsiColor textColor = AnsiColor.RESET;
     private volatile AnsiColor errorColor = AnsiColor.RED;
+
+    @Override
+    protected Comparator<CommandModifier> getComparator() {
+        return ( m1, m2 ) -> Integer.compare( m2.getPriority(), m1.getPriority() );
+    }
 
     @Override
     public void start() {
