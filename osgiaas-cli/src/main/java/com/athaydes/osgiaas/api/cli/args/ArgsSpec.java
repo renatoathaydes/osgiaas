@@ -108,7 +108,7 @@ public class ArgsSpec {
     private static String removeFirstPartOf( String command ) {
         int index = command.indexOf( ' ' );
         if ( index < 0 ) {
-            return command;
+            return "";
         } else {
             return command.substring( index + 1 );
         }

@@ -81,4 +81,26 @@ class ArgsSpecSpecification extends Specification {
         'cmd -f 1 --no-fuss a' | 'a'
     }
 
+    def "Command itself must always be removed from the results"() {
+        given: 'An ArgsSpec with no mandatory options'
+        def spec = ArgsSpec.builder()
+                .accepts( '-f', false, true )
+                .build()
+
+        when: 'some example command invocations are parsed'
+        def result = spec.parse( command )
+
+        then: 'the results never include the command itself'
+        result.unprocessedInput == expectedUnprocessedInput
+        result.arguments == expectedArgs
+
+        where:
+        command            | expectedArgs      | expectedUnprocessedInput
+        'hello'            | [ : ]             | ''
+        'hello hi'         | [ : ]             | 'hi'
+        'hello -f a'       | [ '-f': [ 'a' ] ] | ''
+        'hello -f a b'     | [ '-f': [ 'a' ] ] | 'b'
+        'hello -f a b cde' | [ '-f': [ 'a' ] ] | 'b cde'
+    }
+
 }
