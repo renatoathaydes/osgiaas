@@ -88,12 +88,13 @@ public class CliRun implements Runnable {
             }
             if ( initFile.exists() ) {
                 Scanner fileScanner = new Scanner( initFile );
-                while ( fileScanner.hasNextLine() ) {
-                    PrintStream out = new NoOpPrintStream();
-                    OsgiaasPrintStream err = new OsgiaasPrintStream(
-                            System.err, cliProperties.getErrorColor() );
 
-                    runCommand( fileScanner.nextLine(), out, err );
+                PrintStream out = new NoOpPrintStream();
+                OsgiaasPrintStream err = new OsgiaasPrintStream(
+                        System.err, cliProperties.getErrorColor() );
+
+                while ( fileScanner.hasNextLine() ) {
+                    commandRunner.runCommand( fileScanner.nextLine(), out, err );
                 }
             }
         } catch ( Exception e ) {
@@ -124,6 +125,7 @@ public class CliRun implements Runnable {
 
         loadHistory( consoleReader );
 
+        // FIXME services may not be available yet
         runInitialCommands();
 
         thread = Thread.currentThread();
@@ -152,10 +154,6 @@ public class CliRun implements Runnable {
         }
     }
 
-    private void runCommand( String line, PrintStream out, PrintStream err ) {
-        commandRunner.runCommand( line, out, err );
-    }
-
     private void runCommand( String line ) {
         OsgiaasPrintStream out = new OsgiaasPrintStream(
                 System.out, cliProperties.getTextColor() );
@@ -163,7 +161,7 @@ public class CliRun implements Runnable {
         OsgiaasPrintStream err = new OsgiaasPrintStream(
                 System.err, cliProperties.getErrorColor() );
 
-        runCommand( line, out, err );
+        commandRunner.runCommand( line, out, err );
     }
 
 }
