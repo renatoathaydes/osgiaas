@@ -10,11 +10,13 @@ class MavenGrab implements Command {
 
     static final String ADD_REPO = '--add-repo'
     static final String REMOVE_REPO = '--rm-repo'
+    static final String LIST_REPOS = '--list-repos'
     static final String VERBOSE = '-v'
 
     final ArgsSpec argsSpec = ArgsSpec.builder()
             .accepts( ADD_REPO, false, true, true )
             .accepts( REMOVE_REPO, false, true, true )
+            .accepts( LIST_REPOS )
             .accepts( VERBOSE )
             .build()
 
@@ -61,7 +63,10 @@ class MavenGrab implements Command {
             } else {
                 def reposToAdd = argMap[ ADD_REPO ]
                 def reposToRemove = argMap[ REMOVE_REPO ]
-                if ( reposToAdd ) {
+
+                if ( argMap.containsKey( LIST_REPOS ) ) {
+                    showRepos out
+                } else if ( reposToAdd ) {
                     addRepo( reposToAdd, out, err )
                 } else if ( reposToRemove ) {
                     removeRepo( reposToRemove, out, err )
@@ -116,12 +121,9 @@ class MavenGrab implements Command {
     }
 
     private void showRepos( PrintStream out ) {
-        if ( repositories.isEmpty() ) {
-            out.println "No custom repositories configured."
-        } else {
-            out.println "List of repositories:"
-            repositories.each { name, repo -> out.println "  * $name: $repo" }
-        }
+        def allRepos = repositories + [ default: 'https://jcenter.bintray.com/' ]
+        out.println "List of repositories:"
+        allRepos.each { name, repo -> out.println "  * $name: $repo" }
     }
 
     private String getReposString() {
@@ -142,9 +144,10 @@ class MavenGrab implements Command {
                     ( classifier ? ", classifier='$classifier')" : ')' )
 
             try {
-                Eval.me( [ getReposString(), grabInstruction, ' import java.util.List' ].join( '\n' ) )
+                Eval.me( [ getReposString(), grabInstruction, 'import java.util.List' ].join( '\n' ) )
             } catch ( Throwable ignore ) {
-                err.println( "Unable to download artifact: $artifact" )
+                err.println( "Unable to download artifact: $artifact\n" +
+                        "Make sure the artifact exists in one of the configured repositories." )
                 return
             }
 
@@ -152,10 +155,12 @@ class MavenGrab implements Command {
             if ( grapeLocation.exists() ) {
                 out.println "file://$grapeLocation"
             } else {
-                err.println( "Grape was not found in the expected location: $grapeLocation" )
+                err.println( "Grape was not saved in the expected location: $grapeLocation\n" +
+                        "Run with the $VERBOSE option for more details." )
             }
         } else {
-            err.println( "Cannot understand artifact pattern: $artifact" )
+            err.println( "Cannot understand artifact pattern: $artifact.\n" +
+                    "Pattern should be: groupId:artifactId:version[:classifier]" )
         }
     }
 
