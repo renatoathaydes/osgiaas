@@ -34,7 +34,7 @@ public class OsgiaasCommandCompleter
     private static EffectiveInput resolveInputForCompletion( String buffer, int cursor ) {
         String prefix = buffer.substring( 0, cursor );
 
-        int breakupIndex = Math.max( prefix.lastIndexOf( '|' ), prefix.lastIndexOf( "&&" ) );
+        int breakupIndex = Math.max( prefix.lastIndexOf( '|' ), prefix.lastIndexOf( "&" ) );
 
         final String input;
         final int index;
