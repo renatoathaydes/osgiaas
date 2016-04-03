@@ -18,29 +18,34 @@ public abstract class HasManyCommandCompleters {
 
     protected abstract void removeCompleter( Completer completer );
 
-    public Collection<? extends Completer> getCompleters() {
-        return completers.get().values();
-    }
-
     public final void addService( CommandCompleter service ) {
         completers.updateAndGet( completerMap -> {
+            Map<CommandCompleter, Completer> newMap = new HashMap<>( completerMap );
             Completer completer = service::complete;
-            completerMap.put( service, completer );
-            addCompleter( completer );
-            return new HashMap<>( completerMap );
+            newMap.put( service, completer );
+            updateCompleters( newMap.values() );
+            return newMap;
         } );
     }
 
     public final void removeService( CommandCompleter service ) {
         completers.updateAndGet( completerMap -> {
+            Map<CommandCompleter, Completer> newMap = new HashMap<>( completerMap );
             @Nullable
-            Completer completer = completerMap.remove( service );
+            Completer completer = newMap.remove( service );
             if ( completer != null ) {
-                removeCompleter( completer );
-                return new HashMap<>( completerMap );
-            } else {
-                return completerMap;
+                updateCompleters( newMap.values() );
             }
+            return newMap;
         } );
+    }
+
+    private void updateCompleters( Collection<Completer> completers ) {
+        for (Completer completer : completers) {
+            removeCompleter( completer );
+        }
+        for (Completer completer : completers) {
+            addCompleter( completer );
+        }
     }
 }

@@ -62,7 +62,7 @@ public class StandardCli extends HasManyServices<CommandModifier>
             Thread thread;
 
             synchronized ( currentRun ) {
-                CliRun cli = new CliRun( shell::runCommand, this, completers.getCompleters() );
+                CliRun cli = new CliRun( shell::runCommand, this );
                 thread = new Thread( cli );
                 currentRun.set( cli );
             }

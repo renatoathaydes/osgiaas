@@ -14,7 +14,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Collection;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -34,8 +33,7 @@ public class CliRun implements Runnable {
     private volatile Thread thread = null;
 
     public CliRun( CommandRunner commandRunner,
-                   CliProperties cliProperties,
-                   Collection<? extends Completer> commandCompleters )
+                   CliProperties cliProperties )
             throws IOException {
         this.commandRunner = commandRunner;
         this.cliProperties = cliProperties;
@@ -43,8 +41,6 @@ public class CliRun implements Runnable {
         consoleReader = new ConsoleReader(
                 new InterruptableInputStream( System.in ),
                 System.out );
-
-        commandCompleters.forEach( consoleReader::addCompleter );
 
         started = new AtomicBoolean( false );
         consoleReader.setPrompt( getPrompt() );

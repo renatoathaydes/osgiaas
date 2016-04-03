@@ -16,7 +16,7 @@ public class OsgiaasCommandCompleter
         if ( !buffer.contains( " " ) ) {
             return completeCommand( buffer, cursor, candidates );
         } else {
-            return cursor;
+            return -1;
         }
     }
 
