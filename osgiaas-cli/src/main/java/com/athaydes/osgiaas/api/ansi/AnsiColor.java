@@ -38,4 +38,13 @@ public enum AnsiColor {
         return Ansi.stringFromCode( code );
     }
 
+    public static boolean isColor( String text ) {
+        try {
+            valueOf( text );
+            return true;
+        } catch ( IllegalArgumentException e ) {
+            return false;
+        }
+    }
+
 }

@@ -65,6 +65,16 @@ component( name: 'colorCommand', immediate: true ) {
             'unbind': 'removeCli' )
 }
 
+component( name: 'colorCommandCompleter', immediate: true ) {
+    commonProperties()
+    implementation( 'class': 'com.athaydes.osgiaas.cli.completer.ColorCommandCompleter' )
+    property( name: 'service.description', value: 'OsgiAAS Color Command Completer' )
+    service {
+        provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter' )
+    }
+    cliPropertiesReference()
+}
+
 component( name: 'promptCommand', immediate: true ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.command.PromptCommand' )
