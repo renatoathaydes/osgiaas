@@ -42,7 +42,7 @@ component( xmlns: "http://www.osgi.org/xmlns/scr/v1.3.0",
 
 component( name: 'osgiaasCommandCompleter', immediate: true ) {
     commonProperties()
-    implementation( 'class': 'com.athaydes.osgiaas.cli.OsgiaasCommandCompleter' )
+    implementation( 'class': 'com.athaydes.osgiaas.cli.completer.OsgiaasCommandCompleter' )
     property( name: 'service.description', value: 'OsgiAAS Cli Command Completer' )
     service {
         provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter' )

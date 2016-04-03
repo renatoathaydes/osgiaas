@@ -1,4 +1,4 @@
-package com.athaydes.osgiaas.cli;
+package com.athaydes.osgiaas.cli.completer;
 
 import com.athaydes.osgiaas.api.cli.CommandCompleter;
 import com.athaydes.osgiaas.cli.util.UsesCliProperties;
