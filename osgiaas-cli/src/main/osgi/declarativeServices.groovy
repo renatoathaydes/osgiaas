@@ -121,6 +121,16 @@ component( name: 'highlightCommand', immediate: true ) {
     cliPropertiesReference()
 }
 
+component( name: 'highlightCommandCompleter', immediate: true ) {
+    commonProperties()
+    implementation( 'class': 'com.athaydes.osgiaas.cli.completer.HighlightCommandCompleter' )
+    property( name: 'service.description', value: 'OsgiAAS Highlight Command Completer' )
+    service {
+        provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter' )
+    }
+    cliPropertiesReference()
+}
+
 component( name: 'grepCommandModifier', immediate: true ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.command.GrepCommand' )

@@ -57,8 +57,8 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
         argumentByShortArg = argumentByShortArgMap::get;
     }
 
-    private static final String FOREGROUND_ARG = "-f";
-    private static final String BACKGROUND_ARG = "-b";
+    public static final String FOREGROUND_ARG = "-f";
+    public static final String BACKGROUND_ARG = "-b";
 
     private final ArgsSpec argsSpec = ArgsSpec.builder()
             .accepts( FOREGROUND_ARG, false, true )

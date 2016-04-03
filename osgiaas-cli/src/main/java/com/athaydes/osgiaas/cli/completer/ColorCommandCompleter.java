@@ -5,6 +5,7 @@ import com.athaydes.osgiaas.api.cli.completer.BaseCompleter;
 import com.athaydes.osgiaas.api.cli.completer.CompletionNode;
 
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -16,15 +17,20 @@ public class ColorCommandCompleter extends BaseCompleter {
                     .collect( Collectors.toList() );
 
     private static final List<CompletionNode> colors =
-            Stream.of( AnsiColor.values() )
-                    .map( AnsiColor::name )
-                    .filter( color -> !color.startsWith( "_" ) )
-                    .map( String::toLowerCase )
-                    .sorted()
-                    .map( color -> CompletionNode.nodeFor( color )
-                            .withChildren( colorTargets )
-                            .build() )
-                    .collect( Collectors.toList() );
+            colorsNodes( builder -> builder
+                    .withChildren( colorTargets )
+                    .build() );
+
+    static List<CompletionNode> colorsNodes(
+            Function<CompletionNode.CompletionNodeBuilder, CompletionNode> buildNode ) {
+        return Stream.of( AnsiColor.values() )
+                .map( AnsiColor::name )
+                .filter( color -> !color.startsWith( "_" ) )
+                .map( String::toLowerCase )
+                .sorted()
+                .map( color -> buildNode.apply( CompletionNode.nodeFor( color ) ) )
+                .collect( Collectors.toList() );
+    }
 
     public ColorCommandCompleter() {
         super( CompletionNode.nodeFor( "color" )
