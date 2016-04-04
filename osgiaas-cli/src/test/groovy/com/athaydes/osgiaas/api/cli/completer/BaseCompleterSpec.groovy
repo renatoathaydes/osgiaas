@@ -98,4 +98,43 @@ class BaseCompleterSpec extends Specification {
         'cmd other o2 o3.'  | 16     | -1            | [ ]
     }
 
+    def "BaseCompleter can complete multi-part commands arguments"() {
+        given: "A simple command completer based on BaseCompleter"
+        def completer = new BaseCompleter( CompletionMatcher.nameMatcher( 'cmd', [
+                CompletionMatcher.multiPartMatcher( '-', [
+                        [ 'p1', 'p2', 'p3' ],
+                        [ 'queue', 'row', 'seat' ],
+                        [ 'table' ]
+                ] ),
+                CompletionMatcher.nameMatcher( 'something' ),
+                CompletionMatcher.nameMatcher( 'other' ),
+        ] ) )
+
+        when: "Some example user commands are queried for completion"
+        def candidates = [ ]
+        def index = completer.complete( command, cursor, candidates )
+
+        then: "The expected completions are added"
+        candidates == expectedCandidates
+
+        and: "The expected index is returned"
+        index == expectedIndex
+
+        where:
+        command         | cursor | expectedIndex | expectedCandidates
+        'cmd '          | 4      | 4             | [ 'p1', 'p2', 'p3', 'something', 'other' ]
+        'cmd p'         | 5      | 4             | [ 'p1', 'p2', 'p3' ]
+        'cmd p1'        | 6      | 4             | [ 'p1-queue', 'p1-row', 'p1-seat' ]
+        'cmd p1-'       | 7      | 4             | [ 'p1-queue', 'p1-row', 'p1-seat' ]
+        'cmd p1-r'      | 8      | 4             | [ 'p1-row' ]
+        'cmd p1-row'    | 10     | 4             | [ 'p1-row-table' ]
+        'cmd p1-row-'   | 11     | 4             | [ 'p1-row-table' ]
+        'cmd p1-row-ta' | 13     | 4             | [ 'p1-row-table' ]
+        'cmd p1-row-x'  | 12     | -1            | [ ]
+        'cmd p2-r'      | 8      | 4             | [ 'p2-row' ]
+        'cmd p3-s'      | 8      | 4             | [ 'p3-seat' ]
+        'cmd p3-seat'   | 11     | 4             | [ 'p3-seat-table' ]
+        'cmd p3-seat-'  | 12     | 4             | [ 'p3-seat-table' ]
+    }
+
 }

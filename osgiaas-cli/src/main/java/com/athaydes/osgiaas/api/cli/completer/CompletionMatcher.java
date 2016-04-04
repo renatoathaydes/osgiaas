@@ -2,6 +2,7 @@ package com.athaydes.osgiaas.api.cli.completer;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * A matcher for parameter completion.
@@ -62,6 +63,41 @@ public interface CompletionMatcher {
             throw new IllegalArgumentException( "Node name must be non-empty" );
         }
         return new NodeNameCompletionMatcher( name, children );
+    }
+
+    /**
+     * Creates a multi-part {@link CompletionMatcher}.
+     *
+     * @param separator parts separator
+     * @param parts     possible completions for each part
+     * @return a {@link CompletionMatcher} that matches arguments by using parts separated by the given separator.
+     */
+    static CompletionMatcher multiPartMatcher( String separator, List<List<String>> parts ) {
+        return multiPartMatcher( separator, parts, Collections.emptyList() );
+    }
+
+    /**
+     * Creates a multi-part {@link CompletionMatcher} with children.
+     *
+     * @param separator parts separator
+     * @param parts     possible completions for each part
+     * @param children  of this matcher
+     * @return a {@link CompletionMatcher} that matches arguments by using parts separated by the given separator.
+     */
+    static CompletionMatcher multiPartMatcher( String separator,
+                                               List<List<String>> parts,
+                                               List<CompletionMatcher> children ) {
+        if ( separator == null || separator.trim().isEmpty() ) {
+            throw new IllegalArgumentException( "Separator must be non-empty" );
+        }
+
+        List<CompletionMatcherCollection> matchers = parts.stream()
+                .map( part -> new CompletionMatcherCollection( part.stream()
+                        .map( CompletionMatcher::nameMatcher )
+                        .collect( Collectors.toList() ) ) )
+                .collect( Collectors.toList() );
+
+        return new MultiPartCompletionMatcher( separator, matchers, children );
     }
 
 }
