@@ -26,7 +26,6 @@ class MultiPartCompletionMatcher extends ParentCompletionMatcher {
         List<String> partsSink = new ArrayList<>( completionMatchers.size() );
         LinkedList<String> consumableParts = splitParts( argument );
         Iterator<CompletionMatcherCollection> matchers = completionMatchers.iterator();
-        System.out.println( "Parts from '" + argument + "':  " + consumableParts );
 
         String part = null;
         CompletionMatcher matcher = null;
@@ -45,7 +44,7 @@ class MultiPartCompletionMatcher extends ParentCompletionMatcher {
             partsSink.add( part );
         }
 
-        // only complete if the current matcher is to be used and this is the last part
+        // complete if the current matcher is to be used and this is the last part
         if ( part != null && useCurrentMatcher && consumableParts.isEmpty() ) {
 
             String prefix = partsSink.isEmpty() ?
@@ -55,6 +54,8 @@ class MultiPartCompletionMatcher extends ParentCompletionMatcher {
             return matcher.completionsFor( part ).stream()
                     .map( completion -> prefix + completion )
                     .collect( Collectors.toList() );
+
+            // complete if there's no more parts but there are more matchers and the previous matcher matched fully
         } else if ( consumableParts.isEmpty() &&
                 matcher != null &&
                 matcher.argumentFullyMatched( part ) &&
