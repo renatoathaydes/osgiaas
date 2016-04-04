@@ -3,14 +3,13 @@ package com.athaydes.osgiaas.api.cli.completer;
 import java.util.Collections;
 import java.util.List;
 
-class NodeNameCompletionMatcher implements CompletionMatcher {
+class NodeNameCompletionMatcher extends ParentCompletionMatcher {
 
     private final String name;
-    private final List<CompletionMatcher> children;
 
     NodeNameCompletionMatcher( String name, List<CompletionMatcher> children ) {
+        super( children );
         this.name = name;
-        this.children = children;
     }
 
     @Override
@@ -23,11 +22,6 @@ class NodeNameCompletionMatcher implements CompletionMatcher {
         return name.startsWith( argument ) ?
                 Collections.singletonList( name ) :
                 Collections.emptyList();
-    }
-
-    @Override
-    public List<CompletionMatcher> children() {
-        return children;
     }
 
     @Override

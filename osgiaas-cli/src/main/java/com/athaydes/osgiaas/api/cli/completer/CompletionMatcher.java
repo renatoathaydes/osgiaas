@@ -50,6 +50,13 @@ public interface CompletionMatcher {
         return nameMatcher( name, Collections.emptyList() );
     }
 
+    /**
+     * Creates a name {@link CompletionMatcher} with children.
+     *
+     * @param name     of arguments that match
+     * @param children of this matcher
+     * @return a {@link CompletionMatcher} that matches arguments by name.
+     */
     static CompletionMatcher nameMatcher( String name, List<CompletionMatcher> children ) {
         if ( name == null || name.trim().isEmpty() ) {
             throw new IllegalArgumentException( "Node name must be non-empty" );
