@@ -2,40 +2,34 @@ package com.athaydes.osgiaas.cli.completer;
 
 import com.athaydes.osgiaas.api.ansi.AnsiColor;
 import com.athaydes.osgiaas.api.cli.completer.BaseCompleter;
-import com.athaydes.osgiaas.api.cli.completer.CompletionNode;
+import com.athaydes.osgiaas.api.cli.completer.CompletionMatcher;
 
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ColorCommandCompleter extends BaseCompleter {
 
-    private static final List<CompletionNode> colorTargets =
+    private static final List<CompletionMatcher> colorTargets =
             Stream.of( "prompt", "text", "error" )
-                    .map( target -> CompletionNode.nodeFor( target ).build() )
+                    .map( CompletionMatcher::nameMatcher )
                     .collect( Collectors.toList() );
 
-    private static final List<CompletionNode> colors =
-            colorsNodes( builder -> builder
-                    .withChildren( colorTargets )
-                    .build() );
+    private static final List<CompletionMatcher> colors = colorsNodesWithChildren( colorTargets );
 
-    static List<CompletionNode> colorsNodes(
-            Function<CompletionNode.CompletionNodeBuilder, CompletionNode> buildNode ) {
+    static List<CompletionMatcher> colorsNodesWithChildren(
+            List<CompletionMatcher> children ) {
         return Stream.of( AnsiColor.values() )
                 .map( AnsiColor::name )
                 .filter( color -> !color.startsWith( "_" ) )
                 .map( String::toLowerCase )
                 .sorted()
-                .map( color -> buildNode.apply( CompletionNode.nodeFor( color ) ) )
+                .map( color -> CompletionMatcher.nameMatcher( color, children ) )
                 .collect( Collectors.toList() );
     }
 
     public ColorCommandCompleter() {
-        super( CompletionNode.nodeFor( "color" )
-                .withChildren( colors )
-                .build() );
+        super( CompletionMatcher.nameMatcher( "color", colors ) );
     }
 
 }

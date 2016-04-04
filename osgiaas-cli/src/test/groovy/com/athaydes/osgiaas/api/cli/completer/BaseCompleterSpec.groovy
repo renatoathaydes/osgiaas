@@ -8,14 +8,11 @@ class BaseCompleterSpec extends Specification {
 
     def "BaseCompleter can complete simple commands arguments"() {
         given: "A simple command completer based on BaseCompleter"
-        def completer = new BaseCompleter( CompletionNode.nodeFor( 'cmd' )
-                .withChildren(
-                [
-                        CompletionNode.nodeFor( 'opt1' ).build(),
-                        CompletionNode.nodeFor( 'something' ).build(),
-                        CompletionNode.nodeFor( 'other' ).build(),
-                ] )
-                .build() )
+        def completer = new BaseCompleter( CompletionMatcher.nameMatcher( 'cmd', [
+                CompletionMatcher.nameMatcher( 'opt1' ),
+                CompletionMatcher.nameMatcher( 'something' ),
+                CompletionMatcher.nameMatcher( 'other' ),
+        ] ) )
 
         when: "Some example user commands are queried for completion"
         def candidates = [ ]
@@ -42,34 +39,26 @@ class BaseCompleterSpec extends Specification {
 
     def "BaseCompleter can complete complex commands arguments"() {
         given: "A simple command completer based on BaseCompleter"
-        def completer = new BaseCompleter( CompletionNode.nodeFor( 'cmd' )
-                .withChildren(
-                [
-                        CompletionNode.nodeFor( 'opt1' )
-                                .withChildren(
-                                [
-                                        CompletionNode.nodeFor( 'def' ).withChildren(
-                                                [
-                                                        CompletionNode.nodeFor( '123' ).build(),
-                                                        CompletionNode.nodeFor( '456' ).build(),
-                                                ] ).build(),
-                                        CompletionNode.nodeFor( 'ghi' ).withChildren(
-                                                [
-                                                        CompletionNode.nodeFor( 'xyz' ).build()
-                                                ] ).build(),
-                                        CompletionNode.nodeFor( 'jkl' ).build()
-                                ] ).build(),
-                        CompletionNode.nodeFor( 'something' ).build(),
-                        CompletionNode.nodeFor( 'other' ).withChildren(
-                                [
-                                        CompletionNode.nodeFor( 'o1' ).build(),
-                                        CompletionNode.nodeFor( 'o2' ).withChildren(
-                                                [
-                                                        CompletionNode.nodeFor( 'o2.1' ).build(),
-                                                        CompletionNode.nodeFor( 'o2.2' ).build(),
-                                                ] ).build(),
-                                ] ).build(),
-                ] ).build() )
+        def completer = new BaseCompleter( CompletionMatcher.nameMatcher( 'cmd', [
+                CompletionMatcher.nameMatcher( 'opt1', [
+                        CompletionMatcher.nameMatcher( 'def', [
+                                CompletionMatcher.nameMatcher( '123' ),
+                                CompletionMatcher.nameMatcher( '456' ),
+                        ] ),
+                        CompletionMatcher.nameMatcher( 'ghi', [
+                                CompletionMatcher.nameMatcher( 'xyz' )
+                        ] ),
+                        CompletionMatcher.nameMatcher( 'jkl' )
+                ] ),
+                CompletionMatcher.nameMatcher( 'something' ),
+                CompletionMatcher.nameMatcher( 'other', [
+                        CompletionMatcher.nameMatcher( 'o1' ),
+                        CompletionMatcher.nameMatcher( 'o2', [
+                                CompletionMatcher.nameMatcher( 'o2.1' ),
+                                CompletionMatcher.nameMatcher( 'o2.2' ),
+                        ] ),
+                ] ),
+        ] ) )
 
         when: "Some example user commands are queried for completion"
         def candidates = [ ]

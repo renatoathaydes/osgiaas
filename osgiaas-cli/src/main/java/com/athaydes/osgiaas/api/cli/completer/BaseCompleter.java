@@ -13,18 +13,17 @@ import java.util.stream.Collectors;
  */
 public class BaseCompleter implements CommandCompleter {
 
-    private final CompletionNode rootNode;
-    private final String completionRoot;
+    private final CompletionMatcher rootNode;
 
-    public BaseCompleter( CompletionNode completionNode ) {
+    public BaseCompleter( CompletionMatcher completionNode ) {
         this.rootNode = completionNode;
-        this.completionRoot = completionNode.name() + " ";
     }
 
     @Override
     public int complete( String buffer, int cursor, List<CharSequence> candidates ) {
-        if ( buffer.startsWith( completionRoot ) && cursor >= completionRoot.length() ) {
-            String prefix = buffer.substring( 0, cursor );
+        String prefix = buffer.substring( 0, cursor );
+
+        if ( rootNode.partiallyMatches( prefix ) ) {
             List<String> parts = CommandHelper.breakupArguments( prefix );
             if ( prefix.endsWith( " " ) ) {
                 parts.add( "" );
@@ -40,20 +39,21 @@ public class BaseCompleter implements CommandCompleter {
         return -1;
     }
 
-    private static List<String> completionsFor( CompletionNode node,
+    private static List<String> completionsFor( CompletionMatcher node,
                                                 List<String> parts ) {
         if ( parts.isEmpty() ) {
             return Collections.emptyList();
         } else if ( parts.size() == 1 ) {
+            // try to complete the last part
             String prefix = parts.get( 0 );
             return node.children().stream()
-                    .map( CompletionNode::name )
-                    .filter( name -> name.startsWith( prefix ) )
+                    .flatMap( child -> child.completionsFor( prefix ).stream() )
                     .collect( Collectors.toList() );
         } else {
+            // check if the next part matches one of the possible completions and continue on to the next part if so
             String part = parts.get( 0 );
-            Optional<CompletionNode> nextNode = node.children().stream()
-                    .filter( child -> child.name().equals( part ) )
+            Optional<CompletionMatcher> nextNode = node.children().stream()
+                    .filter( child -> child.argumentFullyMatched( part ) )
                     .findFirst();
 
             if ( nextNode.isPresent() ) {

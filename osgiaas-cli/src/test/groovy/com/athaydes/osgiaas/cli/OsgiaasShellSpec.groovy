@@ -22,7 +22,7 @@ class OsgiaasShellSpec extends Specification {
             }
         }
 
-        def shell = new OsgiaasShell( { [ command ] as Set }, { [ ] as Set } )
+        def shell = new OsgiaasShell( { [ command ] as Set }, { [ ] } )
 
         and: 'mocked out streams'
         def outClosable = Mock( AutoCloseable )
@@ -54,7 +54,7 @@ class OsgiaasShellSpec extends Specification {
             if ( cmd ==~ 'hello.*' ) [ 'x' + cmd, 'y' + cmd ] else [ cmd ]
         } as CommandModifier
 
-        def shell = new OsgiaasShell( { [ xhello, yhello ] as Set }, { [ modifier ] as Set } )
+        def shell = new OsgiaasShell( { [ xhello, yhello ] as Set }, { [ modifier ] } )
 
         and: 'mocked out streams'
         def outClosable = Mock( AutoCloseable )
