@@ -15,6 +15,7 @@ import javax.annotation.Nullable;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +33,7 @@ import java.util.regex.PatternSyntaxException;
  */
 public class HighlightCommand extends UsesCliProperties implements StreamingCommand {
 
-    private static final Function<String, String> argumentByShortArg;
+    public static final Map<String, String> argumentByShortArg;
 
     static {
         Map<String, String> argumentByShortArgMap = new HashMap<>();
@@ -54,7 +55,7 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
         map.accept( "u", AnsiModifier.UNDERLINE.name() );
         map.accept( "rv", AnsiModifier.REVERSE_VIDEO.name() );
 
-        argumentByShortArg = argumentByShortArgMap::get;
+        argumentByShortArg = Collections.unmodifiableMap( argumentByShortArgMap );
     }
 
     public static final String FOREGROUND_ARG = "-f";
@@ -197,7 +198,7 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
             this.text = text;
             this.originalColor = originalColor;
 
-            AnsiColor background = (back == null) ?
+            AnsiColor background = ( back == null ) ?
                     AnsiColor.DEFAULT_BG :
                     parse( "_" + back, AnsiColor::valueOf, null );
 
@@ -221,8 +222,8 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
         }
 
         private static <T> T parse( String text, Function<String, T> convert,
-                                    @Nullable Function<String, String> argMapper ) {
-            @Nullable String mappedText = argMapper == null ? null : argMapper.apply( text );
+                                    @Nullable Map<String, String> argMapper ) {
+            @Nullable String mappedText = argMapper == null ? null : argMapper.get( text );
             try {
                 if ( mappedText != null ) {
                     return convert.apply( mappedText );

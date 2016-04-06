@@ -2,7 +2,9 @@ package com.athaydes.osgiaas.cli.completer;
 
 import com.athaydes.osgiaas.api.cli.completer.BaseCompleter;
 import com.athaydes.osgiaas.api.cli.completer.CompletionMatcher;
+import com.athaydes.osgiaas.cli.command.HighlightCommand;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -13,24 +15,39 @@ import static com.athaydes.osgiaas.cli.command.HighlightCommand.FOREGROUND_ARG;
 
 public class HighlightCommandCompleter extends BaseCompleter {
 
+    private static final List<CompletionMatcher> ansiModifierNodes =
+            HighlightCommand.argumentByShortArg.entrySet().stream()
+                    .flatMap( entry -> Stream.of(
+                            CompletionMatcher.nameMatcher( entry.getKey() ), // short-form
+                            CompletionMatcher.nameMatcher( entry.getValue().toLowerCase() ) ) ) // long-form
+                    .collect( Collectors.toList() );
+
     private static final List<CompletionMatcher> colorNodes = ColorCommandCompleter
             .colorsNodesWithChildren( Collections.emptyList() );
 
-    private static CompletionMatcher nodeForTopLevelArg( String arg ) {
-        String nextArg = arg.equals( FOREGROUND_ARG ) ?
-                BACKGROUND_ARG :
-                FOREGROUND_ARG;
+    private static CompletionMatcher argMatchers( String firstArg,
+                                                  String secondArg,
+                                                  List<List<CompletionMatcher>> argOptions ) {
+        CompletionMatcher secondArgOptions = CompletionMatcher.nameMatcher( secondArg,
+                Collections.singletonList( CompletionMatcher.multiPartMatcher( "+", argOptions ) ) );
 
-        return CompletionMatcher.nameMatcher( arg,
-                ColorCommandCompleter.colorsNodesWithChildren( Collections.singletonList(
-                        CompletionMatcher.nameMatcher( nextArg, colorNodes ) ) ) );
+        List<CompletionMatcher> firstArgOptions = Collections.singletonList(
+                CompletionMatcher.multiPartMatcher( "+", argOptions,
+                        Collections.singletonList( secondArgOptions ) ) );
+
+        return CompletionMatcher.nameMatcher( firstArg, firstArgOptions );
+    }
+
+    private static List<CompletionMatcher> nodesForHighlightCommand() {
+        List<List<CompletionMatcher>> argOptions = Arrays.asList( colorNodes, ansiModifierNodes );
+
+        return Arrays.asList(
+                argMatchers( BACKGROUND_ARG, FOREGROUND_ARG, argOptions ),
+                argMatchers( FOREGROUND_ARG, BACKGROUND_ARG, argOptions ) );
     }
 
     public HighlightCommandCompleter() {
-        super( CompletionMatcher.nameMatcher( "highlight",
-                Stream.of( FOREGROUND_ARG, BACKGROUND_ARG )
-                        .map( HighlightCommandCompleter::nodeForTopLevelArg )
-                        .collect( Collectors.toList() ) ) );
+        super( CompletionMatcher.nameMatcher( "highlight", nodesForHighlightCommand() ) );
     }
 
 }
