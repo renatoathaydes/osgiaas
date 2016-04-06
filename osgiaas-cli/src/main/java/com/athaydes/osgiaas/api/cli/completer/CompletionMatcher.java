@@ -72,7 +72,7 @@ public interface CompletionMatcher {
      * @param parts     possible completions for each part
      * @return a {@link CompletionMatcher} that matches arguments by using parts separated by the given separator.
      */
-    static CompletionMatcher multiPartMatcher( String separator, List<List<String>> parts ) {
+    static CompletionMatcher multiPartMatcher( String separator, List<List<CompletionMatcher>> parts ) {
         return multiPartMatcher( separator, parts, Collections.emptyList() );
     }
 
@@ -85,16 +85,14 @@ public interface CompletionMatcher {
      * @return a {@link CompletionMatcher} that matches arguments by using parts separated by the given separator.
      */
     static CompletionMatcher multiPartMatcher( String separator,
-                                               List<List<String>> parts,
+                                               List<List<CompletionMatcher>> parts,
                                                List<CompletionMatcher> children ) {
         if ( separator == null || separator.trim().isEmpty() ) {
             throw new IllegalArgumentException( "Separator must be non-empty" );
         }
 
         List<CompletionMatcherCollection> matchers = parts.stream()
-                .map( part -> new CompletionMatcherCollection( part.stream()
-                        .map( CompletionMatcher::nameMatcher )
-                        .collect( Collectors.toList() ) ) )
+                .map( CompletionMatcherCollection::new )
                 .collect( Collectors.toList() );
 
         return new MultiPartCompletionMatcher( separator, matchers, children );

@@ -4,6 +4,7 @@ import com.athaydes.osgiaas.api.cli.CommandCompleter;
 import com.athaydes.osgiaas.api.cli.CommandHelper;
 
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -24,7 +25,7 @@ public class BaseCompleter implements CommandCompleter {
         String prefix = buffer.substring( 0, cursor );
 
         if ( rootNode.partiallyMatches( prefix ) ) {
-            List<String> parts = CommandHelper.breakupArguments( prefix );
+            List<String> parts = new LinkedList<>( CommandHelper.breakupArguments( prefix ) );
             if ( prefix.endsWith( " " ) ) {
                 parts.add( "" );
             }
@@ -65,7 +66,8 @@ public class BaseCompleter implements CommandCompleter {
     }
 
     private static List<String> dropFirst( List<String> parts ) {
-        return parts.stream().skip( 1 ).collect( Collectors.toList() );
+        parts.remove( 0 );
+        return parts;
     }
 
 }

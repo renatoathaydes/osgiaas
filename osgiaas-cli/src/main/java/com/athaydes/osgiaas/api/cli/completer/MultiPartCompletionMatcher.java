@@ -6,7 +6,9 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 class MultiPartCompletionMatcher extends ParentCompletionMatcher {
 
@@ -16,9 +18,16 @@ class MultiPartCompletionMatcher extends ParentCompletionMatcher {
     MultiPartCompletionMatcher( String separator,
                                 List<CompletionMatcherCollection> completionMatchers,
                                 List<CompletionMatcher> children ) {
-        super( children );
+        super( mergeChildren( completionMatchers, children ) );
         this.separator = separator;
         this.completionMatchers = completionMatchers;
+    }
+
+    private static List<CompletionMatcher> mergeChildren( List<CompletionMatcherCollection> completionMatchers,
+                                                          List<CompletionMatcher> children ) {
+        return Stream.concat( completionMatchers.stream()
+                        .flatMap( c -> c.children().stream() ),
+                children.stream() ).collect( Collectors.toList() );
     }
 
     @Override
@@ -55,26 +64,52 @@ class MultiPartCompletionMatcher extends ParentCompletionMatcher {
                     .map( completion -> prefix + completion )
                     .collect( Collectors.toList() );
 
-            // complete if there's no more parts but there are more matchers and the previous matcher matched fully
+            // keep trying if there's no more parts but the previous matcher matched fully
         } else if ( consumableParts.isEmpty() &&
                 matcher != null &&
-                matcher.argumentFullyMatched( part ) &&
-                matchers.hasNext() ) {
+                matcher.argumentFullyMatched( part ) ) {
 
-            String prefix = partsSink.isEmpty() ?
-                    separator :
-                    String.join( separator, partsSink ) + separator;
+            // if there's another matcher to try, use it
+            if ( matchers.hasNext() ) {
+                String prefix = partsSink.isEmpty() ?
+                        separator :
+                        String.join( separator, partsSink ) + separator;
 
-            return matchers.next().completionsFor( "" ).stream()
-                    .map( completion -> prefix + completion )
-                    .collect( Collectors.toList() );
-        } else {
-            return Collections.emptyList();
+                return matchers.next().completionsFor( "" ).stream()
+                        .map( completion -> prefix + completion )
+                        .collect( Collectors.toList() );
+
+                // if the current matcher has children use those
+            } else if ( !matcher.children().isEmpty() ) {
+                return matcher.children().get( 0 ).completionsFor( "" );
+            }
         }
+
+        return Collections.emptyList();
+    }
+
+    @Override
+    public boolean argumentFullyMatched( String argument ) {
+        LinkedList<String> consumableParts = splitParts( argument );
+        Iterator<CompletionMatcherCollection> matchers = completionMatchers.iterator();
+
+        // walk through parts and matchers, returning false in case a matcher does not fully match
+        while ( !consumableParts.isEmpty() && matchers.hasNext() ) {
+            String part = consumableParts.removeFirst();
+            CompletionMatcherCollection matcher = matchers.next();
+
+            if ( !matcher.argumentFullyMatched( part ) ) {
+                return false;
+            }
+        }
+
+        // argument is fully matched if no more matchers were left to try
+        return !matchers.hasNext();
     }
 
     private LinkedList<String> splitParts( String argument ) {
-        LinkedList<String> result = new LinkedList<>( Arrays.asList( argument.split( separator ) ) );
+        LinkedList<String> result = new LinkedList<>( Arrays.asList(
+                argument.split( Pattern.quote( separator ) ) ) );
         if ( argument.endsWith( separator ) ) {
             // trailing separator should trigger completion
             result.add( "" );

@@ -1,22 +1,27 @@
 package com.athaydes.osgiaas.api.cli.completer;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
+/**
+ * Allows handling multiple {@link CompletionMatcher}s as a single entity.
+ * <p>
+ * All CompletionMatchers within a {@link CompletionMatcherCollection} that can provide completions for some input
+ * will be used to provide completions.
+ * <p>
+ * The children of a {@link CompletionMatcherCollection} are the sum of all its matchers' children.
+ */
 public class CompletionMatcherCollection extends ParentCompletionMatcher
         implements Iterable<CompletionMatcher> {
 
     private final List<CompletionMatcher> matchers;
 
     public CompletionMatcherCollection( List<CompletionMatcher> matchers ) {
-        this( matchers, Collections.emptyList() );
-    }
-
-    public CompletionMatcherCollection( List<CompletionMatcher> matchers,
-                                        List<CompletionMatcher> children ) {
-        super( children );
+        super( matchers.stream()
+                .flatMap( m -> m.children().stream() )
+                .collect( Collectors.toList() ) );
         this.matchers = matchers;
     }
 

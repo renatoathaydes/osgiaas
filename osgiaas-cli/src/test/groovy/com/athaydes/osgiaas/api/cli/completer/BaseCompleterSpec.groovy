@@ -100,11 +100,17 @@ class BaseCompleterSpec extends Specification {
 
     def "BaseCompleter can complete multi-part commands arguments"() {
         given: "A simple command completer based on BaseCompleter"
+        def asMatcher = { String s -> CompletionMatcher.nameMatcher( s ) }
         def completer = new BaseCompleter( CompletionMatcher.nameMatcher( 'cmd', [
                 CompletionMatcher.multiPartMatcher( '-', [
-                        [ 'p1', 'p2', 'p3' ],
-                        [ 'queue', 'row', 'seat' ],
-                        [ 'table' ]
+                        [ 'p1', 'p2', 'p3' ].collect( asMatcher ),
+                        [ 'queue', 'row', 'seat' ].collect( asMatcher ),
+                        [ CompletionMatcher.nameMatcher( 'table', [
+                                CompletionMatcher.multiPartMatcher( '+', [
+                                        [ 'abc', 'def' ].collect( asMatcher ),
+                                        [ 'ghi', 'jkl' ].collect( asMatcher )
+                                ] )
+                        ] ) ]
                 ] ),
                 CompletionMatcher.nameMatcher( 'something' ),
                 CompletionMatcher.nameMatcher( 'other' ),
@@ -121,20 +127,29 @@ class BaseCompleterSpec extends Specification {
         index == expectedIndex
 
         where:
-        command         | cursor | expectedIndex | expectedCandidates
-        'cmd '          | 4      | 4             | [ 'p1', 'p2', 'p3', 'something', 'other' ]
-        'cmd p'         | 5      | 4             | [ 'p1', 'p2', 'p3' ]
-        'cmd p1'        | 6      | 4             | [ 'p1-queue', 'p1-row', 'p1-seat' ]
-        'cmd p1-'       | 7      | 4             | [ 'p1-queue', 'p1-row', 'p1-seat' ]
-        'cmd p1-r'      | 8      | 4             | [ 'p1-row' ]
-        'cmd p1-row'    | 10     | 4             | [ 'p1-row-table' ]
-        'cmd p1-row-'   | 11     | 4             | [ 'p1-row-table' ]
-        'cmd p1-row-ta' | 13     | 4             | [ 'p1-row-table' ]
-        'cmd p1-row-x'  | 12     | -1            | [ ]
-        'cmd p2-r'      | 8      | 4             | [ 'p2-row' ]
-        'cmd p3-s'      | 8      | 4             | [ 'p3-seat' ]
-        'cmd p3-seat'   | 11     | 4             | [ 'p3-seat-table' ]
-        'cmd p3-seat-'  | 12     | 4             | [ 'p3-seat-table' ]
+        command                   | cursor | expectedIndex | expectedCandidates
+        'cmd '                    | 4      | 4             | [ 'p1', 'p2', 'p3', 'something', 'other' ]
+        'cmd p'                   | 5      | 4             | [ 'p1', 'p2', 'p3' ]
+        'cmd p1'                  | 6      | 4             | [ 'p1-queue', 'p1-row', 'p1-seat' ]
+        'cmd p1-'                 | 7      | 4             | [ 'p1-queue', 'p1-row', 'p1-seat' ]
+        'cmd p1-r'                | 8      | 4             | [ 'p1-row' ]
+        'cmd p1-row'              | 10     | 4             | [ 'p1-row-table' ]
+        'cmd p1-row-'             | 11     | 4             | [ 'p1-row-table' ]
+        'cmd p1-row-ta'           | 13     | 4             | [ 'p1-row-table' ]
+        'cmd p1-row-x'            | 12     | -1            | [ ]
+        'cmd p2-r'                | 8      | 4             | [ 'p2-row' ]
+        'cmd p3-s'                | 8      | 4             | [ 'p3-seat' ]
+        'cmd p3-seat'             | 11     | 4             | [ 'p3-seat-table' ]
+        'cmd p3-seat-'            | 12     | 4             | [ 'p3-seat-table' ]
+        'cmd p3-seat-table '      | 18     | 18            | [ 'abc', 'def' ]
+        'cmd p3-seat-table a'     | 19     | 18            | [ 'abc' ]
+        'cmd p3-seat-table d'     | 19     | 18            | [ 'def' ]
+        'cmd p3-seat-table def'   | 21     | 18            | [ 'def+ghi', 'def+jkl' ]
+        'cmd p3-seat-table def+'  | 22     | 18            | [ 'def+ghi', 'def+jkl' ]
+        'cmd p3-seat-table def+j' | 23     | 18            | [ 'def+jkl' ]
+        'cmd p3-seat-table z'     | 19     | -1            | [ ]
+        'cmd p3-seat-table def-'  | 22     | -1            | [ ]
+        'cmd p3-seat-table def+z' | 23     | -1            | [ ]
     }
 
 }
