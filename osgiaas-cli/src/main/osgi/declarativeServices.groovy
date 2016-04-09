@@ -100,6 +100,16 @@ component( name: 'useCommand', immediate: true ) {
     }
 }
 
+component( name: 'useCommandCompleter', immediate: true ) {
+    commonProperties()
+    implementation( 'class': 'com.athaydes.osgiaas.cli.completer.UseCommandCompleter' )
+    property( name: 'service.description', value: 'OsgiAAS Use Command Completer' )
+    service {
+        provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter' )
+    }
+    cliPropertiesReference()
+}
+
 component( name: 'aliasCommand', immediate: true ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.command.AliasCommand' )
