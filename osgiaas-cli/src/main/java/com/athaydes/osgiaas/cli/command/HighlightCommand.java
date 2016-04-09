@@ -33,7 +33,7 @@ import java.util.regex.PatternSyntaxException;
  */
 public class HighlightCommand extends UsesCliProperties implements StreamingCommand {
 
-    public static final Map<String, String> argumentByShortArg;
+    public static final Map<String, String> ansiModifierNameByShortOption;
 
     static {
         Map<String, String> argumentByShortArgMap = new HashMap<>();
@@ -55,7 +55,7 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
         map.accept( "u", AnsiModifier.UNDERLINE.name() );
         map.accept( "rv", AnsiModifier.REVERSE_VIDEO.name() );
 
-        argumentByShortArg = Collections.unmodifiableMap( argumentByShortArgMap );
+        ansiModifierNameByShortOption = Collections.unmodifiableMap( argumentByShortArgMap );
     }
 
     public static final String FOREGROUND_ARG = "-f";
@@ -216,7 +216,7 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
         private AnsiModifier[] getAnsiModifiers( String[] foreParts ) {
             List<AnsiModifier> modifiers = new ArrayList<>( 2 );
             for (int i = 1; i < foreParts.length; i++) {
-                modifiers.add( parse( foreParts[ i ], AnsiModifier::valueOf, argumentByShortArg ) );
+                modifiers.add( parse( foreParts[ i ], AnsiModifier::valueOf, ansiModifierNameByShortOption ) );
             }
             return modifiers.toArray( new AnsiModifier[ modifiers.size() ] );
         }
