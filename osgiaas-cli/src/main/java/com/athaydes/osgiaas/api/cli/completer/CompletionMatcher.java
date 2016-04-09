@@ -1,6 +1,6 @@
 package com.athaydes.osgiaas.api.cli.completer;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,11 +44,12 @@ public interface CompletionMatcher {
     /**
      * Creates a name {@link CompletionMatcher}.
      *
-     * @param name of arguments that match
+     * @param name     of arguments that match
+     * @param children of this matcher
      * @return a {@link CompletionMatcher} that matches arguments by name.
      */
-    static CompletionMatcher nameMatcher( String name ) {
-        return nameMatcher( name, Collections.emptyList() );
+    static CompletionMatcher nameMatcher( String name, CompletionMatcher... children ) {
+        return nameMatcher( name, Arrays.asList( children ) );
     }
 
     /**
@@ -70,10 +71,13 @@ public interface CompletionMatcher {
      *
      * @param separator parts separator
      * @param parts     possible completions for each part
+     * @param children  of this matcher
      * @return a {@link CompletionMatcher} that matches arguments by using parts separated by the given separator.
      */
-    static CompletionMatcher multiPartMatcher( String separator, List<List<CompletionMatcher>> parts ) {
-        return multiPartMatcher( separator, parts, Collections.emptyList() );
+    static CompletionMatcher multiPartMatcher( String separator,
+                                               List<List<CompletionMatcher>> parts,
+                                               CompletionMatcher... children ) {
+        return multiPartMatcher( separator, parts, Arrays.asList( children ) );
     }
 
     /**

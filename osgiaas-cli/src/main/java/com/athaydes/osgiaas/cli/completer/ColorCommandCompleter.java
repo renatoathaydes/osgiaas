@@ -4,6 +4,7 @@ import com.athaydes.osgiaas.api.ansi.AnsiColor;
 import com.athaydes.osgiaas.api.cli.completer.BaseCompleter;
 import com.athaydes.osgiaas.api.cli.completer.CompletionMatcher;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -16,6 +17,11 @@ public class ColorCommandCompleter extends BaseCompleter {
                     .collect( Collectors.toList() );
 
     private static final List<CompletionMatcher> colors = colorsNodesWithChildren( colorTargets );
+
+    static List<CompletionMatcher> colorsNodesWithChildren(
+            CompletionMatcher... children ) {
+        return colorsNodesWithChildren( Arrays.asList( children ) );
+    }
 
     static List<CompletionMatcher> colorsNodesWithChildren(
             List<CompletionMatcher> children ) {
