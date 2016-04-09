@@ -32,7 +32,7 @@ public class UseCommand implements Command, CommandModifier {
                 ">> 10\n" +
                 "<output of typing 'headers 10'>\n" +
                 "\n" +
-                "To stop using a command, simply type 'use'.\n" +
+                "To stop using a command, simply type '_use'.\n" +
                 "\n" +
                 "To skip using the selected command, start the command with a underscore ('_').\n" +
                 "\n" +
@@ -52,7 +52,7 @@ public class UseCommand implements Command, CommandModifier {
             if ( command.isEmpty() && !using.isEmpty() ) {
                 out.printf( "Stopped using '%s'\n", using );
             } else if ( !command.isEmpty() ) {
-                out.printf( "Using '%s'\n", command );
+                out.printf( "Using '%s'. Type _use to stop using it.\n", command );
             }
 
             using = command;
@@ -61,7 +61,7 @@ public class UseCommand implements Command, CommandModifier {
 
     @Override
     public List<String> apply( String line ) {
-        if ( line.startsWith( "use" ) || using.isEmpty() ) {
+        if ( using.isEmpty() ) {
             return Collections.singletonList( line );
         } else if ( line.startsWith( "_" ) ) {
             return Collections.singletonList( line.substring( 1 ) );
