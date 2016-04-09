@@ -54,7 +54,8 @@ public class CliRun implements Runnable {
         consoleReader.removeCompleter( completer );
     }
 
-    private static void loadHistory( ConsoleReader consoleReader ) {
+    @Nullable
+    private static FileHistory loadHistory() {
         try {
             File userHome = new File( System.getProperty( "user.home", "." ) );
             @Nullable
@@ -65,9 +66,10 @@ public class CliRun implements Runnable {
             } else {
                 historyFile = new File( historyFileLocation );
             }
-            consoleReader.setHistory( new FileHistory( historyFile ) );
+            return new FileHistory( historyFile );
         } catch ( Exception e ) {
             System.err.println( "Unable to load osgiaas-cli history: " + e );
+            return null;
         }
     }
 
@@ -83,18 +85,36 @@ public class CliRun implements Runnable {
                 initFile = new File( initFileLocation );
             }
             if ( initFile.exists() ) {
+                showStatus( "Running init commands" );
+                Thread.sleep( 250L ); // allows commands to be loaded
+
                 Scanner fileScanner = new Scanner( initFile );
 
                 PrintStream out = new NoOpPrintStream();
                 OsgiaasPrintStream err = new OsgiaasPrintStream(
                         System.err, cliProperties.getErrorColor() );
 
+                int index = 1;
+
                 while ( fileScanner.hasNextLine() ) {
+                    showStatus( "Running init commands [" + index + "]" );
                     commandRunner.runCommand( fileScanner.nextLine(), out, err );
+                    index++;
                 }
+
+                showStatus( "" );
             }
         } catch ( Exception e ) {
             System.err.println( "Unable to load osgiaas-cli history: " + e );
+        }
+
+    }
+
+    private void showStatus( String status ) {
+        try {
+            consoleReader.resetPromptLine( "", status, -1 );
+        } catch ( IOException e ) {
+            e.printStackTrace();
         }
     }
 
@@ -119,9 +139,11 @@ public class CliRun implements Runnable {
             return;
         }
 
-        loadHistory( consoleReader );
+        @Nullable FileHistory history = loadHistory();
+        if ( history != null ) {
+            consoleReader.setHistory( history );
+        }
 
-        // FIXME services may not be available yet
         runInitialCommands();
 
         thread = Thread.currentThread();
@@ -137,8 +159,11 @@ public class CliRun implements Runnable {
                     }
                 }
             }
-            FileHistory history = ( FileHistory ) consoleReader.getHistory();
-            history.flush();
+
+            if ( history != null ) {
+                history.flush();
+            }
+
             System.out.println( Ansi.applyColor( "Bye!", AnsiColor.BLUE ) );
             consoleReader.shutdown();
         } catch ( Exception e ) {
