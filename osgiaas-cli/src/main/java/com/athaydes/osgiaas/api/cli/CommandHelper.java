@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.PrimitiveIterator;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -13,10 +14,16 @@ import java.util.function.Function;
  */
 public class CommandHelper {
 
+    public static final int SPACE_CODE = ( int ) ' ';
+    public static final int AMPERSAND_CODE = ( int ) '&';
+    public static final int PIPE_CODE = ( int ) '|';
+    public static final int ESCAPE_CODE = ( int ) '\\';
+    public static final int DOUBLE_QUOTE_CODE = ( int ) '"';
+
     public static final Set<Integer> commandSeparators = Collections.unmodifiableSet( new HashSet<Integer>( 3 ) {{
-        add( ( int ) ' ' );
-        add( ( int ) '&' );
-        add( ( int ) '|' );
+        add( SPACE_CODE );
+        add( AMPERSAND_CODE );
+        add( PIPE_CODE );
     }} );
 
     /**
@@ -95,15 +102,18 @@ public class CommandHelper {
         boolean escaped = false;
         StringBuilder currentArg = new StringBuilder();
 
-        char[] chars = arguments.toCharArray();
-        for (int i = 0; i < chars.length; i++) {
-            char c = chars[ i ];
+        PrimitiveIterator.OfInt chars = arguments.codePoints().iterator();
+        int index = 0;
 
-            boolean isEscape = ( c == '\\' );
-            boolean isQuote = ( c == '"' );
+        while ( chars.hasNext() ) {
+            index++;
+            int c = chars.nextInt();
+
+            boolean isEscape = ( c == ESCAPE_CODE );
+            boolean isQuote = ( c == DOUBLE_QUOTE_CODE );
 
             if ( escaped && !isQuote ) { // put back the escaping char as it was not used
-                currentArg.append( '\\' );
+                currentArg.appendCodePoint( ESCAPE_CODE );
             }
 
             if ( isEscape ) {
@@ -126,26 +136,24 @@ public class CommandHelper {
 
             if ( inQuote ) {
                 // when in quotes, we don't care what c is
-                currentArg.append( c );
+                currentArg.appendCodePoint( c );
             } else {
                 // outside quotes, we need to look for whitespace
-                if ( c == ' ' ) {
+                if ( c == SPACE_CODE ) {
                     boolean keepGoing = addArgument( currentArg, limitFunction );
                     if ( !keepGoing ) {
                         // no more splitting
-                        char[] rest = new char[ chars.length - ( i + 1 ) ];
-                        System.arraycopy( chars, i + 1, rest, 0, rest.length );
-                        return new String( rest );
+                        return arguments.substring( index );
                     }
                 } else {
-                    currentArg.append( c );
+                    currentArg.appendCodePoint( c );
                 }
             }
         }
 
         if ( escaped ) {
             // don't throw away the last escaping character
-            currentArg.append( '\\' );
+            currentArg.appendCodePoint( ESCAPE_CODE );
         }
 
         // add last argument if any
