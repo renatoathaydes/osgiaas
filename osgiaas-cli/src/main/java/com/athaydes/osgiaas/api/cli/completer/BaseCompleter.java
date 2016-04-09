@@ -34,7 +34,7 @@ public class BaseCompleter implements CommandCompleter {
 
             candidates.addAll( completions );
             if ( !completions.isEmpty() ) {
-                return prefix.lastIndexOf( ' ' ) + 1;
+                return CommandHelper.lastSeparatorIndex( prefix ) + 1;
             }
         }
         return -1;
