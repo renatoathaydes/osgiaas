@@ -4,7 +4,7 @@ buildscript {
         mavenLocal()
     }
     dependencies {
-        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.4.2"
+        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.4.3"
     }
 }
 
