@@ -3,13 +3,21 @@ package com.athaydes.osgiaas.api.cli;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
  * Utility that can be used to implement Felix Commands.
  */
 public class CommandHelper {
+
+    public static final Set<Integer> commandSeparators = Collections.unmodifiableSet( new HashSet<Integer>( 3 ) {{
+        add( ( int ) ' ' );
+        add( ( int ) '&' );
+        add( ( int ) '|' );
+    }} );
 
     /**
      * Prints an error message in a standard way.
@@ -146,6 +154,26 @@ public class CommandHelper {
         return "";
     }
 
+    /**
+     * Find the index of the last command separator character.
+     * <p>
+     * A separator character is either a ' ', '|' or a '&'.
+     *
+     * @param line command line
+     * @return index of the last command separator character, or -1 if not found.
+     */
+    public static int lastSeparatorIndex( String line ) {
+        int index = line.length() - 1;
+
+        for (; index >= 0; index--) {
+            if ( commandSeparators.contains( line.codePointAt( index ) ) ) {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
     private static boolean addArgument( StringBuilder currentArg,
                                         Function<String, Boolean> limitFunction ) {
         if ( currentArg.length() > 0 ) {
@@ -156,5 +184,4 @@ public class CommandHelper {
             return true;
         }
     }
-
 }
