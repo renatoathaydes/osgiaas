@@ -185,4 +185,11 @@ public class CliRun implements Runnable {
         commandRunner.runCommand( line, out, err );
     }
 
+    public void clearScreen() {
+        try {
+            consoleReader.clearScreen();
+        } catch ( IOException e ) {
+            e.printStackTrace();
+        }
+    }
 }

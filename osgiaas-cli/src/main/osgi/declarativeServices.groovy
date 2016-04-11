@@ -11,6 +11,15 @@ cliPropertiesReference = { ->
             'unbind': 'removeCliProperties' )
 }
 
+cliReference = { ->
+    reference( name: 'osgiaasStandardCli',
+            'interface': 'com.athaydes.osgiaas.api.cli.Cli',
+            'cardinality': '1..1',
+            'policy': 'static',
+            'bind': 'setCli',
+            'unbind': 'removeCli' )
+}
+
 component( xmlns: "http://www.osgi.org/xmlns/scr/v1.3.0",
         name: 'osgiaasStandardCli', immediate: true,
         activate: 'start', deactivate: 'stop' ) {
@@ -57,12 +66,7 @@ component( name: 'colorCommand', immediate: true ) {
     service {
         provide( 'interface': 'org.apache.felix.shell.Command' )
     }
-    reference( name: 'osgiaasStandardCli',
-            'interface': 'com.athaydes.osgiaas.api.cli.Cli',
-            'cardinality': '1..1',
-            'policy': 'static',
-            'bind': 'setCli',
-            'unbind': 'removeCli' )
+    cliReference()
 }
 
 component( name: 'colorCommandCompleter', immediate: true ) {
@@ -82,12 +86,7 @@ component( name: 'promptCommand', immediate: true ) {
     service {
         provide( 'interface': 'org.apache.felix.shell.Command' )
     }
-    reference( name: 'osgiaasStandardCli',
-            'interface': 'com.athaydes.osgiaas.api.cli.Cli',
-            'cardinality': '1..1',
-            'policy': 'static',
-            'bind': 'setCli',
-            'unbind': 'removeCli' )
+    cliReference()
 }
 
 component( name: 'useCommand', immediate: true ) {
@@ -119,6 +118,16 @@ component( name: 'aliasCommand', immediate: true ) {
         provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandModifier' )
     }
     cliPropertiesReference()
+}
+
+component( name: 'clearCommand', immediate: true ) {
+    commonProperties()
+    implementation( 'class': 'com.athaydes.osgiaas.cli.command.ClearCommand' )
+    property( name: 'service.description', value: 'OsgiAAS Cli Clear Command' )
+    service {
+        provide( 'interface': 'org.apache.felix.shell.Command' )
+    }
+    cliReference()
 }
 
 component( name: 'highlightCommand', immediate: true ) {

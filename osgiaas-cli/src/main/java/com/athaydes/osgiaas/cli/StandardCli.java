@@ -158,6 +158,11 @@ public class StandardCli extends HasManyServices<CommandModifier>
         return errorColor;
     }
 
+    @Override
+    public void clearScreen() {
+        withCli( CliRun::clearScreen );
+    }
+
     private void withCli( Consumer<CliRun> consumer ) {
         DynamicServiceHelper.with( currentRun, consumer );
     }

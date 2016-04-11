@@ -19,4 +19,6 @@ public interface Cli {
 
     void setTextColor( AnsiColor color );
 
+    void clearScreen();
+
 }
