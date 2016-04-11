@@ -169,6 +169,15 @@ component( name: 'grepCommandModifier', immediate: true ) {
     }
 }
 
+component( name: 'grepCommandCompleter', immediate: true ) {
+    commonProperties()
+    implementation( 'class': 'com.athaydes.osgiaas.cli.completer.GrepCommandCompleter' )
+    property( name: 'service.description', value: 'OsgiAAS Cli Grep Command Completer' )
+    service {
+        provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter' )
+    }
+}
+
 component( name: 'andCommandModifier', immediate: true ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.command.AndCommandModifier' )

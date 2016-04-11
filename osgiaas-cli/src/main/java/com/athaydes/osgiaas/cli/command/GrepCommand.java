@@ -17,8 +17,8 @@ import java.util.regex.PatternSyntaxException;
 
 public class GrepCommand implements StreamingCommand {
 
-    private static final String BEFORE_ARG = "-B";
-    private static final String AFTER_ARG = "-A";
+    public static final String BEFORE_ARG = "-B";
+    public static final String AFTER_ARG = "-A";
 
     private final ArgsSpec argsSpec = ArgsSpec.builder()
             .accepts( BEFORE_ARG, false, true )
