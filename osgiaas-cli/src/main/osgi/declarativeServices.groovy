@@ -109,6 +109,16 @@ component( name: 'useCommandCompleter', immediate: true ) {
     cliPropertiesReference()
 }
 
+component( name: 'helpCommandCompleter', immediate: true ) {
+    commonProperties()
+    implementation( 'class': 'com.athaydes.osgiaas.cli.completer.HelpCommandCompleter' )
+    property( name: 'service.description', value: 'Felix Help Command Completer' )
+    service {
+        provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter' )
+    }
+    cliPropertiesReference()
+}
+
 component( name: 'aliasCommand', immediate: true ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.command.AliasCommand' )
