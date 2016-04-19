@@ -20,7 +20,12 @@ public abstract class AbstractTakesCommandsAsArgsCompleter extends UsesCliProper
         withCliProperties( cliProperties -> completerRef.updateAndGet(
                 ( c ) -> new Completer( cliProperties, commandName() )
         ) );
-        return completerRef.get().complete( buffer, cursor, candidates );
+        Completer completer = completerRef.get();
+        if ( completer != null ) {
+            return completerRef.get().complete( buffer, cursor, candidates );
+        } else {
+            return -1;
+        }
     }
 
     protected abstract String commandName();
