@@ -8,6 +8,7 @@ import com.athaydes.osgiaas.cli.groovy.command.GroovyCommand
 import groovy.transform.CompileStatic
 
 import java.util.concurrent.atomic.AtomicReference
+import java.util.regex.Pattern
 
 @CompileStatic
 class GroovyCompleter implements CommandCompleter {
@@ -25,7 +26,11 @@ class GroovyCompleter implements CommandCompleter {
         Map vars = variablesRef.get()
 
         if ( vars ) {
-            return new DynamicCompleter( vars ).complete( buffer, cursor, candidates )
+            int result = new DynamicCompleter( vars ).complete( buffer, cursor, candidates )
+            if ( result < 0 ) {
+                result = new PropertiesCompleter( vars: vars ).complete( buffer, cursor, candidates )
+            }
+            return result
         } else {
             return -1
         }
@@ -49,4 +54,37 @@ class DynamicCompleter extends BaseCompleter {
                     CompletionMatcher.nameMatcher( it as String )
                 } ) )
     }
+}
+
+class PropertiesCompleter implements CommandCompleter {
+
+    Map vars
+
+    @Override
+    int complete( String buffer, int cursor, List<CharSequence> candidates ) {
+        String input = buffer.substring( 0, cursor )
+
+        int lastDotIndex = input.lastIndexOf( '.' )
+
+        int lastSpaceIndex = input.lastIndexOf( ' ' )
+        if ( lastSpaceIndex > 0 ) {
+            input = input.substring( Math.min( lastSpaceIndex + 1, input.size() ) )
+        }
+
+        String[] parts = input.split( Pattern.quote( '.' ) )
+        if ( input.endsWith( '.' ) ) {
+            parts += ''
+        }
+
+        if ( parts.size() == 2 ) {
+            Class varType = vars[ parts[ 0 ] ]?.class
+            if ( varType ) {
+                candidates.addAll( varType.methods.findAll { it.name.startsWith( parts[ 1 ] ) }*.name )
+                return lastDotIndex + 1
+            }
+        }
+
+        return -1
+    }
+
 }
