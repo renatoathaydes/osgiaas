@@ -117,6 +117,7 @@ component( name: 'useCommandCompleter', immediate: true ) {
         provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter' )
     }
     cliPropertiesReference()
+    usingCommandReference()
 }
 
 component( name: 'helpCommandCompleter', immediate: true ) {
@@ -127,6 +128,7 @@ component( name: 'helpCommandCompleter', immediate: true ) {
         provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter' )
     }
     cliPropertiesReference()
+    usingCommandReference()
 }
 
 component( name: 'aliasCommand', immediate: true ) {
