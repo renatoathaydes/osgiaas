@@ -9,6 +9,8 @@ import com.athaydes.osgiaas.cli.groovy.command.GroovyCommand
 import groovy.transform.CompileStatic
 
 import javax.annotation.Nullable
+import java.lang.reflect.Method
+import java.lang.reflect.Modifier
 import java.util.concurrent.atomic.AtomicReference
 import java.util.regex.Pattern
 
@@ -22,6 +24,17 @@ class GroovyCompleter implements CommandCompleter {
 
     @Override
     int complete( String buffer, int cursor, List<CharSequence> candidates ) {
+        String prefix = buffer
+        KnowsCommandBeingUsed knowsCommandBeingUsed = this.knowsCommandBeingUsed
+        if ( knowsCommandBeingUsed?.using() ) {
+            prefix = knowsCommandBeingUsed.using() + " $prefix"
+        }
+
+        if ( !prefix.startsWith( 'groovy ' ) ) {
+            // only auto-complete groovy
+            return -1
+        }
+
         def variablesRef = new AtomicReference<Map>()
         DynamicServiceHelper.with( groovyRef ) { GroovyCommand groovy ->
             Map vars = groovy.shell.context.variables
@@ -87,12 +100,18 @@ class PropertiesCompleter implements CommandCompleter {
         if ( parts.size() == 2 ) {
             Class varType = vars[ parts[ 0 ] ]?.class
             if ( varType ) {
-                candidates.addAll( varType.methods.findAll { it.name.startsWith( parts[ 1 ] ) }*.name )
+                candidates.addAll( varType.methods.findAll {
+                    nonStatic( it ) && it.name.startsWith( parts[ 1 ] )
+                }*.name )
                 return lastDotIndex + 1
             }
         }
 
         return -1
+    }
+
+    private static boolean nonStatic( Method method ) {
+        ( method.modifiers & Modifier.STATIC ) == 0
     }
 
 }
