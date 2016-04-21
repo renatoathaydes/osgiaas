@@ -2,7 +2,9 @@ package com.athaydes.osgiaas.api.cli.completer;
 
 import com.athaydes.osgiaas.api.cli.CommandCompleter;
 import com.athaydes.osgiaas.api.cli.CommandHelper;
+import com.athaydes.osgiaas.api.cli.KnowsCommandBeingUsed;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -16,17 +18,28 @@ public class BaseCompleter implements CommandCompleter {
 
     private final CompletionMatcher rootNode;
 
+    @Nullable
+    private KnowsCommandBeingUsed knowsCommandBeingUsed = null;
+
     public BaseCompleter( CompletionMatcher completionNode ) {
         this.rootNode = completionNode;
+    }
+
+    public void setKnowsCommandBeingUsed( @Nullable KnowsCommandBeingUsed knowsCommandBeingUsed ) {
+        this.knowsCommandBeingUsed = knowsCommandBeingUsed;
     }
 
     @Override
     public int complete( String buffer, int cursor, List<CharSequence> candidates ) {
         String prefix = buffer.substring( 0, cursor );
 
-        if ( rootNode.partiallyMatches( prefix ) ) {
-            List<String> parts = new LinkedList<>( CommandHelper.breakupArguments( prefix ) );
-            if ( prefix.endsWith( " " ) ) {
+        KnowsCommandBeingUsed knowsCommandBeingUsed = this.knowsCommandBeingUsed;
+        String commandBeingUsed = knowsCommandBeingUsed == null ? "" : knowsCommandBeingUsed.using();
+        String command = commandBeingUsed + prefix;
+
+        if ( rootNode.partiallyMatches( command ) ) {
+            List<String> parts = new LinkedList<>( CommandHelper.breakupArguments( command ) );
+            if ( command.endsWith( " " ) ) {
                 parts.add( "" );
             }
 

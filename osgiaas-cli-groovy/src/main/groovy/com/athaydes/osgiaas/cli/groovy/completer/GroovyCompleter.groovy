@@ -1,12 +1,14 @@
 package com.athaydes.osgiaas.cli.groovy.completer
 
 import com.athaydes.osgiaas.api.cli.CommandCompleter
+import com.athaydes.osgiaas.api.cli.KnowsCommandBeingUsed
 import com.athaydes.osgiaas.api.cli.completer.BaseCompleter
 import com.athaydes.osgiaas.api.cli.completer.CompletionMatcher
 import com.athaydes.osgiaas.api.service.DynamicServiceHelper
 import com.athaydes.osgiaas.cli.groovy.command.GroovyCommand
 import groovy.transform.CompileStatic
 
+import javax.annotation.Nullable
 import java.util.concurrent.atomic.AtomicReference
 import java.util.regex.Pattern
 
@@ -14,6 +16,9 @@ import java.util.regex.Pattern
 class GroovyCompleter implements CommandCompleter {
 
     final AtomicReference<GroovyCommand> groovyRef = new AtomicReference<>()
+
+    @Nullable
+    KnowsCommandBeingUsed knowsCommandBeingUsed = null
 
     @Override
     int complete( String buffer, int cursor, List<CharSequence> candidates ) {
@@ -26,7 +31,8 @@ class GroovyCompleter implements CommandCompleter {
         Map vars = variablesRef.get()
 
         if ( vars ) {
-            int result = new DynamicCompleter( vars ).complete( buffer, cursor, candidates )
+            int result = new DynamicCompleter( vars, knowsCommandBeingUsed )
+                    .complete( buffer, cursor, candidates )
             if ( result < 0 ) {
                 result = new PropertiesCompleter( vars: vars ).complete( buffer, cursor, candidates )
             }
@@ -48,14 +54,16 @@ class GroovyCompleter implements CommandCompleter {
 @CompileStatic
 class DynamicCompleter extends BaseCompleter {
 
-    DynamicCompleter( Map vars ) {
+    DynamicCompleter( Map vars, KnowsCommandBeingUsed knowsCommandBeingUsed ) {
         super( CompletionMatcher.nameMatcher( 'groovy',
                 vars.keySet().collect {
                     CompletionMatcher.nameMatcher( it as String )
                 } ) )
+        setKnowsCommandBeingUsed( knowsCommandBeingUsed )
     }
 }
 
+@CompileStatic
 class PropertiesCompleter implements CommandCompleter {
 
     Map vars

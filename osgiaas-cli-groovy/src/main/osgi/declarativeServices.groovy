@@ -2,6 +2,14 @@ commonProperties = { ->
     property( name: 'service.vendor', value: 'com.athaydes' )
 }
 
+usingCommandReference = { ->
+    reference( name: 'usingCommand',
+            'interface': 'com.athaydes.osgiaas.api.cli.KnowsCommandBeingUsed',
+            'cardinality': '1..1',
+            'policy': 'static',
+            'bind': 'setKnowsCommandBeingUsed' )
+}
+
 component( name: 'groovyCommand', immediate: true ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.groovy.command.GroovyCommand' )
@@ -26,4 +34,5 @@ component( name: 'groovyCompleter', immediate: true ) {
     service {
         provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter' )
     }
+    usingCommandReference()
 }

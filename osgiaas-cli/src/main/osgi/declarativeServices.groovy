@@ -23,8 +23,8 @@ cliReference = { ->
 usingCommandReference = { ->
     reference( name: 'usingCommand',
             'interface': 'com.athaydes.osgiaas.api.cli.KnowsCommandBeingUsed',
-            'cardinality': '1..1',
-            'policy': 'static',
+            'cardinality': '0..1',
+            'policy': 'dynamic',
             'bind': 'setKnowsCommandBeingUsed' )
 }
 
@@ -85,7 +85,7 @@ component( name: 'colorCommandCompleter', immediate: true ) {
     service {
         provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter' )
     }
-    cliPropertiesReference()
+    usingCommandReference()
 }
 
 component( name: 'promptCommand', immediate: true ) {
@@ -167,7 +167,7 @@ component( name: 'highlightCommandCompleter', immediate: true ) {
     service {
         provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter' )
     }
-    cliPropertiesReference()
+    usingCommandReference()
 }
 
 component( name: 'grepCommandModifier', immediate: true ) {
@@ -186,6 +186,7 @@ component( name: 'grepCommandCompleter', immediate: true ) {
     service {
         provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter' )
     }
+    usingCommandReference()
 }
 
 component( name: 'andCommandModifier', immediate: true ) {

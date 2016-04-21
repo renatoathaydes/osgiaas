@@ -15,7 +15,8 @@ public class UseCommand implements Command, CommandModifier, KnowsCommandBeingUs
 
     @Override
     public String using() {
-        return using;
+        // return the command + space if using something so completion works as if typing "command "
+        return using.isEmpty() ? "" : using + " ";
     }
 
     @Override
