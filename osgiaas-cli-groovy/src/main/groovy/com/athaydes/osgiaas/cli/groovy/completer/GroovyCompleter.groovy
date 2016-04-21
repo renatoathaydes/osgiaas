@@ -98,11 +98,22 @@ class PropertiesCompleter implements CommandCompleter {
         }
 
         if ( parts.size() == 2 ) {
-            Class varType = vars[ parts[ 0 ] ]?.class
-            if ( varType ) {
-                candidates.addAll( varType.methods.findAll {
-                    nonStatic( it ) && it.name.startsWith( parts[ 1 ] )
+            def var = vars[ parts[ 0 ] ]
+            if ( var ) {
+                boolean typeVar = var instanceof Class
+
+                def filter = typeVar ?
+                        this.&isStatic :
+                        this.&nonStatic
+
+                if ( !typeVar ) {
+                    var = var.class
+                }
+
+                candidates.addAll( ( var as Class ).methods.findAll {
+                    filter( it ) && it.name.startsWith( parts[ 1 ] )
                 }*.name )
+
                 return lastDotIndex + 1
             }
         }
@@ -110,8 +121,12 @@ class PropertiesCompleter implements CommandCompleter {
         return -1
     }
 
+    private static boolean isStatic( Method method ) {
+        ( method.modifiers & Modifier.STATIC )
+    }
+
     private static boolean nonStatic( Method method ) {
-        ( method.modifiers & Modifier.STATIC ) == 0
+        !( method.modifiers & Modifier.STATIC )
     }
 
 }
