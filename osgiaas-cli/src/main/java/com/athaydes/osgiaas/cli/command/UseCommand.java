@@ -2,15 +2,21 @@ package com.athaydes.osgiaas.cli.command;
 
 import com.athaydes.osgiaas.api.cli.CommandHelper;
 import com.athaydes.osgiaas.api.cli.CommandModifier;
+import com.athaydes.osgiaas.api.cli.KnowsCommandBeingUsed;
 import org.apache.felix.shell.Command;
 
 import java.io.PrintStream;
 import java.util.Collections;
 import java.util.List;
 
-public class UseCommand implements Command, CommandModifier {
+public class UseCommand implements Command, CommandModifier, KnowsCommandBeingUsed {
 
     private volatile String using = "";
+
+    @Override
+    public String using() {
+        return using;
+    }
 
     @Override
     public String getName() {

@@ -20,6 +20,14 @@ cliReference = { ->
             'unbind': 'removeCli' )
 }
 
+usingCommandReference = { ->
+    reference( name: 'usingCommand',
+            'interface': 'com.athaydes.osgiaas.api.cli.KnowsCommandBeingUsed',
+            'cardinality': '1..1',
+            'policy': 'static',
+            'bind': 'setKnowsCommandBeingUsed' )
+}
+
 component( xmlns: "http://www.osgi.org/xmlns/scr/v1.3.0",
         name: 'osgiaasStandardCli', immediate: true,
         activate: 'start', deactivate: 'stop' ) {
@@ -57,6 +65,7 @@ component( name: 'osgiaasCommandCompleter', immediate: true ) {
         provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter' )
     }
     cliPropertiesReference()
+    usingCommandReference()
 }
 
 component( name: 'colorCommand', immediate: true ) {
@@ -96,6 +105,7 @@ component( name: 'useCommand', immediate: true ) {
     service {
         provide( 'interface': 'org.apache.felix.shell.Command' )
         provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandModifier' )
+        provide( 'interface': 'com.athaydes.osgiaas.api.cli.KnowsCommandBeingUsed' )
     }
 }
 

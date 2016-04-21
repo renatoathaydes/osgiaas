@@ -2,8 +2,10 @@ package com.athaydes.osgiaas.cli.completer;
 
 import com.athaydes.osgiaas.api.cli.CommandCompleter;
 import com.athaydes.osgiaas.api.cli.CommandHelper;
+import com.athaydes.osgiaas.api.cli.KnowsCommandBeingUsed;
 import com.athaydes.osgiaas.cli.util.UsesCliProperties;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -15,6 +17,9 @@ public class OsgiaasCommandCompleter
 
     private final Pattern commandSeparatorPattern;
 
+    @Nullable
+    private KnowsCommandBeingUsed knowsCommandBeingUsed = null;
+
     public OsgiaasCommandCompleter() {
         String commandSeparatorsRegex = "[" + CommandHelper.commandSeparators.stream()
                 .map( codePoint -> Pattern.quote( new String( new int[]{ codePoint }, 0, 1 ) ) )
@@ -23,8 +28,18 @@ public class OsgiaasCommandCompleter
         commandSeparatorPattern = Pattern.compile( commandSeparatorsRegex );
     }
 
+    public void setKnowsCommandBeingUsed( @Nullable KnowsCommandBeingUsed knowsCommandBeingUsed ) {
+        this.knowsCommandBeingUsed = knowsCommandBeingUsed;
+    }
+
     @Override
     public int complete( String buffer, int cursor, List<CharSequence> candidates ) {
+        KnowsCommandBeingUsed knowsCommandBeingUsed = this.knowsCommandBeingUsed;
+        if ( knowsCommandBeingUsed != null && !knowsCommandBeingUsed.using().isEmpty() ) {
+            // when using a command, this completer does not need to do anything
+            return -1;
+        }
+
         EffectiveInput effectiveInput = resolveInputForCompletion( buffer, cursor );
 
         if ( effectiveInput.startIndex >= 0 ) {
