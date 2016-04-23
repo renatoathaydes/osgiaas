@@ -57,6 +57,7 @@ component( xmlns: "http://www.osgi.org/xmlns/scr/v1.3.0",
             'unbind': 'removeCommandCompleter' )
 }
 
+
 component( name: 'osgiaasCommandCompleter', immediate: true ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.completer.OsgiaasCommandCompleter' )
@@ -66,6 +67,15 @@ component( name: 'osgiaasCommandCompleter', immediate: true ) {
     }
     cliPropertiesReference()
     usingCommandReference()
+}
+
+component( name: 'inspectCommandCompleter', immediate: true ) {
+    commonProperties()
+    implementation( 'class': 'com.athaydes.osgiaas.cli.completer.InspectCommandCompleter' )
+    property( name: 'service.description', value: 'Felix Inspect Command Completer' )
+    service {
+        provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter' )
+    }
 }
 
 component( name: 'colorCommand', immediate: true ) {
