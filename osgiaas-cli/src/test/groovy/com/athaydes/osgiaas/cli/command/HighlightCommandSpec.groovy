@@ -4,6 +4,8 @@ import com.athaydes.osgiaas.api.stream.LineOutputStream
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.util.regex.Pattern
+
 import static com.athaydes.osgiaas.api.ansi.AnsiColor.BLACK
 import static com.athaydes.osgiaas.api.ansi.AnsiColor.CYAN
 import static com.athaydes.osgiaas.api.ansi.AnsiColor.DEFAULT_BG
@@ -34,22 +36,26 @@ class HighlightCommandSpec extends Specification {
         result != null
         result.colors.toList() == expectedColors
         result.modifiers.toList() == expectedModifiers
+        ( result.pattern.flags() & Pattern.CASE_INSENSITIVE ) >= ( caseInsensitive ? 1 : 0 )
 
         and: 'No error is reported'
         errors.empty
 
         where:
-        args                       | expectedArgumentsGiven | expectedColors        | expectedModifiers
-        ''                         | 0                      | [ DEFAULT_BG ]        | [ ]
-        '-f red'                   | 1                      | [ DEFAULT_BG, RED ]   | [ ]
-        '-b blue'                  | 1                      | [ _BLUE ]             | [ ]
-        '-f white -b green'        | 2                      | [ _GREEN, WHITE ]     | [ ]
-        '-b purple -f cyan'        | 2                      | [ _PURPLE, CYAN ]     | [ ]
-        '-f cyan+italic'           | 1                      | [ DEFAULT_BG, CYAN ]  | [ ITALIC ]
-        '-f black+blink+underline' | 1                      | [ DEFAULT_BG, BLACK ] | [ BLINK, UNDERLINE ]
-        '-f green+rapid_blink'     | 1                      | [ DEFAULT_BG, GREEN ] | [ RAPID_BLINK ]
-        '-b purple -f cyan+blink'  | 2                      | [ _PURPLE, CYAN ]     | [ BLINK ]
-        '-f cyan+blink -b purple'  | 2                      | [ _PURPLE, CYAN ]     | [ BLINK ]
+        args                         | expectedArgumentsGiven | expectedColors        | expectedModifiers    | caseInsensitive
+        ''                           | 0                      | [ DEFAULT_BG ]        | [ ]                  | false
+        '-f red'                     | 1                      | [ DEFAULT_BG, RED ]   | [ ]                  | false
+        '-b blue'                    | 1                      | [ _BLUE ]             | [ ]                  | false
+        '-i -b blue'                 | 1                      | [ _BLUE ]             | [ ]                  | true
+        '-f white -b green'          | 2                      | [ _GREEN, WHITE ]     | [ ]                  | false
+        '-b purple -f cyan'          | 2                      | [ _PURPLE, CYAN ]     | [ ]                  | false
+        '-f cyan+italic'             | 1                      | [ DEFAULT_BG, CYAN ]  | [ ITALIC ]           | false
+        '-f black+blink+underline'   | 1                      | [ DEFAULT_BG, BLACK ] | [ BLINK, UNDERLINE ] | false
+        '-f green+rapid_blink'       | 1                      | [ DEFAULT_BG, GREEN ] | [ RAPID_BLINK ]      | false
+        '-b purple -f cyan+blink'    | 2                      | [ _PURPLE, CYAN ]     | [ BLINK ]            | false
+        '-b purple -f cyan+blink -i' | 2                      | [ _PURPLE, CYAN ]     | [ BLINK ]            | true
+        '-f cyan+blink -b purple'    | 2                      | [ _PURPLE, CYAN ]     | [ BLINK ]            | false
+        '-f cyan+blink -i -b purple' | 2                      | [ _PURPLE, CYAN ]     | [ BLINK ]            | true
     }
 
     @Unroll

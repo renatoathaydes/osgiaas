@@ -8,11 +8,15 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import static com.athaydes.osgiaas.api.cli.completer.CompletionMatcher.alternativeMatchers;
 import static com.athaydes.osgiaas.api.cli.completer.CompletionMatcher.multiPartMatcher;
 import static com.athaydes.osgiaas.api.cli.completer.CompletionMatcher.nameMatcher;
 import static com.athaydes.osgiaas.cli.command.HighlightCommand.BACKGROUND_ARG;
+import static com.athaydes.osgiaas.cli.command.HighlightCommand.CASE_INSENSITIVE_ARG;
 import static com.athaydes.osgiaas.cli.command.HighlightCommand.FOREGROUND_ARG;
 import static com.athaydes.osgiaas.cli.completer.ColorCommandCompleter.colorsNodesWithChildren;
 
@@ -53,16 +57,35 @@ public class HighlightCommandCompleter extends BaseCompleter {
                 .collect( Collectors.toList() );
     }
 
+    private static CompletionMatcher backThenFore( CompletionMatcher... children ) {
+        return nameMatcher( BACKGROUND_ARG, colorsNodesWithChildren(
+                nameMatcher( FOREGROUND_ARG,
+                        ansiModifierNodesWithChildren( children ) )
+        ) );
+    }
+
+    private static CompletionMatcher foreThenBack( CompletionMatcher... children ) {
+        return nameMatcher( FOREGROUND_ARG, colorsNodesWithChildren(
+                nameMatcher( BACKGROUND_ARG,
+                        ansiModifierNodesWithChildren( children ) )
+        ) );
+    }
+
+    private static CompletionMatcher caseInsensitive( CompletionMatcher... children ) {
+        return nameMatcher( CASE_INSENSITIVE_ARG, children );
+    }
+
+    private static Supplier<Stream<CompletionMatcher>> completers() {
+        return () -> Stream.of(
+                caseInsensitive( alternativeMatchers(
+                        backThenFore(), foreThenBack() ) ),
+                backThenFore( caseInsensitive() ),
+                foreThenBack( caseInsensitive() )
+        );
+    }
+
     public HighlightCommandCompleter() {
-        super( nameMatcher( "highlight",
-                nameMatcher( BACKGROUND_ARG, colorsNodesWithChildren(
-                        nameMatcher( FOREGROUND_ARG,
-                                ansiModifierNodesWithChildren() )
-                ) ),
-                nameMatcher( FOREGROUND_ARG, ansiModifierNodesWithChildren(
-                        nameMatcher( BACKGROUND_ARG,
-                                colorsNodesWithChildren() )
-                ) ) ) );
+        super( nameMatcher( "highlight", completers() ) );
     }
 
 }

@@ -49,7 +49,7 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
         map.accept( "r", AnsiModifier.RESET.name() );
         map.accept( "b", AnsiModifier.BLINK.name() );
         map.accept( "hi", AnsiModifier.HIGH_INTENSITY.name() );
-        map.accept( "li", AnsiModifier.LOW_INTENSITy.name() );
+        map.accept( "li", AnsiModifier.LOW_INTENSITY.name() );
         map.accept( "it", AnsiModifier.INVISIBLE_TEXT.name() );
         map.accept( "rb", AnsiModifier.RAPID_BLINK.name() );
         map.accept( "u", AnsiModifier.UNDERLINE.name() );
@@ -60,10 +60,12 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
 
     public static final String FOREGROUND_ARG = "-f";
     public static final String BACKGROUND_ARG = "-b";
+    public static final String CASE_INSENSITIVE_ARG = "-i";
 
     private final ArgsSpec argsSpec = ArgsSpec.builder()
             .accepts( FOREGROUND_ARG, false, true )
             .accepts( BACKGROUND_ARG, false, true )
+            .accepts( CASE_INSENSITIVE_ARG )
             .build();
 
     @Override
@@ -73,7 +75,7 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
 
     @Override
     public String getUsage() {
-        return "highlight [-f <color>] [-b <color>] <regex> <text-to-highlight>";
+        return "highlight [-i] [-f <color>] [-b <color>] <regex> <text-to-highlight>";
     }
 
     @Override
@@ -83,6 +85,7 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
                 "output from other commands via the '|' (pipe) operator.\n" +
                 "The highlight command accepts the following flags:\n" +
                 "  \n" +
+                "  * -i: case insensitive regex.\n" +
                 "  * -b <color>: highlighted text background color.\n" +
                 "  * -f <color+modifier>: highlighted text foreground color and modifier(s).\n" +
                 " \n" +
@@ -153,6 +156,7 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
         if ( invocation == null ) {
             return null;
         } else {
+            boolean caseInsensitive = invocation.hasArg( CASE_INSENSITIVE_ARG );
             @Nullable String foreground = invocation.getArgValue( FOREGROUND_ARG );
             @Nullable String background = invocation.getArgValue( BACKGROUND_ARG );
             List<String> rest = CommandHelper.breakupArguments(
@@ -163,7 +167,7 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
             } else {
                 String regex = rest.get( 0 );
                 String input = ( rest.size() == 2 ) ? rest.get( 1 ) : "";
-                @Nullable Pattern matchPattern = getPattern( regex, err );
+                @Nullable Pattern matchPattern = getPattern( regex, caseInsensitive, err );
 
                 if ( matchPattern != null ) {
                     return new HighlightCall( background, foreground, matchPattern, input, getTextColor() );
@@ -175,9 +179,10 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
     }
 
     @Nullable
-    private Pattern getPattern( String regex, PrintStream err ) {
+    private Pattern getPattern( String regex, boolean caseInsensitive, PrintStream err ) {
         try {
-            return Pattern.compile( ".*" + regex + ".*" );
+            int flags = caseInsensitive ? Pattern.CASE_INSENSITIVE : 0;
+            return Pattern.compile( ".*" + regex + ".*", flags );
         } catch ( PatternSyntaxException e ) {
             err.println( "Pattern syntax error in [" + regex + "]: " + e.getMessage() );
             return null;
