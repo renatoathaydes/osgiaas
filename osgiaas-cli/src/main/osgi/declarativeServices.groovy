@@ -51,14 +51,14 @@ component( xmlns: "http://www.osgi.org/xmlns/scr/v1.3.0",
             'unbind': 'removeCommandModifier' )
     reference( name: 'commandCompleter',
             'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter',
-            'cardinality': '1..n',
+            'cardinality': '0..n',
             'policy': 'dynamic',
             'bind': 'addCommandCompleter',
             'unbind': 'removeCommandCompleter' )
 }
 
 
-component( name: 'osgiaasCommandCompleter', immediate: true ) {
+component( name: 'osgiaasCommandCompleter' ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.completer.OsgiaasCommandCompleter' )
     property( name: 'service.description', value: 'OsgiAAS Cli Command Completer' )
@@ -69,7 +69,7 @@ component( name: 'osgiaasCommandCompleter', immediate: true ) {
     usingCommandReference()
 }
 
-component( name: 'inspectCommandCompleter', immediate: true ) {
+component( name: 'inspectCommandCompleter' ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.completer.InspectCommandCompleter' )
     property( name: 'service.description', value: 'Felix Inspect Command Completer' )
@@ -78,7 +78,7 @@ component( name: 'inspectCommandCompleter', immediate: true ) {
     }
 }
 
-component( name: 'colorCommand', immediate: true ) {
+component( name: 'colorCommand' ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.command.ColorCommand' )
     property( name: 'service.description', value: 'OsgiAAS Cli Color Command' )
@@ -88,7 +88,7 @@ component( name: 'colorCommand', immediate: true ) {
     cliReference()
 }
 
-component( name: 'colorCommandCompleter', immediate: true ) {
+component( name: 'colorCommandCompleter' ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.completer.ColorCommandCompleter' )
     property( name: 'service.description', value: 'OsgiAAS Color Command Completer' )
@@ -98,7 +98,7 @@ component( name: 'colorCommandCompleter', immediate: true ) {
     usingCommandReference()
 }
 
-component( name: 'promptCommand', immediate: true ) {
+component( name: 'promptCommand' ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.command.PromptCommand' )
     property( name: 'service.description', value: 'OsgiAAS Cli Prompt Command' )
@@ -108,7 +108,7 @@ component( name: 'promptCommand', immediate: true ) {
     cliReference()
 }
 
-component( name: 'useCommand', immediate: true ) {
+component( name: 'useCommand' ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.command.UseCommand' )
     property( name: 'service.description', value: 'OsgiAAS Cli Use Command' )
@@ -119,7 +119,7 @@ component( name: 'useCommand', immediate: true ) {
     }
 }
 
-component( name: 'useCommandCompleter', immediate: true ) {
+component( name: 'useCommandCompleter' ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.completer.UseCommandCompleter' )
     property( name: 'service.description', value: 'OsgiAAS Use Command Completer' )
@@ -130,7 +130,7 @@ component( name: 'useCommandCompleter', immediate: true ) {
     usingCommandReference()
 }
 
-component( name: 'helpCommandCompleter', immediate: true ) {
+component( name: 'helpCommandCompleter' ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.completer.HelpCommandCompleter' )
     property( name: 'service.description', value: 'Felix Help Command Completer' )
@@ -141,7 +141,7 @@ component( name: 'helpCommandCompleter', immediate: true ) {
     usingCommandReference()
 }
 
-component( name: 'aliasCommand', immediate: true ) {
+component( name: 'aliasCommand' ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.command.AliasCommand' )
     property( name: 'service.description', value: 'OsgiAAS Cli Alias Command' )
@@ -152,7 +152,7 @@ component( name: 'aliasCommand', immediate: true ) {
     cliPropertiesReference()
 }
 
-component( name: 'clearCommand', immediate: true ) {
+component( name: 'clearCommand' ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.command.ClearCommand' )
     property( name: 'service.description', value: 'OsgiAAS Cli Clear Command' )
@@ -162,7 +162,7 @@ component( name: 'clearCommand', immediate: true ) {
     cliReference()
 }
 
-component( name: 'highlightCommand', immediate: true ) {
+component( name: 'highlightCommand' ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.command.HighlightCommand' )
     property( name: 'service.description', value: 'OsgiAAS Cli Highlight Command' )
@@ -172,7 +172,7 @@ component( name: 'highlightCommand', immediate: true ) {
     cliPropertiesReference()
 }
 
-component( name: 'highlightCommandCompleter', immediate: true ) {
+component( name: 'highlightCommandCompleter' ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.completer.HighlightCommandCompleter' )
     property( name: 'service.description', value: 'OsgiAAS Highlight Command Completer' )
@@ -182,7 +182,7 @@ component( name: 'highlightCommandCompleter', immediate: true ) {
     usingCommandReference()
 }
 
-component( name: 'grepCommandModifier', immediate: true ) {
+component( name: 'grepCommandModifier' ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.command.GrepCommand' )
     property( name: 'service.description', value: 'OsgiAAS Cli Grep Command' )
@@ -191,7 +191,7 @@ component( name: 'grepCommandModifier', immediate: true ) {
     }
 }
 
-component( name: 'grepCommandCompleter', immediate: true ) {
+component( name: 'grepCommandCompleter' ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.completer.GrepCommandCompleter' )
     property( name: 'service.description', value: 'OsgiAAS Cli Grep Command Completer' )
@@ -201,7 +201,7 @@ component( name: 'grepCommandCompleter', immediate: true ) {
     usingCommandReference()
 }
 
-component( name: 'andCommandModifier', immediate: true ) {
+component( name: 'andCommandModifier' ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.command.AndCommandModifier' )
     property( name: 'service.description', value: 'OsgiAAS Cli && CommandModifier' )
