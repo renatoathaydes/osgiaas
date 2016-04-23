@@ -71,7 +71,7 @@ class DynamicCompleter extends BaseCompleter {
         super( CompletionMatcher.nameMatcher( 'groovy',
                 vars.keySet().collect {
                     CompletionMatcher.nameMatcher( it as String )
-                } ) )
+                } as CompletionMatcher[] ) )
         setKnowsCommandBeingUsed( knowsCommandBeingUsed )
     }
 }

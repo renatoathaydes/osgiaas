@@ -12,7 +12,7 @@ class BaseCompleterSpec extends Specification {
                 CompletionMatcher.nameMatcher( 'opt1' ),
                 CompletionMatcher.nameMatcher( 'something' ),
                 CompletionMatcher.nameMatcher( 'other' ),
-        ] ) )
+        ] as CompletionMatcher[] ) )
 
         when: "Some example user commands are queried for completion"
         def candidates = [ ]
@@ -44,21 +44,21 @@ class BaseCompleterSpec extends Specification {
                         CompletionMatcher.nameMatcher( 'def', [
                                 CompletionMatcher.nameMatcher( '123' ),
                                 CompletionMatcher.nameMatcher( '456' ),
-                        ] ),
+                        ] as CompletionMatcher[] ),
                         CompletionMatcher.nameMatcher( 'ghi', [
                                 CompletionMatcher.nameMatcher( 'xyz' )
-                        ] ),
+                        ] as CompletionMatcher[] ),
                         CompletionMatcher.nameMatcher( 'jkl' )
-                ] ),
+                ] as CompletionMatcher[] ),
                 CompletionMatcher.nameMatcher( 'something' ),
                 CompletionMatcher.nameMatcher( 'other', [
                         CompletionMatcher.nameMatcher( 'o1' ),
                         CompletionMatcher.nameMatcher( 'o2', [
                                 CompletionMatcher.nameMatcher( 'o2.1' ),
                                 CompletionMatcher.nameMatcher( 'o2.2' ),
-                        ] ),
-                ] ),
-        ] ) )
+                        ] as CompletionMatcher[] ),
+                ] as CompletionMatcher[] ),
+        ] as CompletionMatcher[] ) )
 
         when: "Some example user commands are queried for completion"
         def candidates = [ ]
@@ -110,11 +110,11 @@ class BaseCompleterSpec extends Specification {
                                         [ 'abc', 'def' ].collect( asMatcher ),
                                         [ 'ghi', 'jkl' ].collect( asMatcher )
                                 ] )
-                        ] ) ]
+                        ] as CompletionMatcher[] ) ]
                 ] ),
                 CompletionMatcher.nameMatcher( 'something' ),
                 CompletionMatcher.nameMatcher( 'other' ),
-        ] ) )
+        ] as CompletionMatcher[] ) )
 
         when: "Some example user commands are queried for completion"
         def candidates = [ ]

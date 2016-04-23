@@ -32,7 +32,7 @@ public class HighlightCommandCompleter extends BaseCompleter {
                 .collect( Collectors.toSet() );
 
         return multiPartMatcher( "+", Arrays.asList(
-                colorsNodesWithChildren(),
+                Arrays.asList( colorsNodesWithChildren() ),
                 flatten( Arrays.asList(
                         asMatchers( shortFormAnsiModifiers ),
                         asMatchers( longFormAnsiModifiers )

@@ -16,22 +16,23 @@ public class ColorCommandCompleter extends BaseCompleter {
                     .map( CompletionMatcher::nameMatcher )
                     .collect( Collectors.toList() );
 
-    private static final List<CompletionMatcher> colors = colorsNodesWithChildren( colorTargets );
+    private static final CompletionMatcher[] colors = colorsNodesWithChildren( colorTargets );
 
-    static List<CompletionMatcher> colorsNodesWithChildren(
+    static CompletionMatcher[] colorsNodesWithChildren(
             CompletionMatcher... children ) {
         return colorsNodesWithChildren( Arrays.asList( children ) );
     }
 
-    static List<CompletionMatcher> colorsNodesWithChildren(
+    static CompletionMatcher[] colorsNodesWithChildren(
             List<CompletionMatcher> children ) {
-        return Stream.of( AnsiColor.values() )
+        Stream<CompletionMatcher> matcherStream = Stream.of( AnsiColor.values() )
                 .map( AnsiColor::name )
                 .filter( color -> !color.startsWith( "_" ) )
                 .map( String::toLowerCase )
                 .sorted()
-                .map( color -> CompletionMatcher.nameMatcher( color, children ) )
-                .collect( Collectors.toList() );
+                .map( color -> CompletionMatcher.nameMatcher( color, children::stream ) );
+
+        return matcherStream.toArray( CompletionMatcher[]::new );
     }
 
     public ColorCommandCompleter() {

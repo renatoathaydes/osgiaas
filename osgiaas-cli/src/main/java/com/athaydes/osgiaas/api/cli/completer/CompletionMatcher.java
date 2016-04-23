@@ -2,6 +2,7 @@ package com.athaydes.osgiaas.api.cli.completer;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -51,7 +52,7 @@ public interface CompletionMatcher {
      * @return a {@link CompletionMatcher} that matches arguments by name.
      */
     static CompletionMatcher nameMatcher( String name, CompletionMatcher... children ) {
-        return nameMatcher( name, Arrays.asList( children ) );
+        return nameMatcher( name, () -> Stream.of( children ) );
     }
 
     /**
@@ -61,11 +62,11 @@ public interface CompletionMatcher {
      * @param children of this matcher
      * @return a {@link CompletionMatcher} that matches arguments by name.
      */
-    static CompletionMatcher nameMatcher( String name, List<CompletionMatcher> children ) {
+    static CompletionMatcher nameMatcher( String name, Supplier<Stream<CompletionMatcher>> children ) {
         if ( name == null || name.trim().isEmpty() ) {
             throw new IllegalArgumentException( "Node name must be non-empty" );
         }
-        return new NodeNameCompletionMatcher( name, children::stream );
+        return new NodeNameCompletionMatcher( name, children );
     }
 
     /**
