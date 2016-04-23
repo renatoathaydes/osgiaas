@@ -4,7 +4,7 @@ public enum AnsiModifier {
 
     RESET( 0 ),
     HIGH_INTENSITY( 1 ),
-    LOW_INTENSITy( 2 ),
+    LOW_INTENSITY( 2 ),
     ITALIC( 3 ),
     UNDERLINE( 4 ),
     BLINK( 5 ),
