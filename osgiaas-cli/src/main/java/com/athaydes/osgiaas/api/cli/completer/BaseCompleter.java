@@ -60,13 +60,13 @@ public class BaseCompleter implements CommandCompleter {
         } else if ( parts.size() == 1 ) {
             // try to complete the last part
             String prefix = parts.get( 0 );
-            return node.children().stream()
+            return node.children()
                     .flatMap( child -> child.completionsFor( prefix ).stream() )
                     .collect( Collectors.toList() );
         } else {
             // check if the next part matches one of the possible completions and continue on to the next part if so
             String part = parts.get( 0 );
-            Optional<CompletionMatcher> nextNode = node.children().stream()
+            Optional<CompletionMatcher> nextNode = node.children()
                     .filter( child -> child.argumentFullyMatched( part ) )
                     .findFirst();
 

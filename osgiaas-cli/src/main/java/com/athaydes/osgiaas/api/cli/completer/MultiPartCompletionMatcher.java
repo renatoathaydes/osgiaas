@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -17,17 +18,16 @@ class MultiPartCompletionMatcher extends ParentCompletionMatcher {
 
     MultiPartCompletionMatcher( String separator,
                                 List<CompletionMatcherCollection> completionMatchers,
-                                List<CompletionMatcher> children ) {
+                                Supplier<Stream<CompletionMatcher>> children ) {
         super( mergeChildren( completionMatchers, children ) );
         this.separator = separator;
         this.completionMatchers = completionMatchers;
     }
 
-    private static List<CompletionMatcher> mergeChildren( List<CompletionMatcherCollection> completionMatchers,
-                                                          List<CompletionMatcher> children ) {
-        return Stream.concat( completionMatchers.stream()
-                        .flatMap( c -> c.children().stream() ),
-                children.stream() ).collect( Collectors.toList() );
+    private static Supplier<Stream<CompletionMatcher>> mergeChildren( List<CompletionMatcherCollection> completionMatchers,
+                                                                      Supplier<Stream<CompletionMatcher>> children ) {
+        return () -> Stream.concat( completionMatchers.stream()
+                .flatMap( ParentCompletionMatcher::children ), children.get() );
     }
 
     @Override
@@ -80,8 +80,10 @@ class MultiPartCompletionMatcher extends ParentCompletionMatcher {
                         .collect( Collectors.toList() );
 
                 // if the current matcher has children use those
-            } else if ( !matcher.children().isEmpty() ) {
-                return matcher.children().get( 0 ).completionsFor( "" );
+            } else {
+                return matcher.children()
+                        .flatMap( c -> c.completionsFor( "" ).stream() )
+                        .collect( Collectors.toList() );
             }
         }
 

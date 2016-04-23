@@ -3,6 +3,7 @@ package com.athaydes.osgiaas.api.cli.completer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A matcher for parameter completion.
@@ -31,9 +32,10 @@ public interface CompletionMatcher {
      * To match against a chain of arguments, a matcher may have children which match the next
      * argument in the chain, recursively.
      *
-     * @return children of this matcher
+     * @return stream of children of this matcher. This method should return a different Stream each
+     * time it is called, and the elements may be different each time.
      */
-    List<CompletionMatcher> children();
+    Stream<CompletionMatcher> children();
 
     /**
      * @param command partially entered user command
@@ -63,7 +65,7 @@ public interface CompletionMatcher {
         if ( name == null || name.trim().isEmpty() ) {
             throw new IllegalArgumentException( "Node name must be non-empty" );
         }
-        return new NodeNameCompletionMatcher( name, children );
+        return new NodeNameCompletionMatcher( name, children::stream );
     }
 
     /**
@@ -96,10 +98,10 @@ public interface CompletionMatcher {
         }
 
         List<CompletionMatcherCollection> matchers = parts.stream()
-                .map( CompletionMatcherCollection::new )
+                .map( p -> new CompletionMatcherCollection( p::stream ) )
                 .collect( Collectors.toList() );
 
-        return new MultiPartCompletionMatcher( separator, matchers, children );
+        return new MultiPartCompletionMatcher( separator, matchers, children::stream );
     }
 
 }

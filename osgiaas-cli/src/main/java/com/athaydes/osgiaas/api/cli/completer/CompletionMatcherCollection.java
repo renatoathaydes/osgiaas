@@ -3,7 +3,8 @@ package com.athaydes.osgiaas.api.cli.completer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * Allows handling multiple {@link CompletionMatcher}s as a single entity.
@@ -16,32 +17,28 @@ import java.util.stream.Collectors;
 public class CompletionMatcherCollection extends ParentCompletionMatcher
         implements Iterable<CompletionMatcher> {
 
-    private final List<CompletionMatcher> matchers;
+    private final Supplier<Stream<CompletionMatcher>> matchers;
 
-    public CompletionMatcherCollection( List<CompletionMatcher> matchers ) {
-        super( matchers.stream()
-                .flatMap( m -> m.children().stream() )
-                .collect( Collectors.toList() ) );
+    public CompletionMatcherCollection( Supplier<Stream<CompletionMatcher>> matchers ) {
+        super( () -> matchers.get().flatMap( CompletionMatcher::children ) );
         this.matchers = matchers;
     }
 
     @Override
     public List<String> completionsFor( String argument ) {
         List<String> result = new ArrayList<>();
-        for (CompletionMatcher matcher : matchers) {
-            result.addAll( matcher.completionsFor( argument ) );
-        }
+        matchers.get().forEach( matcher -> result.addAll( matcher.completionsFor( argument ) ) );
         return result;
     }
 
     @Override
     public boolean partiallyMatches( String command ) {
-        return matchers.stream().anyMatch( m -> m.partiallyMatches( command ) );
+        return matchers.get().anyMatch( m -> m.partiallyMatches( command ) );
     }
 
     @Override
     public Iterator<CompletionMatcher> iterator() {
-        return matchers.iterator();
+        return matchers.get().iterator();
     }
 
 }

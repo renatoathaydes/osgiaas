@@ -2,12 +2,14 @@ package com.athaydes.osgiaas.api.cli.completer;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 class NodeNameCompletionMatcher extends ParentCompletionMatcher {
 
     private final String name;
 
-    NodeNameCompletionMatcher( String name, List<CompletionMatcher> children ) {
+    NodeNameCompletionMatcher( String name, Supplier<Stream<CompletionMatcher>> children ) {
         super( children );
         this.name = name;
     }

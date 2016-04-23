@@ -5,10 +5,10 @@ import com.athaydes.osgiaas.api.cli.completer.CompletionMatcher;
 import com.athaydes.osgiaas.api.cli.completer.ParentCompletionMatcher;
 import com.athaydes.osgiaas.cli.command.GrepCommand;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import static com.athaydes.osgiaas.api.cli.completer.CompletionMatcher.nameMatcher;
 
@@ -30,7 +30,7 @@ public class GrepCommandCompleter extends BaseCompleter {
         private static final Pattern partialIntPattern = Pattern.compile( "\\d{1,10}\\s.*" );
 
         public IntCompletionMatcher( CompletionMatcher... children ) {
-            super( Arrays.asList( children ) );
+            super( () -> Stream.of( children ) );
         }
 
         @Override
