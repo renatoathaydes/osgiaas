@@ -37,6 +37,10 @@ public class CommandInvocation {
         return arguments.getOrDefault( argument, Collections.emptyList() );
     }
 
+    public boolean hasArg( String argument ) {
+        return arguments.containsKey( argument );
+    }
+
     public String getUnprocessedInput() {
         return unprocessedInput;
     }

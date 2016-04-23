@@ -7,6 +7,7 @@ import com.athaydes.osgiaas.cli.command.GrepCommand;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -15,13 +16,26 @@ import static com.athaydes.osgiaas.api.cli.completer.CompletionMatcher.nameMatch
 public class GrepCommandCompleter extends BaseCompleter {
 
     public GrepCommandCompleter() {
-        super( nameMatcher( "grep",
-                nameMatcher( GrepCommand.AFTER_ARG, new IntCompletionMatcher(
-                        nameMatcher( GrepCommand.BEFORE_ARG, new IntCompletionMatcher() )
-                ) ),
-                nameMatcher( GrepCommand.BEFORE_ARG, new IntCompletionMatcher(
-                        nameMatcher( GrepCommand.AFTER_ARG, new IntCompletionMatcher() )
-                ) ) ) );
+        super( nameMatcher( "grep", completers() ) );
+    }
+
+    private static Supplier<Stream<CompletionMatcher>> completers() {
+        CompletionMatcher intMatcher = new IntCompletionMatcher(
+                nameMatcher( GrepCommand.CASE_INSENSITIVE_ARG ) );
+
+        CompletionMatcher beforeThenAfter = nameMatcher(
+                GrepCommand.AFTER_ARG, new IntCompletionMatcher(
+                        nameMatcher( GrepCommand.BEFORE_ARG, intMatcher ) )
+        );
+        CompletionMatcher afterThenBefore = nameMatcher( GrepCommand.AFTER_ARG, new IntCompletionMatcher(
+                nameMatcher( GrepCommand.BEFORE_ARG, intMatcher )
+        ) );
+
+        return () -> Stream.of(
+                nameMatcher( GrepCommand.CASE_INSENSITIVE_ARG, afterThenBefore ),
+                nameMatcher( GrepCommand.CASE_INSENSITIVE_ARG, beforeThenAfter ),
+                afterThenBefore,
+                beforeThenAfter );
     }
 
     private static class IntCompletionMatcher extends ParentCompletionMatcher {

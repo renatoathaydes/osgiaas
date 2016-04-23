@@ -21,20 +21,24 @@ class GrepCommandSpec extends Specification {
         result.afterGiven == afterGiven
         result.regex == regex
         result.text == text
+        result.caseInsensitive == caseInsensitive
 
         where:
-        line                 | before | after | beforeGiven | afterGiven | regex          | text
-        'grep a b'           | 0      | 0     | false       | false      | 'a'            | 'b'
-        'grep a b c'         | 0      | 0     | false       | false      | 'a'            | 'b c'
-        'grep -B 2 a b'      | 2      | 0     | true        | false      | 'a'            | 'b'
-        'grep -B 2 -A 6 a b' | 2      | 6     | true        | true       | 'a'            | 'b'
-        'grep -A 2 a b'      | 0      | 2     | false       | true       | 'a'            | 'b'
-        'grep -A 2 -B 3 a b' | 3      | 2     | true        | true       | 'a'            | 'b'
-        'grep -b x'          | 0      | 0     | false       | false      | '-b'           | 'x'
-        'grep  -A 3 -B 1 hi' | 1      | 3     | true        | true       | 'hi'           | ''
-        'grep  -B 1 -A 3 hi' | 1      | 3     | true        | true       | 'hi'           | ''
-        'grep rx'            | 0      | 0     | false       | false      | 'rx'           | ''
-        'grep .*a[a-Z]+\\s'  | 0      | 0     | false       | false      | '.*a[a-Z]+\\s' | ''
+        line                    | before | after | beforeGiven | afterGiven | regex          | text  | caseInsensitive
+        'grep a b'              | 0      | 0     | false       | false      | 'a'            | 'b'   | false
+        'grep a b c'            | 0      | 0     | false       | false      | 'a'            | 'b c' | false
+        'grep -B 2 a b'         | 2      | 0     | true        | false      | 'a'            | 'b'   | false
+        'grep -B 2 -A 6 a b'    | 2      | 6     | true        | true       | 'a'            | 'b'   | false
+        'grep -B 2 -A 6 -i a b' | 2      | 6     | true        | true       | 'a'            | 'b'   | true
+        'grep -A 2 a b'         | 0      | 2     | false       | true       | 'a'            | 'b'   | false
+        'grep -A 2 -B 3 a b'    | 3      | 2     | true        | true       | 'a'            | 'b'   | false
+        'grep -b x'             | 0      | 0     | false       | false      | '-b'           | 'x'   | false
+        'grep -i -b x'          | 0      | 0     | false       | false      | '-b'           | 'x'   | true
+        'grep  -A 3 -B 1 hi'    | 1      | 3     | true        | true       | 'hi'           | ''    | false
+        'grep  -B 1 -A 3 hi'    | 1      | 3     | true        | true       | 'hi'           | ''    | false
+        'grep rx'               | 0      | 0     | false       | false      | 'rx'           | ''    | false
+        'grep .*a[a-Z]+\\s'     | 0      | 0     | false       | false      | '.*a[a-Z]+\\s' | ''    | false
+        'grep -i .*a[a-Z]+\\s'  | 0      | 0     | false       | false      | '.*a[a-Z]+\\s' | ''    | true
     }
 
     @Unroll
@@ -89,6 +93,38 @@ class GrepCommandSpec extends Specification {
         'd'   | 2      | 2     | [ 'abc', 'def', 'ghi', 'abcdefghi' ]
         'c$'  | 2      | 2     | [ 'abc', 'def', 'ghi' ]
         'cd'  | 2      | 2     | [ 'def', 'ghi', 'abcdefghi' ]
+    }
+
+    @Unroll
+    def "Can grep text using case-insensitive option as expected"() {
+        given: 'A sample text'
+        def text = '''\
+            |abc
+            |ABC
+            |def
+            |ABCabc'''.stripMargin()
+
+        when: 'We grep the text using the case insensitive option the regex = #regex'
+        def result = [ ]
+        def errors = [ ]
+        new GrepCommand().grepAndConsume( "grep -i $regex $text",
+                new PrintStream( new LineOutputStream( result.&add, { -> } ) ),
+                new PrintStream( new LineOutputStream( errors.&add, { -> } ) ) )
+
+        then: 'The selected lines are as expected'
+        result == expectedResult
+
+        and: 'No errors are printed'
+        errors.empty
+
+        where:
+        regex | expectedResult
+        'x'   | [ ]
+        'A'   | [ 'abc', 'ABC', 'ABCabc' ]
+        'b'   | [ 'abc', 'ABC', 'ABCabc' ]
+        'c$'  | [ 'abc', 'ABC', 'ABCabc' ]
+        'd'   | [ 'def' ]
+        'DEF' | [ 'def' ]
     }
 
     @Unroll

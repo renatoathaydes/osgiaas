@@ -19,10 +19,12 @@ public class GrepCommand implements StreamingCommand {
 
     public static final String BEFORE_ARG = "-B";
     public static final String AFTER_ARG = "-A";
+    public static final String CASE_INSENSITIVE_ARG = "-i";
 
     private final ArgsSpec argsSpec = ArgsSpec.builder()
             .accepts( BEFORE_ARG, false, true )
             .accepts( AFTER_ARG, false, true )
+            .accepts( CASE_INSENSITIVE_ARG )
             .build();
 
     @Override
@@ -32,7 +34,7 @@ public class GrepCommand implements StreamingCommand {
 
     @Override
     public String getUsage() {
-        return "grep [-B <num>] [-A <num>] <regex> <text-to-search>";
+        return "grep [-B <num>] [-A <num>] [-i] <regex> <text-to-search>";
     }
 
     @Override
@@ -42,6 +44,7 @@ public class GrepCommand implements StreamingCommand {
                 "output from other commands via the '|' (pipe) operator.\n" +
                 "The grep command accepts the following flags:\n" +
                 "  \n" +
+                "  * -i: case insensitive regex.\n" +
                 "  * -B <num>: num is the number of lines to print before each match.\n" +
                 "  * -A <num>: num is the number of lines to print after each match.";
     }
@@ -89,7 +92,9 @@ public class GrepCommand implements StreamingCommand {
     private static Consumer<String> grep( String regex,
                                           @Nullable GrepCall grepCall,
                                           Consumer<String> lineConsumer ) {
-        Pattern regexPattern = Pattern.compile( ".*" + regex + ".*" );
+        Pattern regexPattern = shouldUseCaseInsensitiveRegex( grepCall ) ?
+                Pattern.compile( ".*" + regex + ".*", Pattern.CASE_INSENSITIVE ) :
+                Pattern.compile( ".*" + regex + ".*" );
 
         // large number that can be safely added to without overflow
         final AtomicInteger pastLastMatch = new AtomicInteger( 1 << 30 );
@@ -118,6 +123,10 @@ public class GrepCommand implements StreamingCommand {
         };
     }
 
+    private static boolean shouldUseCaseInsensitiveRegex( @Nullable GrepCall grepCall ) {
+        return grepCall != null && grepCall.caseInsensitive;
+    }
+
     @Nullable
     GrepCall grepCall( String line, PrintStream err ) {
         CommandInvocation invocation;
@@ -129,6 +138,7 @@ public class GrepCommand implements StreamingCommand {
             return null;
         }
 
+        boolean caseInsensitive = invocation.hasArg( CASE_INSENSITIVE_ARG );
         @Nullable String after = invocation.getArgValue( AFTER_ARG );
         @Nullable String before = invocation.getArgValue( BEFORE_ARG );
 
@@ -144,6 +154,7 @@ public class GrepCommand implements StreamingCommand {
 
         try {
             return new GrepCall(
+                    caseInsensitive,
                     parseInt( before ), before != null,
                     parseInt( after ), after != null,
                     regex, text == null ? "" : text );
@@ -167,10 +178,13 @@ public class GrepCommand implements StreamingCommand {
         final boolean afterGiven;
         final String regex;
         final String text;
+        final boolean caseInsensitive;
 
-        GrepCall( int beforeLines, boolean beforeGiven,
+        GrepCall( boolean caseInsensitive,
+                  int beforeLines, boolean beforeGiven,
                   int afterLines, boolean afterGiven,
                   String regex, String text ) {
+            this.caseInsensitive = caseInsensitive;
             this.beforeLines = beforeLines;
             this.beforeGiven = beforeGiven;
             this.afterLines = afterLines;
@@ -186,8 +200,9 @@ public class GrepCommand implements StreamingCommand {
                     ", beforeGiven=" + beforeGiven +
                     ", afterLines=" + afterLines +
                     ", afterGiven=" + afterGiven +
-                    ", regex=" + regex +
-                    ", textLength=" + text.length() +
+                    ", regex='" + regex + '\'' +
+                    ", text='" + text + '\'' +
+                    ", caseInsensitive=" + caseInsensitive +
                     '}';
         }
     }
