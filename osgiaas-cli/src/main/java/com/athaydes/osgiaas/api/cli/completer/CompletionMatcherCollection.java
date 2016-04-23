@@ -19,6 +19,10 @@ public class CompletionMatcherCollection extends ParentCompletionMatcher
 
     private final Supplier<Stream<CompletionMatcher>> matchers;
 
+    public CompletionMatcherCollection( CompletionMatcher... matchers ) {
+        this( () -> Stream.of( matchers ) );
+    }
+
     public CompletionMatcherCollection( Supplier<Stream<CompletionMatcher>> matchers ) {
         super( () -> matchers.get().flatMap( CompletionMatcher::children ) );
         this.matchers = matchers;

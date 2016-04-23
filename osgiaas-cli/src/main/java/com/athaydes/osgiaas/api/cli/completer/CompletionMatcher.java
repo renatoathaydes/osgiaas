@@ -45,6 +45,16 @@ public interface CompletionMatcher {
     boolean partiallyMatches( String command );
 
     /**
+     * Creates a name {@link CompletionMatcher} which uses all of the given options to auto-complete.
+     *
+     * @param options alternative matchers
+     * @return a {@link CompletionMatcher} that matches arguments by name.
+     */
+    static CompletionMatcher alternativeMatchers( CompletionMatcher... options ) {
+        return new CompletionMatcherCollection( options );
+    }
+
+    /**
      * Creates a name {@link CompletionMatcher}.
      *
      * @param name     of arguments that match
