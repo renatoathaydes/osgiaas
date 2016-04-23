@@ -11,6 +11,7 @@ import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static com.athaydes.osgiaas.api.cli.completer.CompletionMatcher.alternativeMatchers;
 import static com.athaydes.osgiaas.api.cli.completer.CompletionMatcher.nameMatcher;
 
 public class GrepCommandCompleter extends BaseCompleter {
@@ -19,23 +20,31 @@ public class GrepCommandCompleter extends BaseCompleter {
         super( nameMatcher( "grep", completers() ) );
     }
 
-    private static Supplier<Stream<CompletionMatcher>> completers() {
-        CompletionMatcher intMatcher = new IntCompletionMatcher(
-                nameMatcher( GrepCommand.CASE_INSENSITIVE_ARG ) );
+    private static CompletionMatcher intMatcher( CompletionMatcher... children ) {
+        return new IntCompletionMatcher( children );
+    }
 
-        CompletionMatcher beforeThenAfter = nameMatcher(
-                GrepCommand.AFTER_ARG, new IntCompletionMatcher(
-                        nameMatcher( GrepCommand.BEFORE_ARG, intMatcher ) )
+    private static CompletionMatcher afterThenBefore( CompletionMatcher... children ) {
+        return nameMatcher( GrepCommand.AFTER_ARG, intMatcher(
+                nameMatcher( GrepCommand.BEFORE_ARG, intMatcher( children ) ) )
         );
-        CompletionMatcher afterThenBefore = nameMatcher( GrepCommand.AFTER_ARG, new IntCompletionMatcher(
-                nameMatcher( GrepCommand.BEFORE_ARG, intMatcher )
-        ) );
+    }
 
+    private static CompletionMatcher beforeThenAfter( CompletionMatcher... children ) {
+        return nameMatcher( GrepCommand.BEFORE_ARG, intMatcher(
+                nameMatcher( GrepCommand.AFTER_ARG, intMatcher( children ) )
+        ) );
+    }
+
+    private static CompletionMatcher caseInsensitive( CompletionMatcher... children ) {
+        return nameMatcher( GrepCommand.CASE_INSENSITIVE_ARG, children );
+    }
+
+    private static Supplier<Stream<CompletionMatcher>> completers() {
         return () -> Stream.of(
-                nameMatcher( GrepCommand.CASE_INSENSITIVE_ARG, afterThenBefore ),
-                nameMatcher( GrepCommand.CASE_INSENSITIVE_ARG, beforeThenAfter ),
-                afterThenBefore,
-                beforeThenAfter );
+                caseInsensitive( alternativeMatchers( afterThenBefore(), beforeThenAfter() ) ),
+                afterThenBefore( caseInsensitive() ),
+                beforeThenAfter( caseInsensitive() ) );
     }
 
     private static class IntCompletionMatcher extends ParentCompletionMatcher {
