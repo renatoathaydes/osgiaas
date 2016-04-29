@@ -1,9 +1,7 @@
 package com.athaydes.osgiaas.api.cli.completer;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -55,6 +53,16 @@ public interface CompletionMatcher {
     }
 
     /**
+     * Creates a name {@link CompletionMatcher} which uses all of the given options to auto-complete.
+     *
+     * @param options alternative matchers
+     * @return a {@link CompletionMatcher} that matches arguments by name.
+     */
+    static CompletionMatcher alternativeMatchers( Supplier<Stream<CompletionMatcher>> options ) {
+        return new CompletionMatcherCollection( options );
+    }
+
+    /**
      * Creates a name {@link CompletionMatcher}.
      *
      * @param name     of arguments that match
@@ -83,36 +91,23 @@ public interface CompletionMatcher {
      * Creates a multi-part {@link CompletionMatcher}.
      *
      * @param separator parts separator
-     * @param parts     possible completions for each part
+     * @param parts     possible completions for each part. All parts must be childless because if there's any
+     *                  completer after all parts are completed, it should be given as the children parameter.
      * @param children  of this matcher
      * @return a {@link CompletionMatcher} that matches arguments by using parts separated by the given separator.
      */
     static CompletionMatcher multiPartMatcher( String separator,
-                                               List<List<CompletionMatcher>> parts,
-                                               CompletionMatcher... children ) {
-        return multiPartMatcher( separator, parts, Arrays.asList( children ) );
-    }
-
-    /**
-     * Creates a multi-part {@link CompletionMatcher} with children.
-     *
-     * @param separator parts separator
-     * @param parts     possible completions for each part
-     * @param children  of this matcher
-     * @return a {@link CompletionMatcher} that matches arguments by using parts separated by the given separator.
-     */
-    static CompletionMatcher multiPartMatcher( String separator,
-                                               List<List<CompletionMatcher>> parts,
-                                               List<CompletionMatcher> children ) {
+                                               List<CompletionMatcher> parts,
+                                               Supplier<Stream<CompletionMatcher>> children ) {
         if ( separator == null || separator.trim().isEmpty() ) {
             throw new IllegalArgumentException( "Separator must be non-empty" );
         }
+        if ( parts.size() < 2 ) {
+            throw new IllegalArgumentException( "There must be at least 2 parts, found only " +
+                    parts.size() + " parts" );
+        }
 
-        List<CompletionMatcherCollection> matchers = parts.stream()
-                .map( p -> new CompletionMatcherCollection( p::stream ) )
-                .collect( Collectors.toList() );
-
-        return new MultiPartCompletionMatcher( separator, matchers, children::stream );
+        return new MultiPartCompletionMatcher( separator, parts, children );
     }
 
 }

@@ -3,6 +3,8 @@ package com.athaydes.osgiaas.api.cli.completer
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.util.stream.Stream
+
 @Unroll
 class BaseCompleterSpec extends Specification {
 
@@ -101,17 +103,20 @@ class BaseCompleterSpec extends Specification {
     def "BaseCompleter can complete multi-part commands arguments"() {
         given: "A simple command completer based on BaseCompleter"
         def asMatcher = { String s -> CompletionMatcher.nameMatcher( s ) }
+        def alternatives = { Collection<CompletionMatcher> matchers ->
+            CompletionMatcher.alternativeMatchers( matchers.&stream )
+        }
         def completer = new BaseCompleter( CompletionMatcher.nameMatcher( 'cmd', [
                 CompletionMatcher.multiPartMatcher( '-', [
-                        [ 'p1', 'p2', 'p3' ].collect( asMatcher ),
-                        [ 'queue', 'row', 'seat' ].collect( asMatcher ),
-                        [ CompletionMatcher.nameMatcher( 'table', [
-                                CompletionMatcher.multiPartMatcher( '+', [
-                                        [ 'abc', 'def' ].collect( asMatcher ),
-                                        [ 'ghi', 'jkl' ].collect( asMatcher )
-                                ] )
-                        ] as CompletionMatcher[] ) ]
-                ] ),
+                        alternatives( [ 'p1', 'p2', 'p3' ].collect( asMatcher ) ),
+                        alternatives( [ 'queue', 'row', 'seat' ].collect( asMatcher ) ),
+                        CompletionMatcher.nameMatcher( 'table' )
+                ], {
+                    Stream.of( CompletionMatcher.multiPartMatcher( '+', [
+                            alternatives( [ 'abc', 'def' ].collect( asMatcher ) ),
+                            alternatives( [ 'ghi', 'jkl' ].collect( asMatcher ) )
+                    ], { Stream.empty() } ) )
+                } ),
                 CompletionMatcher.nameMatcher( 'something' ),
                 CompletionMatcher.nameMatcher( 'other' ),
         ] as CompletionMatcher[] ) )

@@ -14,31 +14,32 @@ import java.util.stream.Stream;
 class MultiPartCompletionMatcher extends ParentCompletionMatcher {
 
     private final String separator;
-    private final List<CompletionMatcherCollection> completionMatchers;
+    private final List<CompletionMatcher> completionMatchers;
 
-    MultiPartCompletionMatcher( String separator,
-                                List<CompletionMatcherCollection> completionMatchers,
+    MultiPartCompletionMatcher( String separator, List<CompletionMatcher> completionMatchers,
                                 Supplier<Stream<CompletionMatcher>> children ) {
-        super( mergeChildren( completionMatchers, children ) );
+        super( children );
         this.separator = separator;
-        this.completionMatchers = completionMatchers;
-    }
 
-    private static Supplier<Stream<CompletionMatcher>> mergeChildren( List<CompletionMatcherCollection> completionMatchers,
-                                                                      Supplier<Stream<CompletionMatcher>> children ) {
-        return () -> Stream.concat( completionMatchers.stream()
-                .flatMap( ParentCompletionMatcher::children ), children.get() );
+        if ( completionMatchers.stream()
+                .filter( m -> m.children().findAny().isPresent() )
+                .findAny().isPresent() ) {
+            throw new IllegalArgumentException( "Multi-part sub matchers must not have any children," +
+                    " add children to the MultiPartCompletionMatcher itself instead." );
+        }
+
+        this.completionMatchers = completionMatchers;
     }
 
     @Override
     public List<String> completionsFor( String argument ) {
         List<String> partsSink = new ArrayList<>( completionMatchers.size() );
         LinkedList<String> consumableParts = splitParts( argument );
-        Iterator<CompletionMatcherCollection> matchers = completionMatchers.iterator();
+        Iterator<CompletionMatcher> matchers = completionMatchers.iterator();
 
         String part = null;
         CompletionMatcher matcher = null;
-        boolean useCurrentMatcher = false;
+        boolean currentMatcherNotFullyMatched = false;
 
         // walk through parts and matchers, aborting in case a matcher does not fully match
         while ( !consumableParts.isEmpty() && matchers.hasNext() ) {
@@ -46,7 +47,7 @@ class MultiPartCompletionMatcher extends ParentCompletionMatcher {
             matcher = matchers.next();
 
             if ( !matcher.argumentFullyMatched( part ) ) {
-                useCurrentMatcher = true;
+                currentMatcherNotFullyMatched = true;
                 break;
             }
 
@@ -54,10 +55,9 @@ class MultiPartCompletionMatcher extends ParentCompletionMatcher {
         }
 
         // complete if the current matcher is to be used and this is the last part
-        if ( part != null && useCurrentMatcher && consumableParts.isEmpty() ) {
+        if ( part != null && currentMatcherNotFullyMatched && consumableParts.isEmpty() ) {
 
-            String prefix = partsSink.isEmpty() ?
-                    "" :
+            String prefix = partsSink.isEmpty() ? "" :
                     String.join( separator, partsSink ) + separator;
 
             return matcher.completionsFor( part ).stream()
@@ -93,12 +93,12 @@ class MultiPartCompletionMatcher extends ParentCompletionMatcher {
     @Override
     public boolean argumentFullyMatched( String argument ) {
         LinkedList<String> consumableParts = splitParts( argument );
-        Iterator<CompletionMatcherCollection> matchers = completionMatchers.iterator();
+        Iterator<CompletionMatcher> matchers = completionMatchers.iterator();
 
         // walk through parts and matchers, returning false in case a matcher does not fully match
         while ( !consumableParts.isEmpty() && matchers.hasNext() ) {
             String part = consumableParts.removeFirst();
-            CompletionMatcherCollection matcher = matchers.next();
+            CompletionMatcher matcher = matchers.next();
 
             if ( !matcher.argumentFullyMatched( part ) ) {
                 return false;
@@ -122,5 +122,13 @@ class MultiPartCompletionMatcher extends ParentCompletionMatcher {
     @Override
     public boolean partiallyMatches( String command ) {
         return false;
+    }
+
+    @Override
+    public String toString() {
+        return "MultiPartCompletionMatcher{" +
+                "separator='" + separator + '\'' +
+                ", completionMatchers=" + completionMatchers +
+                '}';
     }
 }

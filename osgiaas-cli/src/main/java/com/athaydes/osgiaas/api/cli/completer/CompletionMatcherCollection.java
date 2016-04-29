@@ -45,4 +45,10 @@ public class CompletionMatcherCollection extends ParentCompletionMatcher
         return matchers.get().iterator();
     }
 
+    @Override
+    public String toString() {
+        return "CompletionMatcherCollection{" +
+                "matchers=" + matchers +
+                '}';
+    }
 }

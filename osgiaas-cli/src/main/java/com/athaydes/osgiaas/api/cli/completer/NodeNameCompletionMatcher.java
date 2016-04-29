@@ -33,4 +33,10 @@ class NodeNameCompletionMatcher extends ParentCompletionMatcher {
         return prefix.startsWith( name + " " );
     }
 
+    @Override
+    public String toString() {
+        return "NodeNameCompletionMatcher{" +
+                "name='" + name + '\'' +
+                '}';
+    }
 }
