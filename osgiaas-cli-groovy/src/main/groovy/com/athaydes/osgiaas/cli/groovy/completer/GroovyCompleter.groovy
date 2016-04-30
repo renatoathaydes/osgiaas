@@ -94,8 +94,25 @@ class PropertiesCompleter implements CommandCompleter {
         }
 
         if ( parts.size() == 2 ) {
-            def var = vars[ parts[ 0 ] ]
-            if ( var ) {
+            String firstPart = parts[ 0 ].trim()
+
+            def var = vars[ firstPart ]
+
+            if ( var == null ) {
+                if ( firstPart.isInteger() ) {
+                    var = 0
+                } else if ( firstPart.isFloat() ) {
+                    var = 0f
+                } else if ( firstPart.isLong() ) {
+                    var = 0L
+                } else if ( firstPart.isDouble() ) {
+                    var = 0D
+                } else if ( firstPart.matches( /['"].*['"]/ ) ) {
+                    var = ''
+                }
+            }
+
+            if ( var != null ) {
                 boolean typeVar = var instanceof Class
 
                 def filter = typeVar ?
