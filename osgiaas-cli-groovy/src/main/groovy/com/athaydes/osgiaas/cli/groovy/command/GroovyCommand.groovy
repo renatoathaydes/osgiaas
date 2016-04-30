@@ -16,6 +16,16 @@ class GroovyCommand implements StreamingCommand {
 
     final GroovyShell shell = new GroovyShell()
 
+    GroovyCommand() {
+        // add pre-built variables to the context so auto-completion works from the start
+        shell.context.with {
+            setVariable( 'out', System.out )
+            setVariable( 'err', System.err )
+            setVariable( 'ctx', contextRef.get() )
+            setVariable( 'binding', variables )
+        }
+    }
+
     @Override
     String getName() { 'groovy' }
 

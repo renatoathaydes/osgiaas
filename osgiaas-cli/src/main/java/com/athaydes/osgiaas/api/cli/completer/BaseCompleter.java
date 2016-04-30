@@ -19,10 +19,16 @@ public class BaseCompleter implements CommandCompleter {
     private final CompletionMatcher rootNode;
 
     @Nullable
-    private KnowsCommandBeingUsed knowsCommandBeingUsed = null;
+    private KnowsCommandBeingUsed knowsCommandBeingUsed;
 
     public BaseCompleter( CompletionMatcher completionNode ) {
+        this( completionNode, null );
+    }
+
+    public BaseCompleter( CompletionMatcher completionNode,
+                          @Nullable KnowsCommandBeingUsed knowsCommandBeingUsed ) {
         this.rootNode = completionNode;
+        this.knowsCommandBeingUsed = knowsCommandBeingUsed;
     }
 
     public void setKnowsCommandBeingUsed( @Nullable KnowsCommandBeingUsed knowsCommandBeingUsed ) {

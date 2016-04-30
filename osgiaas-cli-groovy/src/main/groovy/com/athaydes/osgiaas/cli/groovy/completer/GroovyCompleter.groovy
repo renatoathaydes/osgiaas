@@ -35,13 +35,9 @@ class GroovyCompleter implements CommandCompleter {
             return -1
         }
 
-        def variablesRef = new AtomicReference<Map>()
-        DynamicServiceHelper.with( groovyRef ) { GroovyCommand groovy ->
-            Map vars = groovy.shell.context.variables
-            variablesRef.set vars
-        }
-
-        Map vars = variablesRef.get()
+        Map vars = DynamicServiceHelper.let( groovyRef, { GroovyCommand groovy ->
+            groovy.shell.context.variables
+        }, { [ : ] } )
 
         if ( vars ) {
             int result = new DynamicCompleter( vars, knowsCommandBeingUsed )
@@ -71,8 +67,8 @@ class DynamicCompleter extends BaseCompleter {
         super( CompletionMatcher.nameMatcher( 'groovy',
                 vars.keySet().collect {
                     CompletionMatcher.nameMatcher( it as String )
-                } as CompletionMatcher[] ) )
-        setKnowsCommandBeingUsed( knowsCommandBeingUsed )
+                } as CompletionMatcher[] ),
+                knowsCommandBeingUsed )
     }
 }
 
