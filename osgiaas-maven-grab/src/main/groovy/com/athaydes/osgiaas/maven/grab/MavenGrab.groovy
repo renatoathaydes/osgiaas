@@ -5,6 +5,9 @@ import com.athaydes.osgiaas.api.cli.args.ArgsSpec
 import groovy.transform.CompileStatic
 import org.apache.felix.shell.Command
 
+import javax.annotation.Nullable
+import java.util.stream.Stream
+
 @CompileStatic
 class MavenGrab implements Command {
 
@@ -21,6 +24,8 @@ class MavenGrab implements Command {
             .build()
 
     private final Map<String, String> repositories = [ : ]
+
+    private final IvyModuleParser ivyModuleParser = new IvyModuleParser()
 
     @Override
     String getName() { "grab" }
@@ -83,7 +88,7 @@ class MavenGrab implements Command {
                     def verbose = argMap.containsKey( VERBOSE ) ? 'true' : 'false'
                     System.setProperty( 'groovy.grape.report.downloads', verbose )
 
-                    grab rest, out, err, grapes
+                    grab rest, out, err, grapesDir
                 } else {
                     CommandHelper.printError( err, getUsage(), "Wrong number of arguments" )
                 }
@@ -132,7 +137,7 @@ class MavenGrab implements Command {
         }.join( '\n' )
     }
 
-    private void grab( String artifact, PrintStream out, PrintStream err, String grapes ) {
+    private void grab( String artifact, PrintStream out, PrintStream err, File grapes ) {
         def parts = artifact.trim().split( ':' )
         if ( parts.size() == 3 || parts.size() == 4 ) {
             def group = parts[ 0 ]
@@ -140,20 +145,11 @@ class MavenGrab implements Command {
             def version = parts[ 2 ]
             def classifier = ( parts.size() == 4 ? parts[ 3 ] : '' )
 
-            def grabInstruction = "@Grab(group='$group', module='$name', version='$version'" +
-                    ( classifier ? ", classifier='$classifier')" : ')' )
+            def grapeLocation = downloadAndGetLocation( grapes, err, group, name, version, classifier )
 
-            try {
-                Eval.me( [ getReposString(), grabInstruction, 'import java.util.List' ].join( '\n' ) )
-            } catch ( Throwable ignore ) {
-                err.println( "Unable to download artifact: $artifact\n" +
-                        "Make sure the artifact exists in one of the configured repositories." )
-                return
-            }
-
-            def grapeLocation = new File( grapes, "$group/$name/jars/$name-${version}.jar" )
-            if ( grapeLocation.exists() ) {
-                out.println "file://$grapeLocation"
+            if ( grapeLocation?.exists() ) {
+                out.println collectGrapes( err, grapes, grapeLocation, version )
+                        .collect { "file://$it" }.join( ' ' )
             } else {
                 err.println( "Grape was not saved in the expected location: $grapeLocation\n" +
                         "Run with the $VERBOSE option for more details." )
@@ -162,6 +158,52 @@ class MavenGrab implements Command {
             err.println( "Cannot understand artifact pattern: $artifact.\n" +
                     "Pattern should be: groupId:artifactId:version[:classifier]" )
         }
+    }
+
+    private void dowloadGrape( group, name, version, classifier = '' ) {
+        def grabInstruction = "@Grab(group='$group', module='$name', version='$version'" +
+                ( classifier ? ", classifier='$classifier')" : ')' )
+
+        Eval.me( [ getReposString(), grabInstruction, 'import java.util.List' ].join( '\n' ) )
+    }
+
+    private Stream<File> collectGrapes( PrintStream err, File grapesDir, File grape, String version ) {
+        def ivyModule = ivyModuleLocationForGrape( grape, version )
+        Stream<File> dependencies = Stream.empty()
+        if ( ivyModule.canRead() ) {
+            dependencies = ivyModuleParser.getDependenciesFrom( ivyModule )
+                    .parallelStream().flatMap { Map dep ->
+                def depGrape = downloadAndGetLocation( grapesDir, err, dep.group, dep.name, dep.version )
+                if ( depGrape == null ) {
+                    return Stream.empty()
+                } else {
+                    return collectGrapes( err, grapesDir, depGrape, dep.version as String )
+                }
+            }
+        }
+
+        Stream.concat( Stream.of( grape ), dependencies )
+    }
+
+    @Nullable
+    private File downloadAndGetLocation( File grapes, PrintStream err, group, name, version, classifier = '' ) {
+        try {
+            dowloadGrape( group, name, version, classifier )
+            return new File( grapes, "$group/$name/jars/$name-${version}.jar" )
+        } catch ( Throwable ignore ) {
+            err.println( "Unable to download artifact: $group:$name:$version\n" +
+                    "Make sure the artifact exists in one of the configured repositories." )
+        }
+
+        return null
+    }
+
+    private static File ivyModuleLocationForGrape( File grape, String version ) {
+        File parent = grape.parentFile
+        if ( parent.name == 'jars' ) {
+            parent = parent.parentFile
+        }
+        new File( parent, "ivy-${version}.xml" )
     }
 
 }
