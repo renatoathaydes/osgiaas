@@ -182,7 +182,7 @@ component( name: 'highlightCommandCompleter' ) {
     usingCommandReference()
 }
 
-component( name: 'grepCommandModifier' ) {
+component( name: 'grepCommand' ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.command.GrepCommand' )
     property( name: 'service.description', value: 'OsgiAAS Cli Grep Command' )
@@ -199,6 +199,15 @@ component( name: 'grepCommandCompleter' ) {
         provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter' )
     }
     usingCommandReference()
+}
+
+component( name: 'shellCommand' ) {
+    commonProperties()
+    implementation( 'class': 'com.athaydes.osgiaas.cli.command.ShCommand' )
+    property( name: 'service.description', value: 'OsgiAAS Cli Shell Command' )
+    service {
+        provide( 'interface': 'org.apache.felix.shell.Command' )
+    }
 }
 
 component( name: 'andCommandModifier' ) {
