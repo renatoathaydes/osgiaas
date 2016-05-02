@@ -2,6 +2,7 @@ package com.athaydes.osgiaas.cli.groovy.command
 
 import com.athaydes.osgiaas.api.cli.CommandHelper
 import com.athaydes.osgiaas.api.cli.StreamingCommand
+import com.athaydes.osgiaas.api.cli.args.ArgsSpec
 import com.athaydes.osgiaas.api.stream.LineOutputStream
 import groovy.transform.CompileStatic
 import org.osgi.service.component.ComponentContext
@@ -12,9 +13,20 @@ import java.util.function.Consumer
 @CompileStatic
 class GroovyCommand implements StreamingCommand {
 
+    static final String ADD_PRE_ARG = '--pre-add'
+    static final String SHOW_PRE_ARG = '--pre'
+    static final String CLEAN_PRE_ARG = '--pre-clean'
+
     private final AtomicReference<ComponentContext> contextRef = new AtomicReference<>()
 
     final GroovyShell shell = new GroovyShell()
+    final List<String> pre = [ ]
+
+    final ArgsSpec argsSpec = ArgsSpec.builder()
+            .accepts( ADD_PRE_ARG )
+            .accepts( SHOW_PRE_ARG )
+            .accepts( CLEAN_PRE_ARG )
+            .build()
 
     GroovyCommand() {
         // add pre-built variables to the context so auto-completion works from the start
@@ -68,6 +80,7 @@ class GroovyCommand implements StreamingCommand {
     @Override
     OutputStream pipe( String line, PrintStream out, PrintStream err ) {
         def command = ( line.trim() - 'groovy' ).trim()
+
         if ( !command.startsWith( "{" ) || !command.endsWith( "}" ) ) {
             command = "{ " + command + " }"
         }
@@ -84,12 +97,30 @@ class GroovyCommand implements StreamingCommand {
 
     @Override
     void execute( String line, PrintStream out, PrintStream err ) {
-        def args = CommandHelper.breakupArguments( line, 2 )
-        if ( args.size() != 2 ) {
-            CommandHelper.printError( err, getUsage(), 'Wrong number of arguments provided.' )
+        def command = argsSpec.parse( line )
+        if ( command.hasArg( ADD_PRE_ARG ) ) {
+            if ( command.unprocessedInput ) {
+                try {
+                    shell.evaluate( command.unprocessedInput )
+                    pre << command.unprocessedInput
+                } catch ( e ) {
+                    err.println "Error: $e"
+                }
+            }
+        } else if ( command.hasArg( CLEAN_PRE_ARG ) ) {
+            pre.clear()
+        } else if ( command.hasArg( SHOW_PRE_ARG ) ) {
+            for ( preItem in pre ) {
+                out.println( preItem )
+            }
         } else {
-            def result = run( args[ 1 ], out, err )
-            if ( result != null ) out.println( result )
+            def args = ( pre + [ command.unprocessedInput ] ).join( '\n' )
+            if ( !args ) {
+                CommandHelper.printError( err, getUsage(), 'Wrong number of arguments provided.' )
+            } else {
+                def result = run( args, out, err )
+                if ( result != null ) out.println( result )
+            }
         }
     }
 
