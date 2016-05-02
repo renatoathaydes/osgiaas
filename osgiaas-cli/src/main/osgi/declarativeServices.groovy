@@ -201,10 +201,10 @@ component( name: 'grepCommandCompleter' ) {
     usingCommandReference()
 }
 
-component( name: 'shellCommand' ) {
+component( name: 'runCommand' ) {
     commonProperties()
-    implementation( 'class': 'com.athaydes.osgiaas.cli.command.ShCommand' )
-    property( name: 'service.description', value: 'OsgiAAS Cli Shell Command' )
+    implementation( 'class': 'com.athaydes.osgiaas.cli.command.RunCommand' )
+    property( name: 'service.description', value: 'OsgiAAS Cli Run Command' )
     service {
         provide( 'interface': 'org.apache.felix.shell.Command' )
     }

@@ -1,13 +1,12 @@
 package com.athaydes.osgiaas.cli.command;
 
 import com.athaydes.osgiaas.api.cli.CommandHelper;
-import com.athaydes.osgiaas.api.cli.StreamingCommand;
+import org.apache.felix.shell.Command;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
@@ -15,23 +14,23 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class ShCommand implements StreamingCommand {
+public class RunCommand implements Command {
 
     private final ExecutorService executorService = Executors.newFixedThreadPool( 2 );
 
     @Override
     public String getName() {
-        return "sh";
+        return "run";
     }
 
     @Override
     public String getUsage() {
-        return "sh <shell command>";
+        return "run <program>";
     }
 
     @Override
     public String getShortDescription() {
-        return "Runs a shell command.";
+        return "Runs a OS program.";
     }
 
     @Override
@@ -47,7 +46,6 @@ public class ShCommand implements StreamingCommand {
 
     private void runCommand( PrintStream out, PrintStream err, String[] commands ) {
         try {
-            // TODO should keep a single session as long as possible to emulate a real shell session
             Process process = new ProcessBuilder( commands ).start();
 
             CountDownLatch latch = new CountDownLatch( 2 );
@@ -69,11 +67,6 @@ public class ShCommand implements StreamingCommand {
         } catch ( IOException | InterruptedException e ) {
             e.printStackTrace( err );
         }
-    }
-
-    @Override
-    public OutputStream pipe( String command, PrintStream out, PrintStream err ) {
-        throw new UnsupportedOperationException( "pipe" );
     }
 
     private void consume( InputStream stream,
