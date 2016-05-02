@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -75,7 +76,7 @@ public class RunCommand implements Command {
                           CountDownLatch latch ) {
         executorService.submit( () -> {
             BufferedReader reader = new BufferedReader(
-                    new InputStreamReader( stream ), 1024 );
+                    new InputStreamReader( stream, StandardCharsets.UTF_8 ), 1024 );
 
             String nextLine;
             try {
