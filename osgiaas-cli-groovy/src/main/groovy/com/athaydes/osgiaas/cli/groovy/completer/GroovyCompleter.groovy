@@ -14,6 +14,11 @@ import java.lang.reflect.Modifier
 import java.util.concurrent.atomic.AtomicReference
 import java.util.regex.Pattern
 
+import static com.athaydes.osgiaas.api.cli.completer.CompletionMatcher.nameMatcher
+import static com.athaydes.osgiaas.cli.groovy.command.GroovyCommand.ADD_PRE_ARG
+import static com.athaydes.osgiaas.cli.groovy.command.GroovyCommand.CLEAN_PRE_ARG
+import static com.athaydes.osgiaas.cli.groovy.command.GroovyCommand.SHOW_PRE_ARG
+
 @CompileStatic
 class GroovyCompleter implements CommandCompleter {
 
@@ -21,6 +26,13 @@ class GroovyCompleter implements CommandCompleter {
 
     @Nullable
     KnowsCommandBeingUsed knowsCommandBeingUsed = null
+
+    final BaseCompleter argsMatcher = new BaseCompleter( nameMatcher( 'groovy',
+            CompletionMatcher.alternativeMatchers(
+                    nameMatcher( SHOW_PRE_ARG ),
+                    nameMatcher( CLEAN_PRE_ARG ),
+                    nameMatcher( ADD_PRE_ARG )
+            ) ) )
 
     @Override
     int complete( String buffer, int cursor, List<CharSequence> candidates ) {
@@ -35,20 +47,25 @@ class GroovyCompleter implements CommandCompleter {
             return -1
         }
 
+        int result = argsMatcher.complete( buffer, cursor, candidates )
+
         Map vars = DynamicServiceHelper.let( groovyRef, { GroovyCommand groovy ->
             groovy.shell.context.variables
         }, { [ : ] } )
 
         if ( vars ) {
-            int result = new DynamicCompleter( vars, knowsCommandBeingUsed )
+            int alternativeResult = new DynamicCompleter( vars, knowsCommandBeingUsed )
                     .complete( buffer, cursor, candidates )
-            if ( result < 0 ) {
-                result = new PropertiesCompleter( vars: vars ).complete( buffer, cursor, candidates )
+            if ( alternativeResult < 0 ) {
+                alternativeResult = new PropertiesCompleter( vars: vars ).complete( buffer, cursor, candidates )
             }
-            return result
-        } else {
-            return -1
+
+            if ( alternativeResult >= 0 ) {
+                result = alternativeResult
+            }
         }
+
+        return result
     }
 
     void setGroovyCommand( GroovyCommand command ) {
@@ -64,9 +81,9 @@ class GroovyCompleter implements CommandCompleter {
 class DynamicCompleter extends BaseCompleter {
 
     DynamicCompleter( Map vars, KnowsCommandBeingUsed knowsCommandBeingUsed ) {
-        super( CompletionMatcher.nameMatcher( 'groovy',
+        super( nameMatcher( 'groovy',
                 vars.keySet().collect {
-                    CompletionMatcher.nameMatcher( it as String )
+                    nameMatcher( it as String )
                 } as CompletionMatcher[] ),
                 knowsCommandBeingUsed )
     }
