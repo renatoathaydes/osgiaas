@@ -21,6 +21,7 @@ class CommandHelperSpec extends Specification {
         'ab -c d'               | [ 'ab', '-c', 'd' ]
         '  a   b   '            | [ 'a', 'b' ]
         'ab "c"'                | [ 'ab', 'c' ]
+        'ab "c'                 | [ 'ab', 'c' ]
         'ab " c "'              | [ 'ab', ' c ' ]
         'ab " c  "  '           | [ 'ab', ' c  ' ]
         'ab " c c" "d" e "f"'   | [ 'ab', ' c c', 'd', 'e', 'f' ]
@@ -95,6 +96,70 @@ class CommandHelperSpec extends Specification {
         '"a b c" d e f g' | 2     | [ 'a b c', 'd e f g' ]
         '"a b c" d e f g' | 3     | [ 'a b c', 'd', 'e f g' ]
         'a "b c" d e f g' | 12345 | [ 'a', 'b c', 'd', 'e', 'f', 'g' ]
+    }
+
+    @Unroll
+    def "Can use different symbols as separators and quotes"() {
+        when: 'When the example arguments are split using non-default separators and quotes'
+        List<String> result = [ ]
+        CommandHelper.breakupArguments( args, { result << it; true }, false, false,
+                ( ':' as char ) as int, ( '%' as char ) as int, ( '$' as char ) as int )
+
+        then: 'the arguments are split as appropriate'
+        result == expectedResult
+
+        where:
+        args          | expectedResult
+        ''            | [ ]
+        'abc'         | [ 'abc' ]
+        'ab:c'        | [ 'ab', 'c' ]
+        '  a:   b   ' | [ '  a', '   b   ' ]
+        'ab :%c%'     | [ 'ab ', 'c' ]
+        'ab:% :c: %'  | [ 'ab', ' :c: ' ]
+        'ab:$ :c: $'  | [ 'ab', ' :c: ' ]
+        'ab:% :c: $'  | [ 'ab', ' :c: ' ]
+        'ab:$c$:%%:d' | [ 'ab', 'c', 'd' ]
+    }
+
+    @Unroll
+    def "Can include quotes in the result"() {
+        when: 'When the example arguments are split including quotes'
+        List<String> result = [ ]
+        CommandHelper.breakupArguments( args, { result << it; true }, false, true,
+                ( ':' as char ) as int, ( '%' as char ) as int, ( '$' as char ) as int )
+
+        then: 'the arguments are split as appropriate'
+        result == expectedResult
+
+        where:
+        args          | expectedResult
+        ''            | [ ]
+        'ab :%c%'     | [ 'ab ', '%c%' ]
+        'ab%c%'       | [ 'ab%c%' ]
+        'ab:% :c: %'  | [ 'ab', '% :c: %' ]
+        'ab:$ :c: $'  | [ 'ab', '$ :c: $' ]
+        'ab:% :c: $'  | [ 'ab', '% :c: $' ]
+        'ab:$c$:%%:d' | [ 'ab', '$c$', '%%', 'd' ]
+    }
+
+    @Unroll
+    def "Can include separators in the result"() {
+        when: 'When the example arguments are split including separators'
+        List<String> result = [ ]
+        CommandHelper.breakupArguments( args, { result << it; true }, true, false,
+                ( ':' as char ) as int, ( '%' as char ) as int, ( '$' as char ) as int )
+
+        then: 'the arguments are split as appropriate'
+        result == expectedResult
+
+        where:
+        args         | expectedResult
+        ''           | [ ]
+        'ab :%c%'    | [ 'ab ', ':c' ]
+        'ab:% :c: %' | [ 'ab', ': :c: ' ]
+        'ab:$ :c: $' | [ 'ab', ': :c: ' ]
+        'ab:% :c: $' | [ 'ab', ': :c: ' ]
+        // FIXME 'ab:$c$:%%:d' | [ 'ab', ':c', ':', ':d' ]
     }
 
 }

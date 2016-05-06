@@ -86,8 +86,10 @@ public class CommandHelper {
         return result;
     }
 
+
     /**
-     * Breaks up a command arguments into separate parts using a function receive arguments and determine when to stop.
+     * Breaks up a command arguments into separate parts using a function to receive arguments and determine
+     * when to stop.
      * <p>
      * A whitespace is used as a separator, taking into consideration doubly-quoted values, making the whole
      * quoted value a single argument.
@@ -98,8 +100,32 @@ public class CommandHelper {
      * @return the unprocessed input.
      */
     public static String breakupArguments( String arguments, Function<String, Boolean> limitFunction ) {
+        return breakupArguments( arguments, limitFunction, false, false, SPACE_CODE, DOUBLE_QUOTE_CODE );
+    }
+
+    /**
+     * Breaks up a command arguments into separate parts using a function to receive arguments and determine
+     * when to stop.
+     * <p>
+     *
+     * @param arguments         command arguments or full command
+     * @param includeSeparators include separators as arguments
+     * @param includeQuotes     include quotes in quoted arguments
+     * @param separatorCode     codepoint for the separator character
+     * @param quoteCodes        codepoints for the quotation characters
+     * @param limitFunction     function that receives each argument, returning true to continue breaking up the input,
+     *                          or false to stop. The unprocessed input is returned.
+     * @return the unprocessed input.
+     */
+    public static String breakupArguments( String arguments,
+                                           Function<String, Boolean> limitFunction,
+                                           boolean includeSeparators,
+                                           boolean includeQuotes,
+                                           int separatorCode,
+                                           int... quoteCodes ) {
         boolean inQuote = false;
         boolean escaped = false;
+        boolean inSeparators = false;
         StringBuilder currentArg = new StringBuilder();
 
         PrimitiveIterator.OfInt chars = arguments.codePoints().iterator();
@@ -110,7 +136,14 @@ public class CommandHelper {
             int c = chars.nextInt();
 
             boolean isEscape = ( c == ESCAPE_CODE );
-            boolean isQuote = ( c == DOUBLE_QUOTE_CODE );
+
+            boolean isQuote = false;
+            for (int quote : quoteCodes) {
+                if ( c == quote ) {
+                    isQuote = true;
+                    break;
+                }
+            }
 
             if ( escaped && !isQuote ) { // put back the escaping char as it was not used
                 currentArg.appendCodePoint( ESCAPE_CODE );
@@ -118,6 +151,7 @@ public class CommandHelper {
 
             if ( isEscape ) {
                 escaped = true;
+                inSeparators = false;
                 continue;
             }
 
@@ -126,6 +160,10 @@ public class CommandHelper {
             if ( !escaped && isQuote ) {
                 inQuote = !inQuote;
                 done = true;
+                inSeparators = false;
+                if ( includeQuotes ) {
+                    currentArg.appendCodePoint( c );
+                }
             }
 
             escaped = false;
@@ -138,14 +176,30 @@ public class CommandHelper {
                 // when in quotes, we don't care what c is
                 currentArg.appendCodePoint( c );
             } else {
-                // outside quotes, we need to look for whitespace
-                if ( c == SPACE_CODE ) {
-                    boolean keepGoing = addArgument( currentArg, limitFunction );
-                    if ( !keepGoing ) {
-                        // no more splitting
-                        return arguments.substring( index );
+                // outside quotes, we need to look for the separator
+                if ( c == separatorCode ) {
+                    // just started separators?
+                    if ( !inSeparators ) {
+                        boolean keepGoing = addArgument( currentArg, limitFunction );
+                        if ( !keepGoing ) {
+                            // no more splitting
+                            return arguments.substring( index );
+                        }
+                    }
+                    inSeparators = true;
+                    if ( includeSeparators ) {
+                        currentArg.appendCodePoint( c );
                     }
                 } else {
+                    // check if we were in separators before if we need to add separators
+                    if ( includeSeparators && inSeparators ) {
+                        boolean keepGoing = addArgument( currentArg, limitFunction );
+                        if ( !keepGoing ) {
+                            // no more splitting
+                            return arguments.substring( index );
+                        }
+                    }
+                    inSeparators = false;
                     currentArg.appendCodePoint( c );
                 }
             }
