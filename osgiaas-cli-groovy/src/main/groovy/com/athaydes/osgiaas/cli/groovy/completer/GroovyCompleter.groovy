@@ -134,7 +134,7 @@ class PropertiesCompleter implements CommandCompleter {
             try {
                 def result = new GroovyShell( new Binding( vars ) ).evaluate( token )
 
-                if ( result ) {
+                if ( result != null ) {
                     varType = result.class
                 }
             } catch ( ignore ) {
