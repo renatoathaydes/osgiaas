@@ -100,10 +100,14 @@ class CommandHelperSpec extends Specification {
 
     @Unroll
     def "Can use different symbols as separators and quotes"() {
+        given: 'Command breakup options using : as separator and % and $ as quotes'
+        def options = CommandHelper.CommandBreakupOptions.create()
+                .quoteCodes( ( '%' as char ) as int, ( '$' as char ) as int )
+                .separatorCode( ( ':' as char ) as int )
+
         when: 'When the example arguments are split using non-default separators and quotes'
         List<String> result = [ ]
-        CommandHelper.breakupArguments( args, { result << it; true }, false, false,
-                ( ':' as char ) as int, ( '%' as char ) as int, ( '$' as char ) as int )
+        CommandHelper.breakupArguments( args, { result << it; true }, options )
 
         then: 'the arguments are split as appropriate'
         result == expectedResult
@@ -123,10 +127,15 @@ class CommandHelperSpec extends Specification {
 
     @Unroll
     def "Can include quotes in the result"() {
+        given: 'Command breakup options using : as separator and % and $ as quotes and including quotes in the result'
+        def options = CommandHelper.CommandBreakupOptions.create()
+                .quoteCodes( ( '%' as char ) as int, ( '$' as char ) as int )
+                .separatorCode( ( ':' as char ) as int )
+                .includeQuotes( true )
+
         when: 'When the example arguments are split including quotes'
         List<String> result = [ ]
-        CommandHelper.breakupArguments( args, { result << it; true }, false, true,
-                ( ':' as char ) as int, ( '%' as char ) as int, ( '$' as char ) as int )
+        CommandHelper.breakupArguments( args, { result << it; true }, options )
 
         then: 'the arguments are split as appropriate'
         result == expectedResult
@@ -144,10 +153,15 @@ class CommandHelperSpec extends Specification {
 
     @Unroll
     def "Can include separators in the result"() {
+        given: 'Command breakup options using : as separator and % and $ as quotes and including separators in the result'
+        def options = CommandHelper.CommandBreakupOptions.create()
+                .quoteCodes( ( '%' as char ) as int, ( '$' as char ) as int )
+                .separatorCode( ( ':' as char ) as int )
+                .includeSeparators( true )
+
         when: 'When the example arguments are split including separators'
         List<String> result = [ ]
-        CommandHelper.breakupArguments( args, { result << it; true }, true, false,
-                ( ':' as char ) as int, ( '%' as char ) as int, ( '$' as char ) as int )
+        CommandHelper.breakupArguments( args, { result << it; true }, options )
 
         then: 'the arguments are split as appropriate'
         result == expectedResult

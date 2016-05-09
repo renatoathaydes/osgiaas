@@ -14,11 +14,12 @@ import java.util.function.Function;
  */
 public class CommandHelper {
 
-    public static final int SPACE_CODE = ( int ) ' ';
-    public static final int AMPERSAND_CODE = ( int ) '&';
-    public static final int PIPE_CODE = ( int ) '|';
-    public static final int ESCAPE_CODE = ( int ) '\\';
-    public static final int DOUBLE_QUOTE_CODE = ( int ) '"';
+    public static final int SPACE_CODE = ' ';
+    public static final int AMPERSAND_CODE = '&';
+    public static final int PIPE_CODE = '|';
+    public static final int ESCAPE_CODE = '\\';
+    public static final int DOUBLE_QUOTE_CODE = '"';
+    public static final int SINGLE_QUOTE_CODE = '\'';
 
     public static final Set<Integer> commandSeparators = Collections.unmodifiableSet( new HashSet<Integer>( 3 ) {{
         add( SPACE_CODE );
@@ -100,7 +101,7 @@ public class CommandHelper {
      * @return the unprocessed input.
      */
     public static String breakupArguments( String arguments, Function<String, Boolean> limitFunction ) {
-        return breakupArguments( arguments, limitFunction, false, false, SPACE_CODE, DOUBLE_QUOTE_CODE );
+        return breakupArguments( arguments, limitFunction, CommandBreakupOptions.create() );
     }
 
     /**
@@ -108,21 +109,15 @@ public class CommandHelper {
      * when to stop.
      * <p>
      *
-     * @param arguments         command arguments or full command
-     * @param includeSeparators include separators as arguments
-     * @param includeQuotes     include quotes in quoted arguments
-     * @param separatorCode     codepoint for the separator character
-     * @param quoteCodes        codepoints for the quotation characters
-     * @param limitFunction     function that receives each argument, returning true to continue breaking up the input,
-     *                          or false to stop. The unprocessed input is returned.
+     * @param arguments     command arguments or full command
+     * @param limitFunction function that receives each argument, returning true to continue breaking up the input,
+     *                      or false to stop. The unprocessed input is returned.
+     * @param options       options to customize how the arguments are broken up
      * @return the unprocessed input.
      */
     public static String breakupArguments( String arguments,
                                            Function<String, Boolean> limitFunction,
-                                           boolean includeSeparators,
-                                           boolean includeQuotes,
-                                           int separatorCode,
-                                           int... quoteCodes ) {
+                                           CommandBreakupOptions options ) {
         boolean inQuote = false;
         boolean escaped = false;
         boolean inSeparators = false;
@@ -138,7 +133,7 @@ public class CommandHelper {
             boolean isEscape = ( c == ESCAPE_CODE );
 
             boolean isQuote = false;
-            for (int quote : quoteCodes) {
+            for (int quote : options.quoteCodes) {
                 if ( c == quote ) {
                     isQuote = true;
                     break;
@@ -161,7 +156,7 @@ public class CommandHelper {
                 inQuote = !inQuote;
                 done = true;
                 inSeparators = false;
-                if ( includeQuotes ) {
+                if ( options.includeQuotes ) {
                     currentArg.appendCodePoint( c );
                 }
             }
@@ -177,7 +172,7 @@ public class CommandHelper {
                 currentArg.appendCodePoint( c );
             } else {
                 // outside quotes, we need to look for the separator
-                if ( c == separatorCode ) {
+                if ( c == options.separatorCode ) {
                     // just started separators?
                     if ( !inSeparators ) {
                         boolean keepGoing = addArgument( currentArg, limitFunction );
@@ -187,12 +182,12 @@ public class CommandHelper {
                         }
                     }
                     inSeparators = true;
-                    if ( includeSeparators ) {
+                    if ( options.includeSeparators ) {
                         currentArg.appendCodePoint( c );
                     }
                 } else {
                     // check if we were in separators before if we need to add separators
-                    if ( includeSeparators && inSeparators ) {
+                    if ( options.includeSeparators && inSeparators ) {
                         boolean keepGoing = addArgument( currentArg, limitFunction );
                         if ( !keepGoing ) {
                             // no more splitting
@@ -244,6 +239,41 @@ public class CommandHelper {
             return limitFunction.apply( arg );
         } else {
             return true;
+        }
+    }
+
+    public static class CommandBreakupOptions {
+
+        private boolean includeSeparators = false;
+        private boolean includeQuotes = false;
+        private int separatorCode = SPACE_CODE;
+        private int[] quoteCodes = { DOUBLE_QUOTE_CODE };
+
+        private CommandBreakupOptions() {
+        }
+
+        public static CommandBreakupOptions create() {
+            return new CommandBreakupOptions();
+        }
+
+        public CommandBreakupOptions includeSeparators( boolean includeSeparators ) {
+            this.includeSeparators = includeSeparators;
+            return this;
+        }
+
+        public CommandBreakupOptions includeQuotes( boolean includeQuotes ) {
+            this.includeQuotes = includeQuotes;
+            return this;
+        }
+
+        public CommandBreakupOptions separatorCode( int separatorCode ) {
+            this.separatorCode = separatorCode;
+            return this;
+        }
+
+        public CommandBreakupOptions quoteCodes( int... quoteCodes ) {
+            this.quoteCodes = quoteCodes;
+            return this;
         }
     }
 }
