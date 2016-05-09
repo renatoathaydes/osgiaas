@@ -137,6 +137,7 @@ class PropertiesCompleter implements CommandCompleter {
         mergeDigitsIn tokens
 
         Class varType = Object
+        boolean isClassInstance = false
         final toComplete = tokens.removeLast()
         final tokensIterator = tokens.iterator()
 
@@ -148,7 +149,12 @@ class PropertiesCompleter implements CommandCompleter {
                 def result = new GroovyShell( new Binding( vars ) ).evaluate( token )
 
                 if ( result != null ) {
-                    varType = result.class
+                    if ( result instanceof Class ) {
+                        varType = result
+                        isClassInstance = true
+                    } else {
+                        varType = result.class
+                    }
                 }
             } catch ( ignore ) {
                 varType = Object
@@ -187,14 +193,25 @@ class PropertiesCompleter implements CommandCompleter {
             varType = Object
         }
 
-        if ( varType ) candidates.addAll( ( boxedTypeByPrimitive[ varType ] ?: varType ).methods.findAll(
-                ( varType == Class ) ? this.&isStatic : this.&nonStatic
-        ).collectMany( this.&toCompletion ).findAll {
-            ( it as String ).startsWith( toComplete )
-        }.sort() )
-        else return -1
+        if ( varType ) {
+            varType = boxedTypeByPrimitive[ varType ] ?: varType
 
-        return input.findLastIndexOf { it == '.' } + 1
+            def allMethods = varType.methods.findAll(
+                    isClassInstance ? this.&isStatic : this.&nonStatic
+            ) as List<Method>
+
+            if ( isClassInstance ) {
+                allMethods.addAll( Class.getMethods() as List<Method> )
+            }
+
+            candidates.addAll( allMethods.collectMany( this.&toCompletion ).findAll {
+                ( it as String ).startsWith( toComplete )
+            }.sort() )
+
+            return input.findLastIndexOf { it == '.' } + 1
+        } else {
+            return -1
+        }
     }
 
     private static List<String> toCompletion( Method method ) {
@@ -202,8 +219,7 @@ class PropertiesCompleter implements CommandCompleter {
                 method.name != 'get' &&
                 method.parameterCount == 0 ) {
             return [ method.name + '()', uncapitalizeAscii( method.name - 'get' ) ]
-        }
-        if ( method.parameterCount > 0 ) {
+        } else if ( method.parameterCount > 0 ) {
             return [ method.name + '(' ]
         } else {
             return [ method.name + '()' ]
