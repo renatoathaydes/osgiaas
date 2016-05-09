@@ -93,6 +93,17 @@ class DynamicCompleter extends BaseCompleter {
 @CompileStatic
 class PropertiesCompleter implements CommandCompleter {
 
+    private static final Map<Class, Class> boxedTypeByPrimitive = [
+            ( boolean ): Boolean,
+            ( byte )   : Byte,
+            ( short )  : Short,
+            ( char )   : Character,
+            ( int )    : Integer,
+            ( float )  : Float,
+            ( double ) : Double,
+            ( long )   : Long
+    ].asImmutable()
+
     Map vars
 
     @Override
@@ -122,6 +133,8 @@ class PropertiesCompleter implements CommandCompleter {
         if ( finalPart.endsWith( '.' ) ) {
             tokens << ''
         }
+
+        mergeDigitsIn tokens
 
         Class varType = Object
         final toComplete = tokens.removeLast()
@@ -174,7 +187,7 @@ class PropertiesCompleter implements CommandCompleter {
             varType = Object
         }
 
-        if ( varType ) candidates.addAll( ( varType ).methods.findAll(
+        if ( varType ) candidates.addAll( ( boxedTypeByPrimitive[ varType ] ?: varType ).methods.findAll(
                 ( varType == Class ) ? this.&isStatic : this.&nonStatic
         ).collectMany( this.&toCompletion ).findAll {
             ( it as String ).startsWith( toComplete )
@@ -194,6 +207,17 @@ class PropertiesCompleter implements CommandCompleter {
             return [ method.name + '(' ]
         } else {
             return [ method.name + '()' ]
+        }
+    }
+
+    private static void mergeDigitsIn( LinkedList<String> tokens ) {
+        if ( tokens.size() > 2 &&
+                tokens[ -2 ].isDouble() &&
+                tokens[ -3 ].isInteger() ) {
+            String toComplete = tokens.removeLast()
+            def last = tokens.removeLast()
+            def penultimate = tokens.removeLast()
+            tokens << "${penultimate}.${last}".toString() << toComplete
         }
     }
 
