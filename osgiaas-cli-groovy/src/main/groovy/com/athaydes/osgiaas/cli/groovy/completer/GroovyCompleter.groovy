@@ -106,10 +106,18 @@ class PropertiesCompleter implements CommandCompleter {
 
         String finalPart = ''
 
-        CommandHelper.breakupArguments( input, { finalPart = it; true }, false, true,
-                codepoint( ' ' ), codepoint( '"' ), codepoint( "'" ) )
+        def breakupOptions = CommandHelper.CommandBreakupOptions.create()
+                .includeQuotes( true )
+                .quoteCodes( CommandHelper.DOUBLE_QUOTE_CODE, CommandHelper.SINGLE_QUOTE_CODE )
 
-        def tokens = finalPart.split( '\\.' ) as LinkedList<String>
+        // break up arguments
+        CommandHelper.breakupArguments( input, { finalPart = it; true }, breakupOptions )
+
+        // break up last argument into the actual tokens we're interested (method calls, property access)
+        final tokens = [ ] as LinkedList<String>
+        CommandHelper.breakupArguments( finalPart, {
+            tokens << it; true
+        }, breakupOptions.separatorCode( ( '.' as char ) as int ) )
 
         if ( finalPart.endsWith( '.' ) ) {
             tokens << ''
@@ -138,7 +146,7 @@ class PropertiesCompleter implements CommandCompleter {
             def token = tokensIterator.next()
 
             if ( token.contains( '(' ) && token.endsWith( ')' ) ) { // is method call?
-                def methodName = token[ 0..<( token.indexOf( '(' ) ) ]
+                String methodName = token[ 0..<( token.indexOf( '(' ) ) ]
                 def returnType = returnTypeOf( methodName, varType )
 
                 if ( returnType ) {
@@ -174,10 +182,6 @@ class PropertiesCompleter implements CommandCompleter {
         else return -1
 
         return input.findLastIndexOf { it == '.' } + 1
-    }
-
-    private static int codepoint( String s ) {
-        ( s as char ) as int
     }
 
     private static List<String> toCompletion( Method method ) {
