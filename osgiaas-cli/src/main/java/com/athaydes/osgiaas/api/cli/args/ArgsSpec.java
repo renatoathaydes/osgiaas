@@ -1,6 +1,7 @@
 package com.athaydes.osgiaas.api.cli.args;
 
 import com.athaydes.osgiaas.api.cli.CommandHelper;
+import com.athaydes.osgiaas.api.cli.CommandHelper.CommandBreakupOptions;
 import com.athaydes.osgiaas.api.cli.CommandInvocation;
 
 import javax.annotation.Nullable;
@@ -39,6 +40,12 @@ public class ArgsSpec {
     }
 
     public CommandInvocation parse( String command ) throws IllegalArgumentException {
+        return parse( command, CommandBreakupOptions.create() );
+    }
+
+    public CommandInvocation parse( String command,
+                                    CommandBreakupOptions options )
+            throws IllegalArgumentException {
         command = removeFirstPartOf( command );
 
         AtomicReference<String> abortedParameterRef = new AtomicReference<>();
@@ -70,7 +77,7 @@ public class ArgsSpec {
                     return true; // continue parsing
                 }
             }
-        } );
+        }, options );
 
         @Nullable String currentParameter = currentParameterRef.get();
         if ( currentParameter != null ) {

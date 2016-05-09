@@ -97,7 +97,7 @@ class GroovyCommand implements StreamingCommand {
 
     @Override
     void execute( String line, PrintStream out, PrintStream err ) {
-        def command = argsSpec.parse( line )
+        def command = argsSpec.parse( line, CommandHelper.CommandBreakupOptions.create().includeQuotes( true ) )
         if ( command.hasArg( ADD_PRE_ARG ) ) {
             if ( command.unprocessedInput ) {
                 try {
