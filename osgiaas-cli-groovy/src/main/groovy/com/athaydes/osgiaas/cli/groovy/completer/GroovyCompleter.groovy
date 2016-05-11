@@ -8,6 +8,7 @@ import com.athaydes.osgiaas.api.cli.completer.CompletionMatcher
 import com.athaydes.osgiaas.api.service.DynamicServiceHelper
 import com.athaydes.osgiaas.cli.groovy.command.GroovyCommand
 import groovy.transform.CompileStatic
+import org.codehaus.groovy.runtime.DefaultGroovyMethods
 
 import javax.annotation.Nullable
 import java.lang.reflect.Method
@@ -202,6 +203,10 @@ class PropertiesCompleter implements CommandCompleter {
 
             if ( isClassInstance ) {
                 allMethods.addAll( Class.getMethods() as List<Method> )
+            } else {
+                allMethods.addAll( DefaultGroovyMethods.methods.findAll {
+                    it.parameterCount > 0 && it.parameterTypes.first().isAssignableFrom( varType )
+                } )
             }
 
             candidates.addAll( allMethods.collectMany( this.&toCompletion ).findAll {
