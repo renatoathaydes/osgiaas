@@ -220,11 +220,15 @@ class PropertiesCompleter implements CommandCompleter {
     }
 
     private static List<String> toCompletion( Method method ) {
+        // for DefaultGroovyMethods, the first parameter is "self" and should not be counted
+        def compensatingFactor = method.declaringClass == DefaultGroovyMethods ? -1 : 0
+        def parameterCount = method.parameterCount + compensatingFactor
+
         if ( method.name.startsWith( 'get' ) &&
                 method.name != 'get' &&
-                method.parameterCount == 0 ) {
+                parameterCount == 0 ) {
             return [ method.name + '()', uncapitalizeAscii( method.name - 'get' ) ]
-        } else if ( method.parameterCount > 0 ) {
+        } else if ( parameterCount > 0 ) {
             return [ method.name + '(' ]
         } else {
             return [ method.name + '()' ]
