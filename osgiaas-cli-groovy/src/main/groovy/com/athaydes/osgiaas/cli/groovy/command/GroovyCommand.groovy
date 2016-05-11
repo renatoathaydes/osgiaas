@@ -36,6 +36,9 @@ class GroovyCommand implements StreamingCommand {
             setVariable( 'ctx', contextRef.get() )
             setVariable( 'binding', variables )
         }
+        Thread.start {
+            shell.evaluate( '"warm up"' )
+        }
     }
 
     @Override
