@@ -218,3 +218,22 @@ component( name: 'andCommandModifier' ) {
         provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandModifier' )
     }
 }
+
+component( name: 'lrCommand' ) {
+    commonProperties()
+    implementation( 'class': 'com.athaydes.osgiaas.cli.command.ListResourcesCommand' )
+    property( name: 'service.description', value: 'OsgiAAS Cli List Resources Command' )
+    service {
+        provide( 'interface': 'org.apache.felix.shell.Command' )
+    }
+}
+
+component( name: 'lrCommandCompleter' ) {
+    commonProperties()
+    implementation( 'class': 'com.athaydes.osgiaas.cli.completer.ListResourceCompleter' )
+    property( name: 'service.description', value: 'OsgiAAS Cli List Resources Command Completer' )
+    service {
+        provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter' )
+    }
+    usingCommandReference()
+}
