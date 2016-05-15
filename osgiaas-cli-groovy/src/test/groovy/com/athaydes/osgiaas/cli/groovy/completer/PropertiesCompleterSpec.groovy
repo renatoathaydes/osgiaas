@@ -23,8 +23,13 @@ class PropertiesCompleterSpec extends Specification {
     def "Should complete arguments with simple properties"() {
         given: 'A couple of classes A and B with just  few methods'
 
+        and: 'A Groovy runner mock that can see A and B'
+        def groovyRunner = { String script ->
+            new GroovyShell( new Binding( [ a: new A(), b: new B() ] ) ).evaluate( script )
+        }
+
         and: 'A PropertiesCompleter with variables of types A and B available '
-        def completer = new PropertiesCompleter( vars: [ a: new A(), b: new B() ] )
+        def completer = new PropertiesCompleter( groovyRunner: groovyRunner )
 
         when: 'We request completions for arguments'
         def candidates = [ ]
@@ -54,8 +59,13 @@ class PropertiesCompleterSpec extends Specification {
     def "Should complete arguments with properties which have many Groovy options"() {
         given: 'A couple of classes A and B with just  few methods'
 
+        and: 'A Groovy runner mock that can see A and B'
+        def groovyRunner = { String script ->
+            new GroovyShell( new Binding( [ a: new A(), b: new B() ] ) ).evaluate( script )
+        }
+
         and: 'A PropertiesCompleter with variables of types A and B available '
-        def completer = new PropertiesCompleter( vars: [ a: new A(), b: new B() ] )
+        def completer = new PropertiesCompleter( groovyRunner: groovyRunner )
 
         when: 'We request completions for arguments'
         def candidates = [ ]

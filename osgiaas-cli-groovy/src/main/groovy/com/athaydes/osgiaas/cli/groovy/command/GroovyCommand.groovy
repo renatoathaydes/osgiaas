@@ -117,11 +117,10 @@ class GroovyCommand implements StreamingCommand {
                 out.println( preItem )
             }
         } else {
-            def args = ( pre + [ command.unprocessedInput ] ).join( '\n' )
-            if ( !args ) {
+            if ( !command.unprocessedInput ) {
                 CommandHelper.printError( err, getUsage(), 'Wrong number of arguments provided.' )
             } else {
-                def result = run( args, out, err )
+                def result = run( command.unprocessedInput, out, err )
                 if ( result != null ) out.println( result )
             }
         }
@@ -135,7 +134,9 @@ class GroovyCommand implements StreamingCommand {
         contextRef.set null
     }
 
-    private run( String script, PrintStream out, PrintStream err ) {
+    def run( String script, PrintStream out, PrintStream err ) {
+        def fullScript = ( pre + [ script ] ).join( '\n' )
+
         try {
             shell.context.with {
                 setVariable( 'out', out )
@@ -144,7 +145,7 @@ class GroovyCommand implements StreamingCommand {
                 setVariable( 'binding', variables )
             }
 
-            def result = shell.evaluate( script )
+            def result = shell.evaluate( fullScript )
 
             return result
         } catch ( Exception e ) {

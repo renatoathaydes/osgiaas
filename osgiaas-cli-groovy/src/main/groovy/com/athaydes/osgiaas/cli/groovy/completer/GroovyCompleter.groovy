@@ -6,6 +6,7 @@ import com.athaydes.osgiaas.api.cli.KnowsCommandBeingUsed
 import com.athaydes.osgiaas.api.cli.completer.BaseCompleter
 import com.athaydes.osgiaas.api.cli.completer.CompletionMatcher
 import com.athaydes.osgiaas.api.service.DynamicServiceHelper
+import com.athaydes.osgiaas.api.stream.NoOpPrintStream
 import com.athaydes.osgiaas.cli.groovy.command.GroovyCommand
 import groovy.transform.CompileStatic
 import org.codehaus.groovy.runtime.DefaultGroovyMethods
@@ -14,6 +15,7 @@ import javax.annotation.Nullable
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.util.concurrent.atomic.AtomicReference
+import java.util.function.Function
 
 import static com.athaydes.osgiaas.api.cli.completer.CompletionMatcher.nameMatcher
 import static com.athaydes.osgiaas.cli.groovy.command.GroovyCommand.ADD_PRE_ARG
@@ -50,24 +52,24 @@ class GroovyCompleter implements CommandCompleter {
 
         int result = argsMatcher.complete( buffer, cursor, candidates )
 
-        Map vars = DynamicServiceHelper.let( groovyRef, { GroovyCommand groovy ->
-            groovy.shell.context.variables
-        }, { [ : ] } )
-
-        if ( vars ) {
-            int alternativeResult = new DynamicCompleter( vars, knowsCommandBeingUsed )
+        DynamicServiceHelper.let( groovyRef, { GroovyCommand groovy ->
+            int alternativeResult = new DynamicCompleter(
+                    groovy.shell.context.variables, knowsCommandBeingUsed )
                     .complete( buffer, cursor, candidates )
+
             if ( alternativeResult < 0 ) {
-                alternativeResult = new PropertiesCompleter( vars: vars )
-                        .complete( buffer, cursor, candidates )
+                alternativeResult = new PropertiesCompleter( groovyRunner: { String script ->
+                    def noopStream = new NoOpPrintStream()
+                    groovy.run( script, noopStream, noopStream )
+                } ).complete( buffer, cursor, candidates )
             }
 
             if ( alternativeResult >= 0 ) {
-                result = alternativeResult
+                return alternativeResult
+            } else {
+                return result
             }
-        }
-
-        return result
+        }, { result } )
     }
 
     void setGroovyCommand( GroovyCommand command ) {
@@ -105,7 +107,7 @@ class PropertiesCompleter implements CommandCompleter {
             ( long )   : Long
     ].asImmutable()
 
-    Map vars
+    Function<String, Object> groovyRunner
 
     @Override
     int complete( String buffer, int cursor, List<CharSequence> candidates ) {
@@ -147,7 +149,7 @@ class PropertiesCompleter implements CommandCompleter {
 
             // try to evaluate the first token with the existing bindings
             try {
-                def result = new GroovyShell( new Binding( vars ) ).evaluate( token )
+                def result = groovyRunner.apply( token )
 
                 if ( result != null ) {
                     if ( result instanceof Class ) {
