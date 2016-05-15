@@ -43,12 +43,21 @@ public class ListResourcesCommand implements Command {
 
     @Override
     public String getUsage() {
-        return "lr <package-name>";
+        return "lr [-r] [-p <pattern>] <package-name>";
     }
 
     @Override
     public String getShortDescription() {
-        return "List resources";
+        return "List resources in the bundle classpaths.\n" +
+                "\n" +
+                "The lr command supports the following options:\n" +
+                "\n" +
+                "  -r: recursively list resources under sub-paths.\n" +
+                "  -p: pattern to search.\n" +
+                "\n" +
+                "For example, to list all class files available under the 'com' package:\n" +
+                "\n" +
+                "lr -r -p *.class com/\n";
     }
 
     @Override
