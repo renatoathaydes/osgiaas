@@ -10,7 +10,7 @@ import org.osgi.service.component.ComponentContext;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 public class ListResourceCompleter implements CommandCompleter {
 
@@ -33,7 +33,7 @@ public class ListResourceCompleter implements CommandCompleter {
 
                 AtomicReference<String> toComplete = new AtomicReference<>();
 
-                Stream<String> resources = ListResourcesCommand.listResources( invocation, context,
+                List<String> resources = ListResourcesCommand.listResources( invocation, context,
                         ListResourcesCommand.searchTransform.andThen( search -> {
                             String[] parts = splitSearchParts( search );
                             toComplete.set( parts[ 1 ] );
@@ -41,7 +41,7 @@ public class ListResourceCompleter implements CommandCompleter {
                         } ) ).filter( suggestion -> {
                     String relevantSuggestionPart = relevantSuggestionPart( suggestion );
                     return relevantSuggestionPart.startsWith( toComplete.get() );
-                } );
+                } ).collect( Collectors.toList() );
 
                 return new Completer( resources ).complete( buffer, cursor, candidates );
             }, () -> -1 );
@@ -87,9 +87,9 @@ public class ListResourceCompleter implements CommandCompleter {
     }
 
     private static class Completer extends BaseCompleter {
-        Completer( Stream<String> options ) {
+        Completer( List<String> options ) {
             super( CompletionMatcher.nameMatcher( "lr", CompletionMatcher.alternativeMatchers( () ->
-                    options.map( CompletionMatcher::nameMatcher ) ) ) );
+                    options.stream().map( CompletionMatcher::nameMatcher ) ) ) );
         }
     }
 
