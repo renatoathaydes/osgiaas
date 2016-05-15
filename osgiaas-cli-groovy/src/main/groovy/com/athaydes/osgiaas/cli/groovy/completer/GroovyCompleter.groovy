@@ -197,21 +197,24 @@ class PropertiesCompleter implements CommandCompleter {
         if ( varType ) {
             varType = boxedTypeByPrimitive[ varType ] ?: varType
 
-            def allMethods = varType.methods.findAll(
+            def methods = varType.methods.findAll(
                     isClassInstance ? this.&isStatic : this.&nonStatic
             ) as List<Method>
 
+            List<Method> extraMethods
+
             if ( isClassInstance ) {
-                allMethods.addAll( Class.getMethods() as List<Method> )
+                extraMethods = Class.getMethods() as List<Method>
             } else {
-                allMethods.addAll( DefaultGroovyMethods.methods.findAll {
+                extraMethods = DefaultGroovyMethods.methods.findAll {
                     it.parameterCount > 0 && it.parameterTypes.first().isAssignableFrom( varType )
-                } )
+                } as List<Method>
             }
 
-            candidates.addAll( allMethods.collectMany( this.&toCompletion ).findAll {
+            candidates.addAll( ( methods.sort() + extraMethods.sort() )
+                    .collectMany( this.&toCompletion ).findAll {
                 ( it as String ).startsWith( toComplete )
-            }.sort() )
+            }.unique() )
 
             return input.findLastIndexOf { it == '.' } + 1
         } else {
