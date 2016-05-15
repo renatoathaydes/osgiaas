@@ -1,4 +1,4 @@
-package com.athaydes.osgiaas.cli.util;
+package com.athaydes.osgiaas.api.stream;
 
 import java.io.PrintStream;
 

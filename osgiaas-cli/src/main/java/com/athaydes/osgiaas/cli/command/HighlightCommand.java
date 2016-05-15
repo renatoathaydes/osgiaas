@@ -8,7 +8,7 @@ import com.athaydes.osgiaas.api.cli.CommandInvocation;
 import com.athaydes.osgiaas.api.cli.StreamingCommand;
 import com.athaydes.osgiaas.api.cli.args.ArgsSpec;
 import com.athaydes.osgiaas.api.stream.LineOutputStream;
-import com.athaydes.osgiaas.cli.util.NoOpPrintStream;
+import com.athaydes.osgiaas.api.stream.NoOpPrintStream;
 import com.athaydes.osgiaas.cli.util.UsesCliProperties;
 
 import javax.annotation.Nullable;
