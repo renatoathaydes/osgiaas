@@ -216,10 +216,12 @@ class PropertiesCompleter implements CommandCompleter {
                 ( it as String ).startsWith( toComplete )
             }.unique() )
 
-            return input.findLastIndexOf { it == '.' } + 1
-        } else {
-            return -1
+            if ( candidates ) {
+                return input.findLastIndexOf { it == '.' } + 1
+            }
         }
+
+        return -1
     }
 
     private static List<String> toCompletion( Method method ) {
