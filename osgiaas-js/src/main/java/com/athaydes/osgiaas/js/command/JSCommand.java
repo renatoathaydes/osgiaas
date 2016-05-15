@@ -73,7 +73,10 @@ public class JSCommand implements StreamingCommand {
             if ( engine == null ) {
                 err.println( "JavaScript engine is not available" );
             } else try {
-                runScript( out, err, engine, script );
+                @Nullable Object result = runScript( out, err, engine, script );
+                if ( result != null ) {
+                    out.println( result );
+                }
             } catch ( ScriptException e ) {
                 err.println( e.toString() );
             }
@@ -113,13 +116,7 @@ public class JSCommand implements StreamingCommand {
         bindings.put( "err", err );
         bindings.put( "ctx", contextRef.get() );
 
-        @Nullable Object result = engine.eval( script );
-
-        if ( result != null ) {
-            out.println( result );
-        }
-
-        return result;
+        return engine.eval( script );
     }
 
 }
