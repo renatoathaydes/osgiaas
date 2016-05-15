@@ -9,11 +9,8 @@ repositories {
 }
 
 dependencies {
-    compile 'com.google.code.findbugs:jsr305:3.0.1'
+    compile project( ':osgiaas-cli-api' )
     compile 'jline:jline:2.13'
-    compile 'org.apache.felix:org.apache.felix.shell:1.4.3', {
-        exclude group: 'org.osgi' // felix.shell uses an older one
-    }
     compile 'org.osgi:osgi.core:6.0.0'
     compile 'org.osgi:osgi.cmpn:6.0.0'
 
@@ -25,7 +22,7 @@ dependencies {
 
 jar {
     manifest {
-        instruction 'Export-Package', 'com.athaydes.osgiaas.api.*'
+        instruction 'Export-Package', ''
     }
 }
 
