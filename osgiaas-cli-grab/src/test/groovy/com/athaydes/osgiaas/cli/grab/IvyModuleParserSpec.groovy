@@ -1,4 +1,4 @@
-package com.athaydes.osgiaas.maven.grab
+package com.athaydes.osgiaas.cli.grab
 
 import spock.lang.Specification
 import spock.lang.Subject

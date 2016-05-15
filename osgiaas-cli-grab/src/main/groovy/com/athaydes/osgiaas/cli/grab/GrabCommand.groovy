@@ -1,4 +1,4 @@
-package com.athaydes.osgiaas.maven.grab
+package com.athaydes.osgiaas.cli.grab
 
 import com.athaydes.osgiaas.api.cli.CommandHelper
 import com.athaydes.osgiaas.api.cli.args.ArgsSpec
@@ -9,7 +9,7 @@ import javax.annotation.Nullable
 import java.util.stream.Stream
 
 @CompileStatic
-class MavenGrab implements Command {
+class GrabCommand implements Command {
 
     static final String ADD_REPO = '--add-repo'
     static final String REMOVE_REPO = '--rm-repo'
@@ -36,7 +36,7 @@ class MavenGrab implements Command {
     @Override
     String getShortDescription() {
         """
-            Grabs a Maven artifact from a repository.
+            Grabs a Maven/Ivy artifact from a repository.
 
             Artifact coordinates, composed of groupId, artifactId, and version (optionally, with a classifier),
             should be joined with ':'.
