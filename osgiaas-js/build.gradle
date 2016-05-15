@@ -1,0 +1,27 @@
+apply plugin: 'java'
+apply plugin: 'osgi'
+apply plugin: 'com.athaydes.osgi-ds'
+apply plugin: 'maven'
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile project( ':osgiaas-cli' )
+    compile 'org.osgi:osgi.cmpn:6.0.0'
+    compile 'org.osgi:osgi.core:6.0.0'
+
+    testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
+}
+
+jar {
+    manifest {
+        instruction 'Export-Package', ''
+        instruction 'DynamicImport-Package', '*'
+    }
+}
+
+declarativeServices {
+    declarations = project.file( 'src/main/osgi/declarativeServices.groovy' )
+}
