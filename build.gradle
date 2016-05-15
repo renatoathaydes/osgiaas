@@ -51,7 +51,7 @@ runOsgi {
     copyManifestTo 'generated-sources/MANIFEST.MF'
 
     // required by Groovy
-    config += [ 'org.osgi.framework.system.packages.extra': 'sun.reflect' ]
+    config += [ 'org.osgi.framework.system.packages.extra': 'sun.reflect,jdk.nashorn.api.scripting' ]
 
     // no OSGi framework bundles should be deployed
     excludedBundles = [ /osgi\..*/, /animal-sniffer.*/ ]
