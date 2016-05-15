@@ -3,8 +3,7 @@ package com.athaydes.osgiaas.api.stream;
 import java.io.PrintStream;
 
 /**
- * Wraps the actual outputStream to allow customization of what happens to text sent by
- * Commands.
+ * A PrintStream implementation that does not write anything.
  */
 public class NoOpPrintStream extends PrintStream {
 
