@@ -75,7 +75,6 @@ public class StandardCli extends HasManyServices<CommandModifier>
 
     @Override
     public void stop() {
-        System.out.println( "Stopping StandardCli" );
         withCli( cli -> {
             cli.stop();
             currentRun.set( null );
