@@ -12,6 +12,7 @@ import groovy.transform.CompileStatic
 import org.codehaus.groovy.runtime.DefaultGroovyMethods
 
 import javax.annotation.Nullable
+import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.util.concurrent.atomic.AtomicReference
@@ -130,7 +131,7 @@ class PropertiesCompleter implements CommandCompleter {
         // break up last argument into the actual tokens we're interested (method calls, property access)
         final tokens = [ ] as LinkedList<String>
         CommandHelper.breakupArguments( finalPart, {
-            tokens << it; true
+            tokens << it.replaceAll( ' ', '' ); true
         }, breakupOptions.separatorCode( ( '.' as char ) as int ) )
 
         if ( finalPart.endsWith( '.' ) ) {
@@ -176,7 +177,7 @@ class PropertiesCompleter implements CommandCompleter {
                     continue // got it
                 }
             } else { // is property?
-                def field = varType.fields.find { it.name == token }
+                def field = varType.fields.find { it.name == token } as Field
 
                 if ( field ) {
                     varType == field.type
@@ -199,8 +200,13 @@ class PropertiesCompleter implements CommandCompleter {
         if ( varType ) {
             varType = boxedTypeByPrimitive[ varType ] ?: varType
 
+            if ( !isClassInstance ) {
+                isClassInstance = ( varType == Class )
+            }
+
             def methods = varType.methods.findAll(
-                    isClassInstance ? this.&isStatic : this.&nonStatic
+                    // for class instances, include only static methods, for others, include all
+                    isClassInstance ? this.&isStatic : { true }
             ) as List<Method>
 
             List<Method> extraMethods
@@ -213,7 +219,7 @@ class PropertiesCompleter implements CommandCompleter {
                 } as List<Method>
             }
 
-            candidates.addAll( ( methods.sort() + extraMethods.sort() )
+            candidates.addAll( ( methods.sort { it.name } + extraMethods.sort { it.name } )
                     .collectMany( this.&toCompletion ).findAll {
                 ( it as String ).startsWith( toComplete )
             }.unique() )
@@ -261,10 +267,6 @@ class PropertiesCompleter implements CommandCompleter {
 
     private static boolean isStatic( Method method ) {
         ( method.modifiers & Modifier.STATIC )
-    }
-
-    private static boolean nonStatic( Method method ) {
-        !( method.modifiers & Modifier.STATIC )
     }
 
     @Nullable
