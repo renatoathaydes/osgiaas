@@ -5,6 +5,7 @@ import com.athaydes.osgiaas.api.cli.Cli;
 import com.athaydes.osgiaas.api.cli.CliProperties;
 import com.athaydes.osgiaas.api.cli.CommandCompleter;
 import com.athaydes.osgiaas.api.cli.CommandModifier;
+import com.athaydes.osgiaas.api.cli.KnowsCommandBeingUsed;
 import com.athaydes.osgiaas.api.service.DynamicServiceHelper;
 import com.athaydes.osgiaas.api.service.HasManyServices;
 import com.athaydes.osgiaas.cli.util.HasManyCommandCompleters;
@@ -22,6 +23,7 @@ public class StandardCli extends HasManyServices<CommandModifier>
         implements Cli, CliProperties {
 
     private final AtomicReference<CliRun> currentRun = new AtomicReference<>();
+    private final AtomicReference<KnowsCommandBeingUsed> knowsCommandBeingUsed = new AtomicReference<>();
     private final AtomicReference<Set<Command>> commands = new AtomicReference<>( new HashSet<>( 2 ) );
     private final OsgiaasShell shell = new OsgiaasShell( commands::get, this::getServices );
 
@@ -87,6 +89,12 @@ public class StandardCli extends HasManyServices<CommandModifier>
     }
 
     @Override
+    public String commandBeingUsed() {
+        return DynamicServiceHelper.let( knowsCommandBeingUsed,
+                KnowsCommandBeingUsed::using, () -> "" );
+    }
+
+    @Override
     public void setPrompt( String prompt ) {
         this.prompt = prompt;
     }
@@ -135,6 +143,10 @@ public class StandardCli extends HasManyServices<CommandModifier>
             cmds.remove( command );
             return new HashSet<>( cmds );
         } );
+    }
+
+    public void setKnowsCommandBeingUsed( KnowsCommandBeingUsed knowsCommandBeingUsed ) {
+        this.knowsCommandBeingUsed.set( knowsCommandBeingUsed );
     }
 
     @Override

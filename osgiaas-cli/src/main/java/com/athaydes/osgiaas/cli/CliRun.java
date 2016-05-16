@@ -2,6 +2,7 @@ package com.athaydes.osgiaas.cli;
 
 import com.athaydes.osgiaas.api.ansi.Ansi;
 import com.athaydes.osgiaas.api.ansi.AnsiColor;
+import com.athaydes.osgiaas.api.ansi.AnsiModifier;
 import com.athaydes.osgiaas.api.cli.CliProperties;
 import com.athaydes.osgiaas.api.stream.NoOpPrintStream;
 import com.athaydes.osgiaas.cli.util.InterruptableInputStream;
@@ -127,9 +128,22 @@ public class CliRun implements Runnable {
     }
 
     private String getPrompt() {
-        return Ansi.applyColor(
+        AnsiColor promptColor = cliProperties.getPromptColor();
+        String commandBeingUsed = cliProperties.commandBeingUsed();
+
+        String using = "";
+        if ( !commandBeingUsed.isEmpty() ) {
+            if ( commandBeingUsed.length() > 3 ) {
+                commandBeingUsed = commandBeingUsed.substring( 0, 3 );
+            }
+            using = Ansi.applyAnsi( commandBeingUsed + "-",
+                    new AnsiColor[]{ promptColor },
+                    AnsiModifier.ITALIC, AnsiModifier.HIGH_INTENSITY ) + AnsiColor.RESET;
+        }
+
+        return using + Ansi.applyColor(
                 cliProperties.getPrompt(),
-                cliProperties.getPromptColor() ) + AnsiColor.RESET;
+                promptColor ) + AnsiColor.RESET;
     }
 
     @Override

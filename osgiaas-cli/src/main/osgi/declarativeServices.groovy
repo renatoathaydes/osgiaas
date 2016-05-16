@@ -37,6 +37,7 @@ component( xmlns: "http://www.osgi.org/xmlns/scr/v1.3.0",
         provide( 'interface': 'com.athaydes.osgiaas.api.cli.Cli' )
         provide( 'interface': 'com.athaydes.osgiaas.api.cli.CliProperties' )
     }
+    usingCommandReference()
     reference( name: 'commands',
             'interface': 'org.apache.felix.shell.Command',
             'cardinality': '0..n',

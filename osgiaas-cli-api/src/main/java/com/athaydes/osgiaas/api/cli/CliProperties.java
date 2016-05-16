@@ -11,6 +11,8 @@ public interface CliProperties {
 
     String getPrompt();
 
+    String commandBeingUsed();
+
     AnsiColor getPromptColor();
 
     AnsiColor getTextColor();
