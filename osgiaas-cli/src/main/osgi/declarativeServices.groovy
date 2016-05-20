@@ -236,5 +236,4 @@ component( name: 'lrCommandCompleter' ) {
     service {
         provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter' )
     }
-    usingCommandReference()
 }
