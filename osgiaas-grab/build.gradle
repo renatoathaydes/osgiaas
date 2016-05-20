@@ -1,6 +1,5 @@
 apply plugin: 'groovy'
 apply plugin: 'osgi'
-apply plugin: 'com.athaydes.osgi-ds'
 apply plugin: 'maven'
 
 repositories {
@@ -11,12 +10,8 @@ repositories {
 
 jar {
     manifest {
-        instruction 'Export-Package', ''
+        instruction 'Export-Package', 'com.athaydes.osgiaas.grab'
     }
-}
-
-declarativeServices {
-    declarations = project.file( 'src/main/osgi/declarativeServices.groovy' )
 }
 
 dependencies {
@@ -24,6 +19,11 @@ dependencies {
     //compile 'biz.aQute.bnd:biz.aQute.bndlib:3.1.0'
 
     compile project( ':osgiaas-cli-api' )
-    compile project( ':osgiaas-grab' )
     compile 'org.codehaus.groovy:groovy-all:2.4.5'
+
+    // allows Groovy Grapes to work
+    runtime 'org.apache.ivy:ivy:2.4.0'
+
+    testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
+    testRuntime 'org.slf4j:slf4j-simple:1.7.13'
 }

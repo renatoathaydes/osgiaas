@@ -1,4 +1,4 @@
-package com.athaydes.osgiaas.cli.grab
+package com.athaydes.osgiaas.grab
 
 import groovy.transform.Immutable
 import groovy.util.slurpersupport.GPathResult
