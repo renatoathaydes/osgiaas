@@ -14,7 +14,7 @@ class Grabber {
         this.repositories = repositories
     }
 
-    Stream<File> grab( String artifact, File grapes ) {
+    Stream<File> grab( String artifact ) {
         def parts = artifact.trim().split( ':' )
         if ( parts.size() == 3 || parts.size() == 4 ) {
             def group = parts[ 0 ]
@@ -22,10 +22,14 @@ class Grabber {
             def version = parts[ 2 ]
             def classifier = ( parts.size() == 4 ? parts[ 3 ] : '' )
 
-            def grapeLocation = downloadAndGetLocation( grapes, group, name, version, classifier )
+            def grapes = findGrapesHome()
+
+            def grape = downloadAndGetLocation( grapes, group, name, version, classifier )
+            def grapeLocation = grape.file as File
+            def grapeVersion = grape.version as String
 
             if ( grapeLocation.exists() ) {
-                return collectGrapes( grapes, grapeLocation, version )
+                return collectGrapes( grapes, grapeLocation, grapeVersion )
             } else {
                 throw new GrabException( "Grape was not saved in the expected location: $grapeLocation\n" )
             }
@@ -39,6 +43,19 @@ class Grabber {
         repositories.collect { name, repo ->
             "@GrabResolver(name='$name', root='$repo')"
         }.join( '\n' )
+    }
+
+    private static File findGrapesHome() {
+        def grapes = ( System.getProperty( 'grape.root' ) ?:
+                ( System.getProperty( 'user.home' ) + '/.groovy' ) ) + '/grapes'
+
+        def grapesDir = new File( grapes )
+
+        if ( !grapesDir.directory ) {
+            grapesDir.mkdirs()
+        }
+
+        grapesDir
     }
 
     private void dowloadGrape( group, name, version, classifier = '' ) {
@@ -55,7 +72,7 @@ class Grabber {
         if ( ivyModule.canRead() ) {
             dependencies = ivyModuleParser.getDependenciesFrom( ivyModule )
                     .parallelStream().flatMap { Map dep ->
-                def depGrape = downloadAndGetLocation( grapesDir, dep.group, dep.name, dep.version )
+                def depGrape = downloadAndGetLocation( grapesDir, dep.group, dep.name, dep.version ).file as File
                 if ( depGrape == null ) {
                     return Stream.empty()
                 } else {
@@ -67,10 +84,18 @@ class Grabber {
         Stream.concat( Stream.of( grape ), dependencies )
     }
 
-    private File downloadAndGetLocation( File grapes, group, name, version, classifier = '' ) {
+    private Map downloadAndGetLocation( File grapes, group, name, version, classifier = '' ) {
+        def moduleDir = new File( grapes, "$group/$name" )
+
         try {
             dowloadGrape( group, name, version, classifier )
-            return new File( grapes, "$group/$name/jars/$name-${version}.jar" )
+            def properties = new Properties()
+            new File( moduleDir, "ivydata-${version}.properties" ).withInputStream {
+                properties.load( it )
+            }
+            def actualVersion = properties[ 'resolved.revision' ] ?: version
+            return [ file   : new File( moduleDir, "jars/$name-${actualVersion}.jar" ),
+                     version: actualVersion ]
         } catch ( Throwable ignore ) {
             throw new GrabException( "Unable to download artifact: $group:$name:$version\n" +
                     "Make sure the artifact exists in one of the configured repositories." )

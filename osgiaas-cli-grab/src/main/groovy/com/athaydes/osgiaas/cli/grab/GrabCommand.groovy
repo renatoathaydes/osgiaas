@@ -46,10 +46,12 @@ class GrabCommand implements Command {
 
             Grab also supports the following commands:
 
-              * $ADD_REPO <repo> : adds a repository to grab artifacts from.
-              * $REMOVE_REPO <repo> : removes a repository.
+              * $ADD_REPO [<repo-id>] <repo> : adds a repository to grab artifacts from.
+              * $REMOVE_REPO <repo-id> : removes a repository.
 
-            Example: grab --add-repo http://repo.spring.io/release
+            If <repo-id> is not given, the repo address is also used as its ID.
+
+            Example: grab --add-repo spring http://repo.spring.io/release
             """.stripIndent()
     }
 
@@ -73,19 +75,10 @@ class GrabCommand implements Command {
                 } else if ( reposToRemove ) {
                     removeRepo( reposToRemove, out, err )
                 } else if ( rest ) {
-                    def grapes = ( System.getProperty( 'grape.root' ) ?:
-                            ( System.getProperty( 'user.home' ) + '/.groovy' ) ) + '/grapes'
-
-                    def grapesDir = new File( grapes )
-
-                    if ( !grapesDir.directory ) {
-                        grapesDir.mkdirs()
-                    }
-
                     def verbose = argMap.containsKey( VERBOSE ) ? 'true' : 'false'
                     System.setProperty( 'groovy.grape.report.downloads', verbose )
 
-                    grab rest, out, err, grapesDir, verbose.toBoolean()
+                    grab rest, out, err, verbose.toBoolean()
                 } else {
                     CommandHelper.printError( err, getUsage(), "Wrong number of arguments" )
                 }
@@ -128,10 +121,9 @@ class GrabCommand implements Command {
         allRepos.each { name, repo -> out.println "  * $name: $repo" }
     }
 
-    private void grab( String artifact, PrintStream out, PrintStream err,
-                       File grapes, boolean verbose ) {
+    private void grab( String artifact, PrintStream out, PrintStream err, boolean verbose ) {
         try {
-            def grapeFiles = new Grabber( repositories ).grab( artifact, grapes )
+            def grapeFiles = new Grabber( repositories ).grab( artifact )
             out.println grapeFiles.collect { "file://$it" }.join( ' ' )
         } catch ( GrabException e ) {
             err.println verbose ?
