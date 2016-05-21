@@ -16,12 +16,14 @@ import java.util.stream.Stream;
 public class ListResourcesCommand implements Command {
 
     public static final String RECURSIVE_OPTION = "-r";
+    public static final String SHOW_ALL_OPTION = "-a";
     public static final String PATTERN_OPTION = "-p";
 
     private final AtomicReference<ComponentContext> contextRef = new AtomicReference<>();
 
     public static final ArgsSpec argsSpec = ArgsSpec.builder()
             .accepts( RECURSIVE_OPTION )
+            .accepts( SHOW_ALL_OPTION )
             .accepts( PATTERN_OPTION, false, true )
             .build();
 
@@ -53,6 +55,7 @@ public class ListResourcesCommand implements Command {
                 "The lr command supports the following options:\n" +
                 "\n" +
                 "  -r: recursively list resources under sub-paths.\n" +
+                "  -a: show all resources, including nested classes." +
                 "  -p: pattern to search.\n" +
                 "\n" +
                 "For example, to list all class files available under the 'com' package:\n" +
@@ -82,6 +85,8 @@ public class ListResourcesCommand implements Command {
                 BundleWiring.LISTRESOURCES_RECURSE :
                 BundleWiring.LISTRESOURCES_LOCAL;
 
+        boolean showAll = invocation.hasArg( SHOW_ALL_OPTION );
+
         String pattern = invocation.hasArg( PATTERN_OPTION ) ?
                 invocation.getArgValue( PATTERN_OPTION ) :
                 "*";
@@ -91,6 +96,7 @@ public class ListResourcesCommand implements Command {
         return wiringsOf( Stream.of( componentContext.getBundleContext().getBundles() ) )
                 .filter( wiring -> wiring != null )
                 .flatMap( wiring -> wiring.listResources( searchWord, pattern, lrOption ).stream() )
+                .filter( resource -> showAll || !resource.contains( "$" ) )
                 .distinct();
     }
 
