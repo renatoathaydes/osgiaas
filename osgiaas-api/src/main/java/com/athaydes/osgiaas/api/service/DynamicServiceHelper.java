@@ -1,6 +1,5 @@
 package com.athaydes.osgiaas.api.service;
 
-import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -19,7 +18,6 @@ public class DynamicServiceHelper {
     public static <T> void with( AtomicReference<T> reference,
                                  Consumer<T> consumer,
                                  Runnable onUnavailable ) {
-        @Nullable
         T instance = reference.get();
         if ( instance != null ) {
             consumer.accept( instance );
