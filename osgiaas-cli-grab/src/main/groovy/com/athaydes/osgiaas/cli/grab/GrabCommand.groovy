@@ -7,6 +7,8 @@ import com.athaydes.osgiaas.grab.Grabber
 import groovy.transform.CompileStatic
 import org.apache.felix.shell.Command
 
+import java.util.stream.Stream
+
 @CompileStatic
 class GrabCommand implements Command {
 
@@ -123,7 +125,8 @@ class GrabCommand implements Command {
 
     private void grab( String artifact, PrintStream out, PrintStream err, boolean verbose ) {
         try {
-            def grapeFiles = new Grabber( repositories ).grab( artifact )
+            def grabResult = new Grabber( repositories ).grab( artifact )
+            def grapeFiles = Stream.concat( Stream.of( grabResult.grapeFile ), grabResult.dependencies )
             out.println grapeFiles.collect { "file://$it" }.join( ' ' )
         } catch ( GrabException e ) {
             err.println verbose ?

@@ -14,7 +14,7 @@ class Grabber {
         this.repositories = repositories
     }
 
-    Stream<File> grab( String artifact ) {
+    GrabResult grab( String artifact ) {
         def parts = artifact.trim().split( ':' )
         if ( parts.size() == 3 || parts.size() == 4 ) {
             def group = parts[ 0 ]
@@ -29,7 +29,8 @@ class Grabber {
             def grapeVersion = grape.version as String
 
             if ( grapeLocation.exists() ) {
-                return collectGrapes( grapes, grapeLocation, grapeVersion )
+                def dependencies = collectGrapeDependencies( grapes, grapeLocation, grapeVersion )
+                return new GrabResult( grapeVersion, grapeLocation, dependencies )
             } else {
                 throw new GrabException( "Grape was not saved in the expected location: $grapeLocation\n" )
             }
@@ -65,8 +66,8 @@ class Grabber {
         Eval.me( [ getReposString(), grabInstruction, 'import java.util.List' ].join( '\n' ) )
     }
 
-    private Stream<File> collectGrapes( File grapesDir, File grape,
-                                        String version ) {
+    private Stream<File> collectGrapeDependencies( File grapesDir, File grape,
+                                                   String version ) {
         def ivyModule = ivyModuleLocationForGrape( grape, version )
         Stream<File> dependencies = Stream.empty()
         if ( ivyModule.canRead() ) {
@@ -76,12 +77,13 @@ class Grabber {
                 if ( depGrape == null ) {
                     return Stream.empty()
                 } else {
-                    return collectGrapes( grapesDir, depGrape, dep.version as String )
+                    return Stream.concat( Stream.of( depGrape ),
+                            collectGrapeDependencies( grapesDir, depGrape, dep.version as String ) )
                 }
             }
         }
 
-        Stream.concat( Stream.of( grape ), dependencies )
+        return dependencies
     }
 
     private Map downloadAndGetLocation( File grapes, group, name, version, classifier = '' ) {
