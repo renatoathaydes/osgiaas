@@ -45,7 +45,7 @@ dependencies {
 runOsgi {
     bundles =
             // uncomment to include the Knopflerfish GUI
-            //['org.knopflerfish.bundle:desktop:5.0.1'] +
+            // ['org.knopflerfish.bundle:desktop:5.0.1'] +
             subprojects
 
     copyManifestTo 'generated-sources/MANIFEST.MF'
