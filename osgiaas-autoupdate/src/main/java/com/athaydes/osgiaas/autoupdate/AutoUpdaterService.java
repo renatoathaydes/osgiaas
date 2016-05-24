@@ -29,6 +29,7 @@ public class AutoUpdaterService implements ManagedService, BundleListener {
     private volatile AutoUpdateConfig config = AutoUpdateConfig.defaultConfig();
 
     public void activate( ComponentContext context ) {
+        log( LogService.LOG_INFO, getClass().getName() + " is active" );
         contextRef.set( context );
         subscribeAllBundles();
     }
@@ -39,6 +40,7 @@ public class AutoUpdaterService implements ManagedService, BundleListener {
 
     public void setAutoUpdater( AutoUpdater autoUpdater ) {
         autoUpdaterRef.set( autoUpdater );
+        log( LogService.LOG_INFO, getClass().getName() + " service received AutoUpdater instance: " + autoUpdater );
         subscribeAllBundles();
     }
 
@@ -58,8 +60,12 @@ public class AutoUpdaterService implements ManagedService, BundleListener {
     public void updated( @Nullable Dictionary<String, ?> properties )
             throws ConfigurationException {
         if ( properties == null ) {
+            log( LogService.LOG_INFO, "ConfigAdmin Service did not provide any configuration for the " +
+                    getClass().getName() + " service, using System properties and defaults instead." );
             config = AutoUpdateConfig.fromSystemProperties();
         } else {
+            log( LogService.LOG_INFO, "Using ConfigAdmin-provided configuration for the " +
+                    getClass().getName() + " service." );
             config = AutoUpdateConfig.fromDictionary( properties );
         }
 
@@ -84,9 +90,11 @@ public class AutoUpdaterService implements ManagedService, BundleListener {
 
         if ( currentConfig != null ) {
             usingServices(
-                    ( context, autoUpdater ) ->
-                            autoUpdater.subscribeAllBundles( currentConfig,
-                                    currentConfig.getBundleExcludes() ),
+                    ( context, autoUpdater ) -> {
+                        log( LogService.LOG_INFO, "All services ready, subscribing bundles for auto-update" );
+                        autoUpdater.subscribeAllBundles( currentConfig,
+                                currentConfig.getBundleExcludes() );
+                    },
                     () -> log( LogService.LOG_INFO,
                             "Unable to subscribe bundles for auto-update as " +
                                     "not all required services are available" ) );
@@ -123,10 +131,12 @@ public class AutoUpdaterService implements ManagedService, BundleListener {
 
     private void usingServices( BiConsumer<ComponentContext, AutoUpdater> consumer,
                                 Runnable onUnavailable ) {
-        with( contextRef, context ->
-                        with( autoUpdaterRef, updater ->
-                                consumer.accept( context, updater ), onUnavailable ),
-                onUnavailable );
+        new Thread( () -> {
+            with( contextRef, context ->
+                            with( autoUpdaterRef, updater ->
+                                    consumer.accept( context, updater ), onUnavailable ),
+                    onUnavailable );
+        } ).start();
     }
 
     private void log( int level, String message ) {

@@ -1,7 +1,6 @@
 package com.athaydes.osgiaas.autoupdate;
 
 import com.athaydes.osgiaas.api.autoupdate.AutoUpdateOptions;
-import com.athaydes.osgiaas.autoupdate.config.AutoUpdateConfigKeys;
 import org.osgi.service.cm.ConfigurationException;
 
 import javax.annotation.Nullable;
@@ -13,12 +12,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.athaydes.osgiaas.autoupdate.config.AutoUpdateConfigKeys.BUNDLE_EXCLUDES;
+import static com.athaydes.osgiaas.autoupdate.config.AutoUpdateConfigKeys.REPOSITORIES;
+import static com.athaydes.osgiaas.autoupdate.config.AutoUpdateConfigKeys.UPDATE_FREQUENCY;
+
 /**
  * {@link AutoUpdaterService} configuration.
  * The configuration keys used by this class are defined in
  * {@link com.athaydes.osgiaas.autoupdate.config.AutoUpdateConfigKeys}.
  */
-public class AutoUpdateConfig implements AutoUpdateOptions, AutoUpdateConfigKeys {
+public class AutoUpdateConfig implements AutoUpdateOptions {
 
     private static final Duration defaultUpdateFrequency = Duration.ofDays( 7 );
     private static final String[] defaultBundleExcludes = new String[]{ "0" };
@@ -102,7 +105,7 @@ public class AutoUpdateConfig implements AutoUpdateOptions, AutoUpdateConfigKeys
     }
 
     @Override
-    public Duration autoUpdateFrequency() {
+    public Duration autoUpdatePeriod() {
         return updateFrequency;
     }
 

@@ -9,6 +9,7 @@ repositories {
 }
 
 dependencies {
+    compile project( ':osgiaas-api' )
     compile project( ':osgiaas-cli-api' )
     compile 'org.codehaus.groovy:groovy-all:2.4.5'
     compile 'org.osgi:osgi.core:6.0.0'
@@ -20,6 +21,9 @@ dependencies {
 jar {
     manifest {
         instruction 'Export-Package', ''
+
+        // register for autoupdate
+        instruction 'Osgiaas-Bundle-Coordinates', "${project.group}:${project.name}:${project.version}"
     }
 }
 

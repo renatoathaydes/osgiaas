@@ -9,6 +9,7 @@ repositories {
 }
 
 dependencies {
+    compile project( ':osgiaas-api' )
     compile project( ':osgiaas-cli-api' )
     compile 'jline:jline:2.13'
     compile 'org.osgi:osgi.core:6.0.0'

@@ -3,6 +3,7 @@ version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
 apply plugin: 'osgi'
+apply plugin: 'com.athaydes.osgi-ds'
 
 repositories {
     mavenCentral()
@@ -19,4 +20,8 @@ dependencies {
     compile 'com.google.code.findbugs:jsr305:3.0.1'
     compile 'org.osgi:osgi.core:6.0.0'
     compile 'org.osgi:osgi.cmpn:6.0.0'
+}
+
+declarativeServices {
+    declarations = project.file( 'src/main/osgi/declarativeServices.groovy' )
 }

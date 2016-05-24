@@ -3,10 +3,11 @@ package com.athaydes.osgiaas.autoupdate.config;
 /**
  * Configuration keys for the bundle auto-update registerer.
  */
-public interface AutoUpdateConfigKeys {
+public enum AutoUpdateConfigKeys {
+    ; // value-less enum, used just to provide constants
 
-    String UPDATE_FREQUENCY = "osgiaas.autoupdate.frequency";
-    String REPOSITORIES = "osgiaas.autoupdate.repositories";
-    String BUNDLE_EXCLUDES = "osgiaas.autoupdate.bundle_excludes";
+    public static String UPDATE_FREQUENCY = "osgiaas.autoupdate.frequency";
+    public static String REPOSITORIES = "osgiaas.autoupdate.repositories";
+    public static String BUNDLE_EXCLUDES = "osgiaas.autoupdate.bundle_excludes";
 
 }

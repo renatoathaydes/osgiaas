@@ -10,7 +10,7 @@ import java.util.function.Function;
  */
 public interface AutoUpdateOptions {
 
-    Duration autoUpdateFrequency();
+    Duration autoUpdatePeriod();
 
     List<URI> bundleRepositoryUris();
 

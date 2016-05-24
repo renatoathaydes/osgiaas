@@ -98,8 +98,10 @@ class Grabber {
             def actualVersion = properties[ 'resolved.revision' ] ?: version
             return [ file   : new File( moduleDir, "jars/$name-${actualVersion}.jar" ),
                      version: actualVersion ]
-        } catch ( Throwable ignore ) {
-            throw new GrabException( "Unable to download artifact: $group:$name:$version\n" +
+        } catch ( Throwable e ) {
+            throw new GrabException( "Unable to download artifact: $group:$name:$version - " +
+                    // try to get only the useful part of the Exception String, which includes the whole stacktrace
+                    "${e.toString().split( '\n|\r' ).take( 2 ).join( ' ' )}\n" +
                     "Make sure the artifact exists in one of the configured repositories." )
         }
     }
