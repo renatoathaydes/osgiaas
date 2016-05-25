@@ -9,7 +9,8 @@ repositories {
 dependencies {
     compile 'com.google.code.findbugs:jsr305:3.0.1'
     compile 'org.apache.felix:org.apache.felix.shell:1.4.3', {
-        exclude group: 'org.osgi' // felix.shell uses an older one
+        exclude group: 'org.osgi', module: 'org.osgi.core' // felix.shell uses an older one
+        exclude group: 'org.osgi', module: 'org.osgi.compendium' // felix.shell uses an older one
     }
 
     testCompile 'org.codehaus.groovy:groovy-all:2.4.5'
@@ -21,5 +22,8 @@ dependencies {
 jar {
     manifest {
         instruction 'Export-Package', '*'
+
+        // register for autoupdate
+        instruction 'Osgiaas-Bundle-Coordinates', "${project.group}:${project.name}:${project.version}"
     }
 }

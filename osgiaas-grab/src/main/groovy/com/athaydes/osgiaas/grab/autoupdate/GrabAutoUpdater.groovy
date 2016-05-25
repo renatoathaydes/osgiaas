@@ -138,7 +138,7 @@ class GrabAutoUpdater implements AutoUpdater {
                 log( LogService.LOG_WARNING, "Unable to auto-update bundle $bundleCoordinates due to $e" )
             }
         } else {
-            failureReason = "Bundle manifest does not have a 'Osgiaas-Bundle-Coordinates' entry." +
+            log LogService.LOG_DEBUG, "Bundle manifest does not have a 'Osgiaas-Bundle-Coordinates' entry." +
                     " Add the entry in the manifest so that the coordinates of the bundle in the Maven" +
                     " repository can be determined."
         }

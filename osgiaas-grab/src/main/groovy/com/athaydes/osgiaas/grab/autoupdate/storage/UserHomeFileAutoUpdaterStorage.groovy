@@ -17,29 +17,32 @@ class UserHomeFileAutoUpdaterStorage implements AutoUpdaterStorage {
     private final JsonSlurper jsonParser = new JsonSlurper()
 
     UserHomeFileAutoUpdaterStorage() {
+        // disable Groovy FastStringUtils to avoid usage of sun.misc.Unsafe
+        System.setProperty( 'groovy.json.faststringutils.disable', 'true' )
+
         def userHome = System.getProperty( 'user.home', '.' )
         this.storageFile = new File( userHome, '.osgiaas_grab_auto_updater' )
     }
 
     @Override
     boolean requiresUpdate( String bundleSymbolicName, Duration updatePeriod ) {
+        def json = parseStorageFile()
+        def latestUpdate = toInstant( json[ bundleSymbolicName ] ?: '0' )
+        def nextUpdate = latestUpdate + updatePeriod
+        return Instant.now().isAfter( nextUpdate )
+    }
+
+    private Map parseStorageFile() {
         if ( storageFile.file ) {
             try {
-                def json = parseStorageFile()
-                def latestUpdate = toInstant( json[ bundleSymbolicName ] ?: '0' )
-                def nextUpdate = latestUpdate + updatePeriod
-                return Instant.now().isAfter( nextUpdate )
+                return jsonParser.parse( storageFile, 'UTF-8' ) as Map
             } catch ( ignore ) {
                 // if the file is invalid, wipe it out
                 storageFile.delete()
             }
         }
 
-        return true
-    }
-
-    private Map parseStorageFile() {
-        jsonParser.parse( storageFile, 'UTF-8' ) as Map
+        return [ : ]
     }
 
     private static Instant toInstant( value ) {

@@ -21,9 +21,6 @@ dependencies {
 jar {
     manifest {
         instruction 'Export-Package', ''
-
-        // register for autoupdate
-        instruction 'Osgiaas-Bundle-Coordinates', "${project.group}:${project.name}:${project.version}"
     }
 }
 

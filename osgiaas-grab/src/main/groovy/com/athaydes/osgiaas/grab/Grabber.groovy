@@ -63,7 +63,9 @@ class Grabber {
         def grabInstruction = "@Grab(group='$group', module='$name', version='$version'" +
                 ( classifier ? ", classifier='$classifier')" : ')' )
 
-        Eval.me( [ getReposString(), grabInstruction, 'import java.util.List' ].join( '\n' ) )
+        String script = [ getReposString(), grabInstruction, 'import java.util.List' ].join( '\n' )
+
+        Eval.me( script )
     }
 
     private Stream<File> collectGrapeDependencies( File grapesDir, File grape,
