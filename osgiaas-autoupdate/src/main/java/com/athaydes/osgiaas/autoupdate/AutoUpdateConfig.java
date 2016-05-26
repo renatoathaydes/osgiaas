@@ -1,14 +1,14 @@
 package com.athaydes.osgiaas.autoupdate;
 
 import com.athaydes.osgiaas.api.autoupdate.AutoUpdateOptions;
-import org.osgi.service.cm.ConfigurationException;
+import com.athaydes.osgiaas.autoupdate.config.ConfigurationException;
 
 import javax.annotation.Nullable;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Collections;
-import java.util.Dictionary;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -47,7 +47,7 @@ public class AutoUpdateConfig implements AutoUpdateOptions {
                 defaultBundleExcludes );
     }
 
-    public static AutoUpdateConfig fromDictionary( Dictionary<String, ?> config )
+    public static AutoUpdateConfig fromMap( Map<String, ?> config )
             throws ConfigurationException {
         Duration updateFrequency = valueOrDefault( config.get( UPDATE_FREQUENCY ),
                 defaultUpdateFrequency, Duration.class );

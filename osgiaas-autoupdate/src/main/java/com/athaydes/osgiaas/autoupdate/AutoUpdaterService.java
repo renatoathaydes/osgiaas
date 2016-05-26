@@ -3,14 +3,12 @@ package com.athaydes.osgiaas.autoupdate;
 import com.athaydes.osgiaas.api.autoupdate.AutoUpdater;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleListener;
-import org.osgi.service.cm.ConfigurationException;
-import org.osgi.service.cm.ManagedService;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.log.LogService;
 
 import javax.annotation.Nullable;
-import java.util.Dictionary;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicReference;
@@ -18,7 +16,7 @@ import java.util.function.BiConsumer;
 
 import static com.athaydes.osgiaas.api.service.DynamicServiceHelper.with;
 
-public class AutoUpdaterService implements ManagedService, BundleListener {
+public class AutoUpdaterService implements BundleListener {
 
     private final AtomicReference<AutoUpdater> autoUpdaterRef = new AtomicReference<>();
     private final AtomicReference<ComponentContext> contextRef = new AtomicReference<>();
@@ -28,9 +26,20 @@ public class AutoUpdaterService implements ManagedService, BundleListener {
     @Nullable
     private volatile AutoUpdateConfig config = AutoUpdateConfig.defaultConfig();
 
-    public void activate( ComponentContext context ) {
+    public void activate( ComponentContext context, @Nullable Map<String, ?> properties ) {
         log( LogService.LOG_DEBUG, getClass().getName() + " is active" );
         contextRef.set( context );
+
+        if ( properties == null ) {
+            log( LogService.LOG_INFO, "ConfigAdmin Service did not provide any configuration for the " +
+                    getClass().getName() + " service, using System properties and defaults instead." );
+            config = AutoUpdateConfig.fromSystemProperties();
+        } else {
+            log( LogService.LOG_INFO, "Using ConfigAdmin-provided configuration for the " +
+                    getClass().getName() + " service." );
+            config = AutoUpdateConfig.fromMap( properties );
+        }
+
         subscribeAllBundles();
     }
 
@@ -54,22 +63,6 @@ public class AutoUpdaterService implements ManagedService, BundleListener {
 
     public void unsetLogService( LogService logService ) {
         logServiceRef.set( null );
-    }
-
-    @Override
-    public void updated( @Nullable Dictionary<String, ?> properties )
-            throws ConfigurationException {
-        if ( properties == null ) {
-            log( LogService.LOG_INFO, "ConfigAdmin Service did not provide any configuration for the " +
-                    getClass().getName() + " service, using System properties and defaults instead." );
-            config = AutoUpdateConfig.fromSystemProperties();
-        } else {
-            log( LogService.LOG_INFO, "Using ConfigAdmin-provided configuration for the " +
-                    getClass().getName() + " service." );
-            config = AutoUpdateConfig.fromDictionary( properties );
-        }
-
-        subscribeAllBundles();
     }
 
     @Override
