@@ -174,7 +174,7 @@ class GrabAutoUpdater implements AutoUpdater {
                 throw new GrabException( e.toString() )
             }
         } else {
-            log( LogService.LOG_INFO, "Auto-update rejected for bundle $bundleCoordinates" )
+            log( LogService.LOG_INFO, "Auto-update not required for bundle $bundleCoordinates" )
             return false
         }
     }
