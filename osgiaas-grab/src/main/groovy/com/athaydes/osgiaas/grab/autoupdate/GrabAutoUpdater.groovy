@@ -1,5 +1,6 @@
 package com.athaydes.osgiaas.grab.autoupdate
 
+import aQute.bnd.version.MavenVersion
 import com.athaydes.osgiaas.api.autoupdate.AutoUpdateOptions
 import com.athaydes.osgiaas.api.autoupdate.AutoUpdater
 import com.athaydes.osgiaas.api.autoupdate.UpdateInformation
@@ -78,7 +79,7 @@ class GrabAutoUpdater implements AutoUpdater {
         DynamicServiceHelper.with( contextRef ) { ComponentContext context ->
             def bundle = context.bundleContext.getBundle( bundleId )
             if ( bundle ) {
-                log( LogService.LOG_INFO, "Subscribing bundle ${bundle.bundleId} for auto-update" )
+                log( LogService.LOG_INFO, "Checking if bundle ${bundle.bundleId} can be auto-updated" )
                 def success = update bundle, options
                 if ( success ) {
                     refreshPendingBundles context
@@ -123,7 +124,6 @@ class GrabAutoUpdater implements AutoUpdater {
         } else if ( !bundleVersion ) {
             failureReason = "Manifest missing the 'Bundle-Version' entry. ID=${bundle.bundleId}"
         } else if ( bundleCoordinates ) {
-            log( LogService.LOG_INFO, "Checking for update for coordinates: $bundleCoordinates" )
             def requiresUpdate = storage.requiresUpdate( bundleName, options.autoUpdatePeriod() )
 
             if ( !requiresUpdate ) {
@@ -131,7 +131,8 @@ class GrabAutoUpdater implements AutoUpdater {
                 return false
             }
 
-            log( LogService.LOG_INFO, "Grabbing bundle for update: $bundleCoordinates" )
+            log( LogService.LOG_INFO, "Checking updates for bundle at coordinates: $bundleCoordinates" )
+
             try {
                 return grabAndUpdate( bundleCoordinates, bundleVersion, bundleName, bundle, options )
             } catch ( e ) {
@@ -157,26 +158,37 @@ class GrabAutoUpdater implements AutoUpdater {
 
         def bundleGrape = grabResult.grapeFile
 
-        def doUpdate = options.acceptUpdate().apply( new GrabUpdateInformation(
-                bundle.bundleId, bundleVersion.toString(), grabResult.grapeVersion
-        ) )
-        if ( doUpdate ) {
-            log( LogService.LOG_INFO, "Auto-update approved for bundle $bundleCoordinates. " +
-                    "New version: ${grabResult.grapeVersion}" )
-            try {
-                bundleGrape.withInputStream { bundle.update( it ) }
-                subscribedBundles << bundle.bundleId
-                storage.markAsUpdated( bundleName )
-                log( LogService.LOG_INFO, "Bundle has been updated to version " +
-                        "${grabResult.grapeVersion}: $bundleCoordinates" )
-                return true
-            } catch ( e ) {
-                throw new GrabException( e.toString() )
+        // canonicalize the versions
+        def currentVersion = MavenVersion.parseString( bundleVersion.toString() )
+        def newVersion = MavenVersion.parseString( grabResult.grapeVersion )
+
+        log( LogService.LOG_DEBUG, "Bundle current version: $currentVersion. New version: $newVersion" )
+
+        if ( newVersion > currentVersion ) {
+            def doUpdate = options.acceptUpdate().apply( new GrabUpdateInformation(
+                    bundle.bundleId, currentVersion.toString(), newVersion.toString()
+            ) )
+            if ( doUpdate ) {
+                log( LogService.LOG_INFO, "Auto-update approved for bundle $bundleCoordinates. " +
+                        "New version: ${grabResult.grapeVersion}" )
+                try {
+                    bundleGrape.withInputStream { bundle.update( it ) }
+                    subscribedBundles << bundle.bundleId
+                    storage.markAsUpdated( bundleName )
+                    log( LogService.LOG_INFO, "Bundle has been updated to version " +
+                            "${grabResult.grapeVersion}: $bundleCoordinates" )
+                    return true
+                } catch ( e ) {
+                    throw new GrabException( e.toString() )
+                }
+            } else {
+                log( LogService.LOG_INFO, "Auto-update not accepted for bundle $bundleCoordinates" )
             }
         } else {
-            log( LogService.LOG_INFO, "Auto-update not required for bundle $bundleCoordinates" )
-            return false
+            log( LogService.LOG_DEBUG, "Bundle is already up-to-date: $bundleCoordinates" )
         }
+
+        return false
     }
 
     String newestCoordinatesFor( String coordinates ) {

@@ -29,7 +29,7 @@ public class AutoUpdaterService implements ManagedService, BundleListener {
     private volatile AutoUpdateConfig config = AutoUpdateConfig.defaultConfig();
 
     public void activate( ComponentContext context ) {
-        log( LogService.LOG_INFO, getClass().getName() + " is active" );
+        log( LogService.LOG_DEBUG, getClass().getName() + " is active" );
         contextRef.set( context );
         subscribeAllBundles();
     }
@@ -40,7 +40,7 @@ public class AutoUpdaterService implements ManagedService, BundleListener {
 
     public void setAutoUpdater( AutoUpdater autoUpdater ) {
         autoUpdaterRef.set( autoUpdater );
-        log( LogService.LOG_INFO, getClass().getName() + " service received AutoUpdater instance: " + autoUpdater );
+        log( LogService.LOG_DEBUG, getClass().getName() + " service received AutoUpdater instance: " + autoUpdater );
         subscribeAllBundles();
     }
 
@@ -95,7 +95,7 @@ public class AutoUpdaterService implements ManagedService, BundleListener {
                         autoUpdater.subscribeAllBundles( currentConfig,
                                 currentConfig.getBundleExcludes() );
                     },
-                    () -> log( LogService.LOG_INFO,
+                    () -> log( LogService.LOG_DEBUG,
                             "Unable to subscribe bundles for auto-update as " +
                                     "not all required services are available" ) );
         } else {
