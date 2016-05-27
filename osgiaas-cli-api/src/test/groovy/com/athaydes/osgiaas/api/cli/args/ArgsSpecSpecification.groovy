@@ -1,6 +1,5 @@
-package com.athaydes.osgiaas.cli.args
+package com.athaydes.osgiaas.api.cli.args
 
-import com.athaydes.osgiaas.api.cli.args.ArgsSpec
 import spock.lang.Specification
 import spock.lang.Unroll
 
