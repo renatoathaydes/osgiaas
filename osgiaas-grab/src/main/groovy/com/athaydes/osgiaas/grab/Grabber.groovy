@@ -1,5 +1,6 @@
 package com.athaydes.osgiaas.grab
 
+import com.athaydes.osgiaas.grab.wrap.JarWrapper
 import groovy.transform.CompileStatic
 
 import java.util.stream.Stream
@@ -98,7 +99,8 @@ class Grabber {
                 properties.load( it )
             }
             def actualVersion = properties[ 'resolved.revision' ] ?: version
-            return [ file   : new File( moduleDir, "jars/$name-${actualVersion}.jar" ),
+            def jar = new File( moduleDir, "jars/$name-${actualVersion}.jar" )
+            return [ file   : JarWrapper.wrap( jar, actualVersion as String ),
                      version: actualVersion ]
         } catch ( Throwable e ) {
             throw new GrabException( "Unable to download artifact: $group:$name:$version - " +
