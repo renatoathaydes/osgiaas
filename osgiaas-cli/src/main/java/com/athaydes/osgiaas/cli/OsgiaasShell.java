@@ -1,5 +1,6 @@
 package com.athaydes.osgiaas.cli;
 
+import com.athaydes.osgiaas.api.cli.CommandHelper;
 import com.athaydes.osgiaas.api.cli.CommandModifier;
 import com.athaydes.osgiaas.api.cli.StreamingCommand;
 import com.athaydes.osgiaas.api.stream.LineAccumulatorOutputStream;
@@ -15,6 +16,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -24,6 +26,16 @@ public class OsgiaasShell {
 
     private final Supplier<Set<Command>> commandsProvider;
     private final Supplier<List<CommandModifier>> modifiersProvider;
+
+    private static final Function<String, List<String>> breakUpPipes = ( line ) -> {
+        List<String> result = new ArrayList<>( 2 );
+        CommandHelper.breakupArguments( line,
+                result::add,
+                CommandHelper.CommandBreakupOptions.create()
+                        .includeQuotes( true )
+                        .separatorCode( '|' ) );
+        return result;
+    };
 
     public OsgiaasShell( Supplier<Set<Command>> commandsProvider,
                          Supplier<List<CommandModifier>> modifiersProvider ) {
@@ -44,7 +56,7 @@ public class OsgiaasShell {
     public void runCommand( String userCommand, PrintStream out, PrintStream err ) {
         List<CommandModifier> commandModifiers = modifiersProvider.get();
         LinkedList<List<Cmd>> commandsPipeline = new LinkedList<>();
-        String[] pipes = userCommand.split( "\\|" );
+        List<String> pipes = breakUpPipes.apply( userCommand );
 
         try {
             for (String pipe : pipes) {
