@@ -4,48 +4,41 @@ import com.athaydes.osgiaas.api.cli.CommandHelper;
 import com.athaydes.osgiaas.api.cli.CommandModifier;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class AndCommandModifier implements CommandModifier {
 
-    private final String commandSeparator;
+    private static final int separatorCode = '&';
+    private static final String separator = "&&";
 
-    public AndCommandModifier( String commandSeparator ) {
-        this.commandSeparator = commandSeparator;
-    }
-
-    public AndCommandModifier() {
-        this( "&&" );
-    }
+    private static final CommandHelper.CommandBreakupOptions breakupOptions =
+            CommandHelper.CommandBreakupOptions.create()
+                    .includeQuotes( true )
+                    .separatorCode( separatorCode )
+                    .includeSeparators( true );
 
     @Override
     public List<String> apply( String line ) {
-        if ( line.trim().isEmpty() || !line.contains( commandSeparator ) ) {
-            return Collections.singletonList( line );
-        }
+        List<String> result = new ArrayList<>( 2 );
 
-        List<String> parts = CommandHelper.breakupArguments( line );
-        List<String> result = new ArrayList<>();
-        List<String> partBuilder = new ArrayList<>();
+        StringBuilder currentPart = new StringBuilder();
 
-        for (String part : parts) {
-            if ( part.equals( commandSeparator ) ) {
-                addParts( result, partBuilder );
-                partBuilder.clear();
+        CommandHelper.breakupArguments( line, part -> {
+            if ( part.equals( separator ) ) {
+                result.add( currentPart.toString().trim() );
+                currentPart.delete( 0, currentPart.length() );
             } else {
-                partBuilder.add( part );
+                currentPart.append( part );
             }
-        }
-        if ( !partBuilder.isEmpty() ) {
-            addParts( result, partBuilder );
+
+            return true;
+        }, breakupOptions );
+
+        if ( currentPart.length() > 0 ) {
+            result.add( currentPart.toString().trim() );
         }
 
         return result;
-    }
-
-    private static void addParts( List<String> result, List<String> partBuilder ) {
-        result.add( String.join( " ", partBuilder ) );
     }
 
 }
