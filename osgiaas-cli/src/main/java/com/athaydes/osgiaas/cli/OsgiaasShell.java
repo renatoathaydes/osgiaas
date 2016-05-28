@@ -120,19 +120,20 @@ public class OsgiaasShell {
                 continue;
             }
 
-            Cmd current = executeAllButLast( currentCmds, out, err );
+            PrintStream cmdOut = new PrintStream( lineConsumer, true );
+
+            Cmd current = executeAllButLast( currentCmds, cmdOut, err );
             boolean firstCommand = pipeline.isEmpty();
             Command cmd = current.cmd;
 
+
             if ( !firstCommand && cmd instanceof StreamingCommand ) {
-                lineConsumer = ( ( StreamingCommand ) cmd ).pipe( current.userCommand,
-                        new PrintStream( lineConsumer, true ), err );
+                lineConsumer = ( ( StreamingCommand ) cmd )
+                        .pipe( current.userCommand, cmdOut, err );
             } else {
-                final OutputStream nextLineConsumer = lineConsumer;
                 lineConsumer = new LineAccumulatorOutputStream( ( allLines ) ->
-                        cmd.execute( current.userCommand + " " + allLines,
-                                new PrintStream( nextLineConsumer, true ), err )
-                        , nextLineConsumer );
+                        cmd.execute( current.userCommand + " " + allLines, cmdOut, err )
+                        , lineConsumer );
             }
         }
 
