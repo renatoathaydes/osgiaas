@@ -131,6 +131,7 @@ public class CommandHelper {
             int c = chars.nextInt();
 
             boolean isEscape = ( c == ESCAPE_CODE );
+            boolean isSeparator = ( c == options.separatorCode );
 
             boolean isQuote = false;
             for (int quote : options.quoteCodes) {
@@ -140,7 +141,7 @@ public class CommandHelper {
                 }
             }
 
-            if ( escaped && !isQuote ) { // put back the escaping char as it was not used
+            if ( escaped && !isQuote && !isSeparator ) { // put back the escaping char as it was not used
                 currentArg.appendCodePoint( ESCAPE_CODE );
             }
 
@@ -161,9 +162,8 @@ public class CommandHelper {
                 }
             }
 
-            escaped = false;
-
             if ( done ) {
+                escaped = false;
                 continue;
             }
 
@@ -172,7 +172,7 @@ public class CommandHelper {
                 currentArg.appendCodePoint( c );
             } else {
                 // outside quotes, we need to look for the separator
-                if ( c == options.separatorCode ) {
+                if ( !escaped && isSeparator ) {
                     // just started separators?
                     if ( !inSeparators ) {
                         boolean keepGoing = addArgument( currentArg, limitFunction );
@@ -198,6 +198,8 @@ public class CommandHelper {
                     currentArg.appendCodePoint( c );
                 }
             }
+
+            escaped = false;
         }
 
         if ( escaped ) {

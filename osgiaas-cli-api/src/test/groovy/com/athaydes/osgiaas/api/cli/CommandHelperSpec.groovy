@@ -30,9 +30,10 @@ class CommandHelperSpec extends Specification {
         'ab "c\\"d e" "\\"f g"' | [ 'ab', 'c"d e', '"f g' ]
         'ab\\\\c \\"d'          | [ 'ab\\\\c', '"d' ]
         'a\\b\\\\c'             | [ 'a\\b\\\\c' ]
-        'a\\ b\\  '             | [ 'a\\', 'b\\' ]
+        'a\\ b\\  '             | [ 'a b ' ]
         'ѭѫѱѮ 命令 εντολή'        | [ 'ѭѫѱѮ', '命令', 'εντολή' ]
         'क्त ु é ँ ॐ ख़'        | [ 'क्त', 'ु', 'é', 'ँ', 'ॐ', 'ख़' ]
+        'a\\'                   | [ 'a\\' ]
     }
 
     @Unroll
@@ -123,6 +124,7 @@ class CommandHelperSpec extends Specification {
         'ab:$ :c: $'  | [ 'ab', ' :c: ' ]
         'ab:% :c: $'  | [ 'ab', ' :c: ' ]
         'ab:$c$:%%:d' | [ 'ab', 'c', 'd' ]
+        'a\\:b'       | [ 'a:b' ]
     }
 
     @Unroll
