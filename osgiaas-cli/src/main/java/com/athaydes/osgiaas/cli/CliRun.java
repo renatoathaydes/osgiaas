@@ -15,6 +15,8 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -163,13 +165,19 @@ public class CliRun implements Runnable {
         thread = Thread.currentThread();
 
         try {
+            List<String> lines = new ArrayList<>( 2 );
             String line;
-            while ( ( line = consoleReader.readLine( getPrompt() ) ) != null ) {
-                if ( !line.trim().isEmpty() ) {
+            while ( ( line = consoleReader.readLine( lines.isEmpty() ? getPrompt() : "> " ) ) != null ) {
+                if ( line.endsWith( "\\" ) ) {
+                    lines.add( line.substring( 0, line.length() - 1 ) );
+                } else if ( !line.trim().isEmpty() || !lines.isEmpty() ) {
+                    lines.add( line );
                     try {
-                        runCommand( line );
+                        runCommand( String.join( "\n", lines ) );
                     } catch ( Throwable e ) {
                         e.printStackTrace();
+                    } finally {
+                        lines = new ArrayList<>( 2 );
                     }
                 }
             }
