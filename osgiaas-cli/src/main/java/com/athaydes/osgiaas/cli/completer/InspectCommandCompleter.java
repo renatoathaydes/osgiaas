@@ -5,7 +5,7 @@ import com.athaydes.osgiaas.api.cli.completer.BaseCompleter;
 import com.athaydes.osgiaas.api.cli.completer.CompletionMatcher;
 import com.athaydes.osgiaas.api.service.DynamicServiceHelper;
 import org.osgi.framework.Bundle;
-import org.osgi.service.component.ComponentContext;
+import org.osgi.framework.BundleContext;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 
 public class InspectCommandCompleter implements CommandCompleter {
 
-    private final AtomicReference<ComponentContext> contextRef = new AtomicReference<>();
+    private final AtomicReference<BundleContext> contextRef = new AtomicReference<>();
     private final Completer completer;
 
     public InspectCommandCompleter() {
@@ -25,11 +25,11 @@ public class InspectCommandCompleter implements CommandCompleter {
         this.completer = new Completer( inspectArgChildren );
     }
 
-    public void activate( ComponentContext context ) {
+    public void activate( BundleContext context ) {
         contextRef.set( context );
     }
 
-    public void deactivate( ComponentContext context ) {
+    public void deactivate( BundleContext context ) {
         contextRef.set( null );
     }
 
@@ -40,7 +40,7 @@ public class InspectCommandCompleter implements CommandCompleter {
 
     private Stream<CompletionMatcher> bundleIdMatchers() {
         return DynamicServiceHelper.let( contextRef, context ->
-                        Stream.of( context.getBundleContext().getBundles() )
+                        Stream.of( context.getBundles() )
                                 .map( Bundle::getBundleId )
                                 .map( id -> CompletionMatcher.nameMatcher( Long.toString( id ) ) ),
                 Stream::of );

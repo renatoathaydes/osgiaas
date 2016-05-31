@@ -5,8 +5,8 @@ import com.athaydes.osgiaas.api.cli.args.ArgsSpec;
 import com.athaydes.osgiaas.api.service.DynamicServiceHelper;
 import org.apache.felix.shell.Command;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.wiring.BundleWiring;
-import org.osgi.service.component.ComponentContext;
 
 import java.io.PrintStream;
 import java.util.concurrent.atomic.AtomicReference;
@@ -19,7 +19,7 @@ public class ListResourcesCommand implements Command {
     public static final String SHOW_ALL_OPTION = "-a";
     public static final String PATTERN_OPTION = "-p";
 
-    private final AtomicReference<ComponentContext> contextRef = new AtomicReference<>();
+    private final AtomicReference<BundleContext> contextRef = new AtomicReference<>();
 
     public static final ArgsSpec argsSpec = ArgsSpec.builder()
             .accepts( RECURSIVE_OPTION )
@@ -30,11 +30,11 @@ public class ListResourcesCommand implements Command {
     public static Function<String, String> searchTransform = ( search ) ->
             "/" + search.replaceAll( "\\.", "/" );
 
-    public void activate( ComponentContext context ) {
+    public void activate( BundleContext context ) {
         contextRef.set( context );
     }
 
-    public void deactivate( ComponentContext context ) {
+    public void deactivate( BundleContext context ) {
         contextRef.set( null );
     }
 
@@ -70,7 +70,7 @@ public class ListResourcesCommand implements Command {
 
             listResources( invocation, context, searchTransform )
                     .forEach( out::println );
-        }, () -> err.println( "ComponentContext is unavailable" ) );
+        }, () -> err.println( "BundleContext is unavailable" ) );
     }
 
     private static Stream<BundleWiring> wiringsOf( Stream<Bundle> bundles ) {
@@ -78,7 +78,7 @@ public class ListResourcesCommand implements Command {
     }
 
     public static Stream<String> listResources( CommandInvocation invocation,
-                                                ComponentContext componentContext,
+                                                BundleContext bundleContext,
                                                 Function<String, String> searchTransform ) {
 
         int lrOption = invocation.hasArg( RECURSIVE_OPTION ) ?
@@ -93,7 +93,7 @@ public class ListResourcesCommand implements Command {
 
         String searchWord = searchTransform.apply( invocation.getUnprocessedInput() );
 
-        return wiringsOf( Stream.of( componentContext.getBundleContext().getBundles() ) )
+        return wiringsOf( Stream.of( bundleContext.getBundles() ) )
                 .filter( wiring -> wiring != null )
                 .flatMap( wiring -> wiring.listResources( searchWord, pattern, lrOption ).stream() )
                 .filter( resource -> showAll || !resource.contains( "$" ) )

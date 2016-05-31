@@ -5,7 +5,7 @@ import com.athaydes.osgiaas.api.cli.StreamingCommand
 import com.athaydes.osgiaas.api.cli.args.ArgsSpec
 import com.athaydes.osgiaas.api.stream.LineOutputStream
 import groovy.transform.CompileStatic
-import org.osgi.service.component.ComponentContext
+import org.osgi.framework.BundleContext
 
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Consumer
@@ -17,7 +17,7 @@ class GroovyCommand implements StreamingCommand {
     static final String SHOW_PRE_ARG = '--pre'
     static final String CLEAN_PRE_ARG = '--pre-clean'
 
-    private final AtomicReference<ComponentContext> contextRef = new AtomicReference<>()
+    private final AtomicReference<BundleContext> contextRef = new AtomicReference<>()
 
     final GroovyShell shell = new GroovyShell()
     final List<String> pre = [ ]
@@ -126,11 +126,11 @@ class GroovyCommand implements StreamingCommand {
         }
     }
 
-    void activate( ComponentContext context ) throws Exception {
+    void activate( BundleContext context ) throws Exception {
         contextRef.set context
     }
 
-    void deactivate( ComponentContext context ) throws Exception {
+    void deactivate( BundleContext context ) throws Exception {
         contextRef.set null
     }
 

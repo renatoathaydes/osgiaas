@@ -6,7 +6,7 @@ import com.athaydes.osgiaas.api.cli.completer.BaseCompleter;
 import com.athaydes.osgiaas.api.cli.completer.CompletionMatcher;
 import com.athaydes.osgiaas.api.service.DynamicServiceHelper;
 import com.athaydes.osgiaas.cli.command.ListResourcesCommand;
-import org.osgi.service.component.ComponentContext;
+import org.osgi.framework.BundleContext;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -14,13 +14,13 @@ import java.util.stream.Collectors;
 
 public class ListResourceCompleter implements CommandCompleter {
 
-    private final AtomicReference<ComponentContext> contextRef = new AtomicReference<>();
+    private final AtomicReference<BundleContext> contextRef = new AtomicReference<>();
 
-    public void activate( ComponentContext context ) {
+    public void activate( BundleContext context ) {
         contextRef.set( context );
     }
 
-    public void deactivate( ComponentContext context ) {
+    public void deactivate( BundleContext context ) {
         contextRef.set( null );
     }
 
