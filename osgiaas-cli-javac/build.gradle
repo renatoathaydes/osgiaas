@@ -1,0 +1,16 @@
+apply plugin: 'java'
+apply plugin: 'osgi'
+apply plugin: 'com.athaydes.osgi-ds'
+apply plugin: 'maven'
+
+
+sourceCompatibility = 1.8
+
+dependencies {
+    compile project( ':osgiaas-cli-api' )
+    compile project( ':osgiaas-javac' )
+}
+
+declarativeServices {
+    declarations = project.file( 'src/main/osgi/declarativeServices.groovy' )
+}
