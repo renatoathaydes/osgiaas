@@ -1,0 +1,24 @@
+apply plugin: 'java'
+apply plugin: 'osgi'
+apply plugin: 'maven'
+
+sourceCompatibility = 1.8
+
+repositories {
+    jcenter()
+}
+
+jar {
+    manifest {
+        instruction 'Export-Package', 'com.athaydes.osgiaas.javac'
+    }
+}
+
+dependencies {
+    compile 'net.openhft:compiler:2.2.4', {
+        exclude group: 'org.slf4j'
+    }
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.slf4j:slf4j-api:1.7.21'
+}
+

@@ -4,7 +4,7 @@ buildscript {
         mavenLocal()
     }
     dependencies {
-        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.4.3"
+        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.5.1-SNAPSHOT"
     }
 }
 
@@ -32,6 +32,10 @@ dependencies {
     osgiRuntime 'org.apache.felix:org.apache.felix.log:1.0.1', {
         exclude group: '*'
     }
+
+    // enable slf4j support
+    osgiRuntime 'org.slf4j:osgi-over-slf4j:1.7.21'
+    osgiRuntime 'org.slf4j:slf4j-api:1.7.21'
 
     // OBR CLI commands
     osgiRuntime 'org.apache.felix:org.apache.felix.bundlerepository:2.0.6', {
