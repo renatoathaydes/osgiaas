@@ -166,11 +166,26 @@ public class CliRun implements Runnable {
 
         try {
             List<String> lines = new ArrayList<>( 2 );
+            boolean multiline = false;
             String line;
-            while ( ( line = consoleReader.readLine( lines.isEmpty() ? getPrompt() : "> " ) ) != null ) {
-                if ( line.endsWith( "\\" ) ) {
-                    lines.add( line.substring( 0, line.length() - 1 ) );
-                } else if ( !line.trim().isEmpty() || !lines.isEmpty() ) {
+            while ( ( line = consoleReader.readLine( multiline ? "" : getPrompt() ) ) != null ) {
+                String trimmedLine = line.trim();
+                final boolean execute;
+                if ( !multiline && trimmedLine.equals( ":{" ) ) {
+                    multiline = true;
+                    execute = false;
+                } else if ( multiline && trimmedLine.equals( ":}" ) ) {
+                    multiline = false;
+                    execute = true;
+                    line = "";
+                } else if ( multiline ) {
+                    lines.add( line );
+                    execute = false;
+                } else {
+                    execute = true;
+                }
+
+                if ( execute && ( !trimmedLine.isEmpty() || !lines.isEmpty() ) ) {
                     lines.add( line );
                     try {
                         runCommand( String.join( "\n", lines ) );
