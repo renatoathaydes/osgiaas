@@ -36,7 +36,7 @@ public class JavaCommand implements Command {
 
     @Override
     public String getUsage() {
-        return "java -r | -s |<java snippet>";
+        return "java -r | -s | <java snippet>";
     }
 
     @Override

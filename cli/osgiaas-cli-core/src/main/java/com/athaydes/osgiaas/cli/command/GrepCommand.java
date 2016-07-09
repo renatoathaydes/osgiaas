@@ -40,13 +40,15 @@ public class GrepCommand implements StreamingCommand {
     @Override
     public String getShortDescription() {
         return "Shows only input text lines matching a regular expression.\n" +
-                "Because it is not possible to enter multiple lines manually, this command is often used to filter " +
-                "output from other commands via the '|' (pipe) operator.\n" +
+                "This command is often used to filter " +
+                "output from other commands via the '|' (pipe) operator (see example).\n\n" +
                 "The grep command accepts the following flags:\n" +
                 "  \n" +
                 "  * -i: case insensitive regex.\n" +
                 "  * -B <num>: num is the number of lines to print before each match.\n" +
-                "  * -A <num>: num is the number of lines to print after each match.";
+                "  * -A <num>: num is the number of lines to print after each match.\n\n" +
+                "Example usage:\n\n" +
+                "> ps | grep cli\n";
     }
 
     @Override
