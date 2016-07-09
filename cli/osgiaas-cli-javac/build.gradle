@@ -7,8 +7,8 @@ apply plugin: 'maven'
 sourceCompatibility = 1.8
 
 dependencies {
-    compile project( ':osgiaas-cli-api' )
-    compile project( ':osgiaas-javac' )
+    compile project( ':cli:osgiaas-cli-api' )
+    compile project( ':lang:osgiaas-javac' )
 }
 
 declarativeServices {

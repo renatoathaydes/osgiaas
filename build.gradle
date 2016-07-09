@@ -50,7 +50,9 @@ runOsgi {
     bundles =
             // uncomment to include the Knopflerfish GUI
             // ['org.knopflerfish.bundle:desktop:5.0.1'] +
-            subprojects
+            subprojects.findAll {
+                it.name != 'cli' && it.name != 'lang'
+            }
 
     copyManifestTo 'generated-sources/MANIFEST.MF'
 

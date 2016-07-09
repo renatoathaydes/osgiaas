@@ -8,7 +8,7 @@ repositories {
 }
 
 dependencies {
-    compile project( ':osgiaas-cli-api' )
+    compile project( ':cli:osgiaas-cli-api' )
     compile 'org.osgi:osgi.core:6.0.0'
     compile 'org.osgi:osgi.cmpn:6.0.0'
 

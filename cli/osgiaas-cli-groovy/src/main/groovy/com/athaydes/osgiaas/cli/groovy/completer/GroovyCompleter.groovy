@@ -19,9 +19,6 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Function
 
 import static com.athaydes.osgiaas.api.cli.completer.CompletionMatcher.nameMatcher
-import static com.athaydes.osgiaas.cli.groovy.command.GroovyCommand.ADD_PRE_ARG
-import static com.athaydes.osgiaas.cli.groovy.command.GroovyCommand.CLEAN_PRE_ARG
-import static com.athaydes.osgiaas.cli.groovy.command.GroovyCommand.SHOW_PRE_ARG
 
 @CompileStatic
 class GroovyCompleter implements CommandCompleter {
@@ -33,9 +30,9 @@ class GroovyCompleter implements CommandCompleter {
 
     final BaseCompleter argsMatcher = new BaseCompleter( nameMatcher( 'groovy',
             CompletionMatcher.alternativeMatchers(
-                    nameMatcher( SHOW_PRE_ARG ),
-                    nameMatcher( CLEAN_PRE_ARG ),
-                    nameMatcher( ADD_PRE_ARG )
+                    nameMatcher( GroovyCommand.SHOW_PRE_ARG ),
+                    nameMatcher( GroovyCommand.CLEAN_PRE_ARG ),
+                    nameMatcher( GroovyCommand.ADD_PRE_ARG )
             ) ) )
 
     @Override
