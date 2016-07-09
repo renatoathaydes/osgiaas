@@ -18,14 +18,14 @@ public class JavacServiceTest {
     public void canCompileSimpleJavaSnippets() throws Exception {
         String testClass = getClass().getName();
         Callable script = javacService.compileJavaSnippet(
-                testClass + ".string = \"my first test\";" );
+                testClass + ".string = \"my first test\";return null;" );
 
         script.call();
 
         assertEquals( "my first test", string );
 
         script = javacService.compileJavaSnippet(
-                testClass + ".integer = 23;" );
+                testClass + ".integer = 23;return null;" );
 
         script.call();
 
@@ -35,7 +35,7 @@ public class JavacServiceTest {
     @Test
     public void returnsValue() throws Exception {
         Callable script = javacService.compileJavaSnippet(
-                "2 + 2" );
+                "return 2 + 2;" );
 
         Object result = script.call();
 
@@ -43,11 +43,22 @@ public class JavacServiceTest {
     }
 
     @Test
-    public void doesNotRequireReturnValue() throws Exception {
-        Callable script = javacService.compileJavaSnippet(
-                "System.out.println(123);" );
+    public void canCompileMultilineJavaSnippets() throws Exception {
+        String testClass = getClass().getName();
 
-        script.call();
+        String snippet = "int i = 10;\n" +
+                "int j = 20;\n" +
+                "int k = i * j;\n" +
+                testClass + ".string = \"i + j = \" + k;\n" +
+                "return k;";
+
+        Callable script = javacService.compileJavaSnippet( snippet );
+
+        Object result = script.call();
+
+        assertEquals( "i + j = " + ( 10 * 20 ), string );
+        assertEquals( 10 * 20, result );
     }
+
 
 }
