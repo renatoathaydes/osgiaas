@@ -2,6 +2,10 @@ package com.athaydes.osgiaas.javac;
 
 import net.openhft.compiler.CompilerUtils;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -27,11 +31,17 @@ public class JavacService {
     }
 
     public Callable compileJavaSnippet( String javaSnippet ) {
-        return compileJavaSnippet( javaSnippet, getClass().getClassLoader() );
+        return compileJavaSnippet( javaSnippet, Collections.emptySet() );
     }
 
-    public Callable compileJavaSnippet( String javaSnippet, ClassLoader classLoader ) {
-        Snippet snippet = asCallableSnippet( javaSnippet );
+    public Callable compileJavaSnippet( String javaSnippet, Collection<String> imports ) {
+        return compileJavaSnippet( javaSnippet, imports, getClass().getClassLoader() );
+    }
+
+    public Callable compileJavaSnippet( String javaSnippet,
+                                        Collection<String> imports,
+                                        ClassLoader classLoader ) {
+        Snippet snippet = asCallableSnippet( javaSnippet, imports );
 
         try {
             return ( Callable ) compileJavaClass(
@@ -42,16 +52,27 @@ public class JavacService {
         }
     }
 
-    private static Snippet asCallableSnippet( String snippet ) {
+    private static Snippet asCallableSnippet( String snippet, Collection<String> imports ) {
         String className = "JavaSnippet" + classCount.getAndIncrement();
 
-        return new Snippet( className, "package " + packageName + ";" +
-                "import java.util.concurrent.Callable;" +
-                "public class " + className + " implements Callable {" +
+        Set<String> importSet = new HashSet<>( imports );
+        importSet.add( "java.util.concurrent.Callable" );
+
+        String importStatements = importSet.stream()
+                .map( it -> "import " + it + ";\n" )
+                .reduce( ( a, b ) -> a + b ).orElse( "" );
+
+        return new Snippet( className, "package " + packageName + ";\n" +
+                importStatements +
+                "public class " + className + " implements Callable {\n" +
                 "public Object call() throws Exception {\n" +
                 "" + snippet +
-                "\n}" +
+                "\n}\n" +
                 "}" );
+    }
+
+    public String getJavaSnippetClass( String snippet, Collection<String> imports ) {
+        return asCallableSnippet( snippet, imports ).code;
     }
 
     public static void main( String[] args ) throws Exception {

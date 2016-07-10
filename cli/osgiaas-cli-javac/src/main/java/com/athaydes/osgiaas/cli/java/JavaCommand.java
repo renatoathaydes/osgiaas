@@ -7,8 +7,6 @@ import com.athaydes.osgiaas.javac.JavacService;
 import org.apache.felix.shell.Command;
 
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.List;
 
 public class JavaCommand implements Command {
 
@@ -22,8 +20,7 @@ public class JavaCommand implements Command {
                     .separatorCode( ';' );
 
     private final JavacService javacService = new JavacService();
-    private List<String> javaLines = new ArrayList<>();
-
+    private final JavaCode code = new JavaCode();
     private final ArgsSpec javaArgs = ArgsSpec.builder()
             .accepts( RESET_ARG )
             .accepts( SHOW_ARG )
@@ -72,14 +69,16 @@ public class JavaCommand implements Command {
 
     @Override
     public void execute( String line, PrintStream out, PrintStream err ) {
-        CommandInvocation invocation = javaArgs.parse( line );
+        // FIXME this is breaking multi-line input, the first line's separator is removed
+        CommandInvocation invocation = javaArgs.parse( line, JAVA_OPTIONS );
 
         if ( invocation.hasArg( RESET_ARG ) ) {
-            javaLines.clear();
+            code.clear();
         }
 
         if ( invocation.hasArg( SHOW_ARG ) ) {
-            out.println( buildSnippet( javaLines ) );
+            out.println( javacService.getJavaSnippetClass(
+                    code.getExecutableCode(), code.getImports() ) );
         }
 
         if ( !invocation.getUnprocessedInput().isEmpty() ) {
@@ -88,54 +87,33 @@ public class JavaCommand implements Command {
     }
 
     private void runJava( String input, PrintStream out, PrintStream err ) {
-        List<String> toExecute = breakupJavaLines( input );
+        breakupJavaLines( input );
 
-        computeFinalLine( toExecute );
-
-        // TODO allow imports
         try {
             Object result = javacService.compileJavaSnippet(
-                    buildSnippet( toExecute ), getClass().getClassLoader()
+                    code.getExecutableCode(), code.getImports(), getClass().getClassLoader()
             ).call();
 
-            // remember all lines except the final line for the next execution
-            toExecute.remove( toExecute.size() - 1 );
-            javaLines = toExecute;
+            code.commit();
 
             if ( result != null ) {
                 out.println( result );
             }
-        } catch ( Exception e ) {
+        } catch ( Throwable e ) {
+            code.abort();
             err.println( e.getCause() );
         }
     }
 
-    private static String buildSnippet( List<String> toExecute ) {
-        return String.join( ";\n", toExecute ) + ";";
-    }
-
-    private List<String> breakupJavaLines( String code ) {
-        List<String> toExecute = new ArrayList<>( javaLines );
-        CommandHelper.breakupArguments( code, ( javaLine ) -> {
+    private void breakupJavaLines( String input ) {
+        CommandHelper.breakupArguments( input, ( javaLine ) -> {
             javaLine = javaLine.trim();
             if ( !javaLine.isEmpty() ) {
-                toExecute.add( javaLine );
+                code.addLine( javaLine );
             }
             return true;
         }, JAVA_OPTIONS );
-
-        return toExecute;
     }
 
-    private static void computeFinalLine( List<String> toExecute ) {
-        String defaultFinalLine = "return null";
 
-        String finalLine = toExecute.isEmpty() ?
-                defaultFinalLine :
-                toExecute.get( toExecute.size() - 1 );
-
-        if ( !finalLine.startsWith( "return " ) ) {
-            toExecute.add( defaultFinalLine );
-        }
-    }
 }

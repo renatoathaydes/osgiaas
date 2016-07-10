@@ -2,6 +2,8 @@ package com.athaydes.osgiaas.javac;
 
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import static org.junit.Assert.assertEquals;
@@ -58,6 +60,19 @@ public class JavacServiceTest {
 
         assertEquals( "i + j = " + ( 10 * 20 ), string );
         assertEquals( 10 * 20, result );
+    }
+
+    @Test
+    public void canUseImportsInJavaSnippets() throws Exception {
+        List<String> imports = Arrays.asList( "java.util.Arrays", "java.util.List" );
+        String snippet = "List<Integer> ints = Arrays.asList(2, 4, 6);\n" +
+                "return ints;";
+
+        Callable script = javacService.compileJavaSnippet( snippet, imports );
+
+        Object result = script.call();
+
+        assertEquals( Arrays.asList( 2, 4, 6 ), result );
     }
 
 
