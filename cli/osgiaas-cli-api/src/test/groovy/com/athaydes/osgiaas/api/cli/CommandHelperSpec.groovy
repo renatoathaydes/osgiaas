@@ -143,14 +143,15 @@ class CommandHelperSpec extends Specification {
         result == expectedResult
 
         where:
-        args          | expectedResult
-        ''            | [ ]
-        'ab :%c%'     | [ 'ab ', '%c%' ]
-        'ab%c%'       | [ 'ab%c%' ]
-        'ab:% :c: %'  | [ 'ab', '% :c: %' ]
-        'ab:$ :c: $'  | [ 'ab', '$ :c: $' ]
-        'ab:% :c: $'  | [ 'ab', '% :c: $' ]
-        'ab:$c$:%%:d' | [ 'ab', '$c$', '%%', 'd' ]
+        args                  | expectedResult
+        ''                    | [ ]
+        'ab :%c%'             | [ 'ab ', '%c%' ]
+        'ab%c%'               | [ 'ab%c%' ]
+        'ab:% :c: %'          | [ 'ab', '% :c: %' ]
+        'ab:$ :c: $'          | [ 'ab', '$ :c: $' ]
+        'ab:% :c: $'          | [ 'ab', '% :c: $' ]
+        'ab:$c$:%%:d'         | [ 'ab', '$c$', '%%', 'd' ]
+        'S.o.println(%hi%):x' | [ 'S.o.println(%hi%)', 'x' ]
     }
 
     @Unroll
