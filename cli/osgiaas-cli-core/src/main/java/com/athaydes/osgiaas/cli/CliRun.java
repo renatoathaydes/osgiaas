@@ -31,19 +31,16 @@ public class CliRun implements Runnable {
     private final AtomicBoolean started;
     private final CommandRunner commandRunner;
     private final CliProperties cliProperties;
-
-    @Nullable
-    private volatile Thread thread = null;
+    private final InterruptableInputStream input;
 
     public CliRun( CommandRunner commandRunner,
                    CliProperties cliProperties )
             throws IOException {
         this.commandRunner = commandRunner;
         this.cliProperties = cliProperties;
+        this.input = new InterruptableInputStream( System.in );
 
-        consoleReader = new ConsoleReader(
-                new InterruptableInputStream( System.in ),
-                System.out );
+        consoleReader = new ConsoleReader( input, System.out );
 
         started = new AtomicBoolean( false );
         consoleReader.setPrompt( getPrompt() );
@@ -104,11 +101,11 @@ public class CliRun implements Runnable {
                     commandRunner.runCommand( fileScanner.nextLine(), out, err );
                     index++;
                 }
-
-                showStatus( "" );
             }
         } catch ( Exception e ) {
             System.err.println( "Unable to load osgiaas-cli history: " + e );
+        } finally {
+            showStatus( "" );
         }
 
     }
@@ -122,11 +119,7 @@ public class CliRun implements Runnable {
     }
 
     public void stop() {
-        @Nullable
-        Thread currentThread = thread;
-        if ( currentThread != null ) {
-            currentThread.interrupt();
-        }
+        input.interrupt();
     }
 
     private String getPrompt() {
@@ -135,10 +128,7 @@ public class CliRun implements Runnable {
 
         String using = "";
         if ( !commandBeingUsed.isEmpty() ) {
-            if ( commandBeingUsed.length() > 3 ) {
-                commandBeingUsed = commandBeingUsed.substring( 0, 3 );
-            }
-            using = Ansi.applyAnsi( commandBeingUsed + "-",
+            using = Ansi.applyAnsi( "[using " + commandBeingUsed.trim() + "]\n",
                     new AnsiColor[]{ promptColor },
                     AnsiModifier.ITALIC, AnsiModifier.HIGH_INTENSITY ) + AnsiColor.RESET;
         }
@@ -161,8 +151,6 @@ public class CliRun implements Runnable {
         }
 
         runInitialCommands();
-
-        thread = Thread.currentThread();
 
         try {
             List<String> lines = new ArrayList<>( 2 );
@@ -202,11 +190,12 @@ public class CliRun implements Runnable {
             }
 
             System.out.println( Ansi.applyColor( "Bye!", AnsiColor.BLUE ) );
-            consoleReader.shutdown();
         } catch ( Exception e ) {
-            // only print stacktrace if the CLI was not interrupted by the user
-            //noinspection ConstantConditions
-            if ( !( e instanceof InterruptedException ) ) {
+            e.printStackTrace();
+        } finally {
+            try {
+                consoleReader.shutdown();
+            } catch ( Exception e ) {
                 e.printStackTrace();
             }
         }

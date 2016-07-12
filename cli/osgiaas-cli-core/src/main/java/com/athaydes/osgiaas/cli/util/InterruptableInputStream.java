@@ -6,6 +6,9 @@ import java.io.InputStream;
 public class InterruptableInputStream extends InputStream {
 
     private final InputStream in;
+    private volatile boolean alive = true;
+
+    private long idleCycles = 1L;
 
     public InterruptableInputStream( InputStream in ) {
         this.in = in;
@@ -13,19 +16,31 @@ public class InterruptableInputStream extends InputStream {
 
     @Override
     public int read() throws IOException {
-        while ( !Thread.interrupted() ) {
+        long period = 25L;
+        long minCyclesToLongWait = 500L;
+        long longWaitCycles = 10L;
+
+        while ( alive ) {
             if ( in.available() > 0 ) {
+                idleCycles = 0;
                 return in.read();
             }
+            idleCycles++;
             try {
-                Thread.sleep( 25L );
+                long sleepCycles = ( idleCycles > minCyclesToLongWait ? longWaitCycles : 1L );
+                Thread.sleep( period * sleepCycles );
             } catch ( InterruptedException e ) {
+                e.printStackTrace();
                 break;
             }
         }
 
         // got interrupted, return -1 to report EOI
         return -1;
+    }
+
+    public void interrupt() {
+        alive = false;
     }
 
 }
