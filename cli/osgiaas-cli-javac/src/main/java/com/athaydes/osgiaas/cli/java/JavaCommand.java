@@ -15,9 +15,7 @@ public class JavaCommand implements Command {
 
     private static final CommandHelper.CommandBreakupOptions JAVA_OPTIONS =
             CommandHelper.CommandBreakupOptions.create()
-                    .includeQuotes( true )
-                    .includeSeparators( false )
-                    .separatorCode( ';' );
+                    .includeQuotes( true );
 
     private final JavacService javacService = new JavacService();
     private final JavaCode code = new JavaCode();
@@ -69,8 +67,8 @@ public class JavaCommand implements Command {
 
     @Override
     public void execute( String line, PrintStream out, PrintStream err ) {
-        // FIXME this is breaking multi-line input, the first line's separator is removed
-        CommandInvocation invocation = javaArgs.parse( line, JAVA_OPTIONS );
+        CommandInvocation invocation = javaArgs.parse( line,
+                JAVA_OPTIONS.separatorCode( ' ' ) );
 
         if ( invocation.hasArg( RESET_ARG ) ) {
             code.clear();
@@ -112,7 +110,7 @@ public class JavaCommand implements Command {
                 code.addLine( javaLine );
             }
             return true;
-        }, JAVA_OPTIONS );
+        }, JAVA_OPTIONS.separatorCode( ';' ) );
     }
 
 
