@@ -10,6 +10,7 @@ import org.apache.felix.shell.Command;
 import javax.annotation.Nullable;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -21,32 +22,38 @@ import java.util.function.Supplier;
 /**
  * OSGiaaS Shell.
  */
-public class OsgiaasShell {
+public class OsgiaasShell implements CommandRunner {
 
-    private final Supplier<Set<Command>> commandsProvider;
+    private final Commands commands;
     private final Supplier<List<CommandModifier>> modifiersProvider;
+
 
     private static final CommandHelper.CommandBreakupOptions pipesBreakupOptions =
             CommandHelper.CommandBreakupOptions.create()
                     .includeQuotes( true )
                     .separatorCode( '|' );
 
-    public OsgiaasShell( Supplier<Set<Command>> commandsProvider,
+    public OsgiaasShell( Commands commands,
                          Supplier<List<CommandModifier>> modifiersProvider ) {
-        this.commandsProvider = commandsProvider;
+        this.commands = commands;
         this.modifiersProvider = modifiersProvider;
     }
 
     public String[] getCommands() {
-        Set<Command> services = commandsProvider.get();
-        String[] result = new String[ services.size() ];
-        int i = 0;
-        for (Command cmd : services) {
-            result[ i++ ] = cmd.getName();
-        }
-        return result;
+        Set<String> commandNames = commands.getCommandNames();
+        return commandNames.toArray( new String[ commandNames.size() ] );
     }
 
+    @Override
+    public void runWhenAvailable( String userCommand, PrintStream out,
+                                  PrintStream err, Duration timeout ) {
+        String commandName = extractCommandNameFrom( userCommand );
+        commands.runNowOrLater( commandName,
+                ( cmd ) -> runCommand( userCommand, out, err ),
+                timeout );
+    }
+
+    @Override
     public void runCommand( String userCommand, PrintStream out, PrintStream err ) {
         List<CommandModifier> commandModifiers = modifiersProvider.get();
         LinkedList<List<Cmd>> commandsPipeline = new LinkedList<>();
@@ -151,7 +158,7 @@ public class OsgiaasShell {
 
     private Command tryGetCommand( String userCommand, PrintStream err ) {
         String commandName = extractCommandNameFrom( userCommand );
-        @Nullable Command cmd = findCommand( commandName );
+        @Nullable Command cmd = commands.getCommand( commandName );
         if ( cmd == null ) {
             err.println( "Command not found: " + commandName );
             return null;
@@ -169,16 +176,6 @@ public class OsgiaasShell {
         } else {
             return userCommand.substring( 0, cmdLastIndex );
         }
-    }
-
-    @Nullable
-    private Command findCommand( String name ) {
-        for (Command cmd : commandsProvider.get()) {
-            if ( cmd.getName().equals( name ) ) {
-                return cmd;
-            }
-        }
-        return null;
     }
 
     static class Cmd {

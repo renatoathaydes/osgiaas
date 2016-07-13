@@ -4,7 +4,6 @@ import com.athaydes.osgiaas.api.ansi.Ansi;
 import com.athaydes.osgiaas.api.ansi.AnsiColor;
 import com.athaydes.osgiaas.api.ansi.AnsiModifier;
 import com.athaydes.osgiaas.api.cli.CliProperties;
-import com.athaydes.osgiaas.api.stream.NoOpPrintStream;
 import com.athaydes.osgiaas.cli.util.InterruptableInputStream;
 import com.athaydes.osgiaas.cli.util.OsgiaasPrintStream;
 import jline.console.ConsoleReader;
@@ -14,10 +13,8 @@ import jline.console.history.FileHistory;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -25,7 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * <p>
  * It allows the management of a CLI session without worrying about threading issues.
  */
-public class CliRun implements Runnable {
+class CliRun implements Runnable {
 
     private final ConsoleReader consoleReader;
     private final AtomicBoolean started;
@@ -33,15 +30,14 @@ public class CliRun implements Runnable {
     private final CliProperties cliProperties;
     private final InterruptableInputStream input;
 
-    public CliRun( CommandRunner commandRunner,
-                   CliProperties cliProperties )
+    CliRun( CommandRunner commandRunner,
+            CliProperties cliProperties )
             throws IOException {
         this.commandRunner = commandRunner;
         this.cliProperties = cliProperties;
         this.input = new InterruptableInputStream( System.in );
 
         consoleReader = new ConsoleReader( input, System.out );
-
         started = new AtomicBoolean( false );
         consoleReader.setPrompt( getPrompt() );
     }
@@ -73,43 +69,6 @@ public class CliRun implements Runnable {
         }
     }
 
-    private void runInitialCommands() {
-        try {
-            File userHome = new File( System.getProperty( "user.home", "." ) );
-            @Nullable
-            String initFileLocation = System.getProperty( "osgiaas.cli.init" );
-            File initFile;
-            if ( initFileLocation == null ) {
-                initFile = new File( userHome, ".osgiaas_cli_init" );
-            } else {
-                initFile = new File( initFileLocation );
-            }
-            if ( initFile.exists() ) {
-                showStatus( "Running init commands" );
-                Thread.sleep( 250L ); // allows commands to be loaded
-
-                Scanner fileScanner = new Scanner( initFile );
-
-                PrintStream out = new NoOpPrintStream();
-                OsgiaasPrintStream err = new OsgiaasPrintStream(
-                        System.err, cliProperties.getErrorColor() );
-
-                int index = 1;
-
-                while ( fileScanner.hasNextLine() ) {
-                    showStatus( "Running init commands [" + index + "]" );
-                    commandRunner.runCommand( fileScanner.nextLine(), out, err );
-                    index++;
-                }
-            }
-        } catch ( Exception e ) {
-            System.err.println( "Unable to load osgiaas-cli history: " + e );
-        } finally {
-            showStatus( "" );
-        }
-
-    }
-
     private void showStatus( String status ) {
         try {
             consoleReader.resetPromptLine( "", status, -1 );
@@ -118,7 +77,7 @@ public class CliRun implements Runnable {
         }
     }
 
-    public void stop() {
+    void stop() {
         input.interrupt();
     }
 
@@ -145,12 +104,12 @@ public class CliRun implements Runnable {
             return;
         }
 
+        InitCommandsRunner.scheduleInitCommands( cliProperties, commandRunner, this::showStatus );
+
         @Nullable FileHistory history = loadHistory();
         if ( history != null ) {
             consoleReader.setHistory( history );
         }
-
-        runInitialCommands();
 
         try {
             List<String> lines = new ArrayList<>( 2 );
@@ -211,7 +170,7 @@ public class CliRun implements Runnable {
         commandRunner.runCommand( line, out, err );
     }
 
-    public void clearScreen() {
+    void clearScreen() {
         try {
             consoleReader.clearScreen();
         } catch ( IOException e ) {

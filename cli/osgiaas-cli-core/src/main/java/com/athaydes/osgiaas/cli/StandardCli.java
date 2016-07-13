@@ -14,18 +14,17 @@ import org.apache.felix.shell.Command;
 
 import java.io.IOException;
 import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
+@SuppressWarnings( "unused" ) // Declarative Service Component
 public class StandardCli extends HasManyServices<CommandModifier>
         implements Cli, CliProperties {
 
     private final AtomicReference<CliRun> currentRun = new AtomicReference<>();
     private final AtomicReference<KnowsCommandBeingUsed> knowsCommandBeingUsed = new AtomicReference<>();
-    private final AtomicReference<Set<Command>> commands = new AtomicReference<>( new HashSet<>( 2 ) );
-    private final OsgiaasShell shell = new OsgiaasShell( commands::get, this::getServices );
+    private final Commands commands = new Commands();
+    private final OsgiaasShell shell = new OsgiaasShell( commands, this::getServices );
 
     private final HasManyCommandCompleters completers = new HasManyCommandCompleters() {
         @Override
@@ -64,7 +63,7 @@ public class StandardCli extends HasManyServices<CommandModifier>
             Thread thread;
 
             synchronized ( currentRun ) {
-                CliRun cli = new CliRun( shell::runCommand, this );
+                CliRun cli = new CliRun( shell, this );
                 thread = new Thread( cli );
                 currentRun.set( cli );
             }
@@ -131,18 +130,11 @@ public class StandardCli extends HasManyServices<CommandModifier>
     }
 
     public void addCommand( Command command ) {
-        commands.updateAndGet( cmds -> {
-            cmds.add( command );
-            return new HashSet<>( cmds );
-        } );
-
+        commands.addCommand( command );
     }
 
     public void removeCommand( Command command ) {
-        commands.updateAndGet( cmds -> {
-            cmds.remove( command );
-            return new HashSet<>( cmds );
-        } );
+        commands.removeCommand( command );
     }
 
     public void setKnowsCommandBeingUsed( KnowsCommandBeingUsed knowsCommandBeingUsed ) {
