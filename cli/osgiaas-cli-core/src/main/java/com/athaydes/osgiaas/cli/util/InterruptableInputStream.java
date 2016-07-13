@@ -17,7 +17,8 @@ public class InterruptableInputStream extends InputStream {
     @Override
     public int read() throws IOException {
         long period = 25L;
-        long minCyclesToLongWait = 500L;
+        long minCyclesToLongWait = 40L
+                * 120L;// seconds
         long longWaitCycles = 10L;
 
         while ( alive ) {
