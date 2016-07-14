@@ -15,6 +15,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -29,6 +31,7 @@ class CliRun implements Runnable {
     private final CommandRunner commandRunner;
     private final CliProperties cliProperties;
     private final InterruptableInputStream input;
+    private final CountDownLatch killWaiter = new CountDownLatch( 1 );
 
     CliRun( CommandRunner commandRunner,
             CliProperties cliProperties )
@@ -79,6 +82,11 @@ class CliRun implements Runnable {
 
     void stop() {
         input.interrupt();
+        try {
+            killWaiter.await( 500, TimeUnit.MILLISECONDS );
+        } catch ( InterruptedException e ) {
+            e.printStackTrace();
+        }
     }
 
     private String getPrompt() {
@@ -149,14 +157,16 @@ class CliRun implements Runnable {
             }
 
             System.out.println( Ansi.applyColor( "Bye!", AnsiColor.BLUE ) );
-        } catch ( Exception e ) {
+        } catch ( Throwable e ) {
             e.printStackTrace();
         } finally {
             try {
                 consoleReader.shutdown();
-            } catch ( Exception e ) {
+            } catch ( Throwable e ) {
                 e.printStackTrace();
             }
+
+            killWaiter.countDown();
         }
     }
 
