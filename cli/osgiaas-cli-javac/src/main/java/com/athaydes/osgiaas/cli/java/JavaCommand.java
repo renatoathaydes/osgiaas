@@ -99,7 +99,7 @@ public class JavaCommand implements Command {
             }
         } catch ( Throwable e ) {
             code.abort();
-            err.println( e.getCause() );
+            err.println( e );
         }
     }
 
