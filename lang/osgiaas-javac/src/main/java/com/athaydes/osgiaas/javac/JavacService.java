@@ -2,8 +2,6 @@ package com.athaydes.osgiaas.javac;
 
 import net.openhft.compiler.CompilerUtils;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -30,61 +28,72 @@ public class JavacService {
         }
     }
 
-    public Callable compileJavaSnippet( String javaSnippet ) {
-        return compileJavaSnippet( javaSnippet, Collections.emptySet() );
+    public Callable compileJavaSnippet( String snippet, ClassLoader classLoader ) {
+        return compileJavaSnippet(
+                JavaSnippet.Builder.withCode( snippet ),
+                classLoader );
     }
 
-    public Callable compileJavaSnippet( String javaSnippet, Collection<String> imports ) {
-        return compileJavaSnippet( javaSnippet, imports, getClass().getClassLoader() );
+    public Callable compileJavaSnippet( String snippet ) {
+        return compileJavaSnippet(
+                JavaSnippet.Builder.withCode( snippet ),
+                getClass().getClassLoader() );
     }
 
-    public Callable compileJavaSnippet( String javaSnippet,
-                                        Collection<String> imports,
-                                        ClassLoader classLoader ) {
-        Snippet snippet = asCallableSnippet( javaSnippet, imports );
+    public Callable compileJavaSnippet( JavaSnippet snippet ) {
+        return compileJavaSnippet( snippet, getClass().getClassLoader() );
+    }
+
+    public Callable compileJavaSnippet( JavaSnippet snippet, ClassLoader classLoader ) {
+        SnippetClass snippetClass = asCallableSnippet( snippet );
 
         try {
             return ( Callable ) compileJavaClass(
-                    classLoader, snippet.qualifiedName, snippet.code
+                    classLoader, snippetClass.qualifiedName, snippetClass.code
             ).newInstance();
         } catch ( Exception e ) {
             throw new RuntimeException( e );
         }
     }
 
-    private static Snippet asCallableSnippet( String snippet, Collection<String> imports ) {
+    private static SnippetClass asCallableSnippet( JavaSnippet snippet ) {
         String className = "JavaSnippet" + classCount.getAndIncrement();
 
-        Set<String> importSet = new HashSet<>( imports );
+        Set<String> importSet = new HashSet<>( snippet.getImports() );
         importSet.add( "java.util.concurrent.Callable" );
 
         String importStatements = importSet.stream()
                 .map( it -> "import " + it + ";\n" )
                 .reduce( ( a, b ) -> a + b ).orElse( "" );
 
-        return new Snippet( className, "package " + packageName + ";\n" +
+        String classes = snippet.getClassDefinitions().stream()
+                .map( it -> it + "\n" )
+                .reduce( ( a, b ) -> a + b ).orElse( "" );
+
+        return new SnippetClass( className, "package " + packageName + ";\n" +
                 importStatements +
+                ( classes.isEmpty() ? "" : "\n" + classes ) +
                 "public class " + className + " implements Callable {\n" +
                 "public Object call() throws Exception {\n" +
-                "" + snippet +
-                "\n}\n" +
+                "" + snippet.getExecutableCode() + "\n" +
+                "}\n" +
                 "}" );
     }
 
-    public String getJavaSnippetClass( String snippet, Collection<String> imports ) {
-        return asCallableSnippet( snippet, imports ).code;
+    public String getJavaSnippetClass( String snippet ) {
+        return getJavaSnippetClass( JavaSnippet.Builder.withCode( snippet ) );
     }
 
-    public static void main( String[] args ) throws Exception {
-        new JavacService().compileJavaSnippet( "System.out.println(\"Hello, World!\")" ).call();
+    public String getJavaSnippetClass( JavaSnippet snippet ) {
+        return asCallableSnippet( snippet ).code;
     }
 
-    private static class Snippet {
+    private static class SnippetClass {
         final String qualifiedName;
         final String className;
         final String code;
 
-        public Snippet( String className, String code ) {
+        public SnippetClass( String className, String code ) {
             this.code = code;
             this.className = className;
             this.qualifiedName = packageName + "." + className;

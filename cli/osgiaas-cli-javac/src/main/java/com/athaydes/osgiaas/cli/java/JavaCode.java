@@ -1,5 +1,7 @@
 package com.athaydes.osgiaas.cli.java;
 
+import com.athaydes.osgiaas.javac.JavaSnippet;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -10,12 +12,14 @@ import java.util.stream.Stream;
 /**
  * Keeps state about the Java code to be executed in the shell.
  */
-class JavaCode {
+class JavaCode implements JavaSnippet {
     private final LinkedList<String> javaLines = new LinkedList<>();
     private final LinkedList<String> tempJavaLines = new LinkedList<>();
 
     private final Set<String> imports = new HashSet<>();
     private final Set<String> tempImports = new HashSet<>();
+
+    private final Set<String> tempClassDefs = new HashSet<>();
 
     void addLine( String line ) {
         if ( line.startsWith( "import " ) ) {
@@ -25,23 +29,35 @@ class JavaCode {
         }
     }
 
+    void addClass( String ClassDef ) {
+        tempClassDefs.add( ClassDef );
+    }
+
     void clear() {
         tempJavaLines.clear();
         javaLines.clear();
         tempImports.clear();
         imports.clear();
+        tempClassDefs.clear();
     }
 
-    String getExecutableCode() {
+    @Override
+    public String getExecutableCode() {
         String finalLine = computeFinalLine();
         return Stream.concat( javaLines.stream(), tempJavaLines.stream() )
                 .map( it -> it + ";\n" )
                 .reduce( "", ( a, b ) -> a + b ) + finalLine;
     }
 
-    Collection<String> getImports() {
+    @Override
+    public Collection<String> getImports() {
         return Stream.concat( imports.stream(), tempImports.stream() )
                 .collect( Collectors.toSet() );
+    }
+
+    @Override
+    public Collection<String> getClassDefinitions() {
+        return tempClassDefs;
     }
 
     void commit() {
@@ -54,11 +70,13 @@ class JavaCode {
         tempJavaLines.clear();
         imports.addAll( tempImports );
         tempImports.clear();
+        tempClassDefs.clear();
     }
 
     void abort() {
         tempJavaLines.clear();
         tempImports.clear();
+        tempClassDefs.clear();
     }
 
     private String computeFinalLine() {

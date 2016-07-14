@@ -68,7 +68,8 @@ public class JavacServiceTest {
         String snippet = "List<Integer> ints = Arrays.asList(2, 4, 6);\n" +
                 "return ints;";
 
-        Callable script = javacService.compileJavaSnippet( snippet, imports );
+        Callable script = javacService.compileJavaSnippet(
+                JavaSnippet.Builder.withCode( snippet ).withImports( imports ) );
 
         Object result = script.call();
 

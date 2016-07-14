@@ -12,6 +12,7 @@ public class JavaCommand implements Command {
 
     private static final String RESET_ARG = "-r";
     private static final String SHOW_ARG = "-s";
+    private static final String CLASS_ARG = "-c";
 
     private static final CommandHelper.CommandBreakupOptions JAVA_OPTIONS =
             CommandHelper.CommandBreakupOptions.create()
@@ -22,6 +23,7 @@ public class JavaCommand implements Command {
     private final ArgsSpec javaArgs = ArgsSpec.builder()
             .accepts( RESET_ARG )
             .accepts( SHOW_ARG )
+            .accepts( CLASS_ARG )
             .build();
 
     @Override
@@ -31,7 +33,8 @@ public class JavaCommand implements Command {
 
     @Override
     public String getUsage() {
-        return "java -r | -s | <java snippet>";
+        return "java [-r | -s | <java snippet>] | " +
+                "[-c <class definition>]";
     }
 
     @Override
@@ -44,13 +47,14 @@ public class JavaCommand implements Command {
                 "  \n" +
                 "  * -r: reset the current statement buffer.\n" +
                 "  * -s: show the current statement buffer.\n" +
+                "  * -c: define a separate class.\n" +
                 "\n" +
                 "Simple example:\n\n" +
                 "> java return 2 + 2\n" +
                 "< 4\n\n" +
-                "Multi-line example:\n\n" +
+                "Multi-line example to define a separate class:\n\n" +
                 "> :{\n" +
-                "java class Person {\n" +
+                "java -c class Person {\n" +
                 "  String name;\n" +
                 "  int age;\n" +
                 "  Person(String name, int age) {\n" +
@@ -74,13 +78,22 @@ public class JavaCommand implements Command {
             code.clear();
         }
 
-        if ( invocation.hasArg( SHOW_ARG ) ) {
-            out.println( javacService.getJavaSnippetClass(
-                    code.getExecutableCode(), code.getImports() ) );
+        String codeToRun = invocation.getUnprocessedInput();
+
+        if ( invocation.hasArg( CLASS_ARG ) ) {
+            String classDef = codeToRun;
+            code.addClass( classDef );
+
+            // let neutral code run to validate the class definition
+            codeToRun = "return null;";
         }
 
-        if ( !invocation.getUnprocessedInput().isEmpty() ) {
-            runJava( invocation.getUnprocessedInput(), out, err );
+        if ( invocation.hasArg( SHOW_ARG ) ) {
+            out.println( javacService.getJavaSnippetClass( code ) );
+        }
+
+        if ( !codeToRun.isEmpty() ) {
+            runJava( codeToRun, out, err );
         }
     }
 
@@ -89,7 +102,7 @@ public class JavaCommand implements Command {
 
         try {
             Object result = javacService.compileJavaSnippet(
-                    code.getExecutableCode(), code.getImports(), getClass().getClassLoader()
+                    code, getClass().getClassLoader()
             ).call();
 
             code.commit();
