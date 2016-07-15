@@ -9,6 +9,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singleton;
+
 /**
  * Keeps state about the Java code to be executed in the shell.
  */
@@ -19,7 +22,7 @@ class JavaCode implements JavaSnippet {
     private final Set<String> imports = new HashSet<>();
     private final Set<String> tempImports = new HashSet<>();
 
-    private final Set<String> tempClassDefs = new HashSet<>();
+    private String tempClassDef = "";
 
     void addLine( String line ) {
         if ( line.startsWith( "import " ) ) {
@@ -29,16 +32,21 @@ class JavaCode implements JavaSnippet {
         }
     }
 
-    void addClass( String ClassDef ) {
-        tempClassDefs.add( ClassDef );
+    void setClassDef( String classDef ) {
+        tempClassDef = classDef;
     }
 
-    void clear() {
+    void clearCode() {
+        tempJavaLines.clear();
+        javaLines.clear();
+    }
+
+    void clearAll() {
         tempJavaLines.clear();
         javaLines.clear();
         tempImports.clear();
         imports.clear();
-        tempClassDefs.clear();
+        tempClassDef = "";
     }
 
     @Override
@@ -57,7 +65,9 @@ class JavaCode implements JavaSnippet {
 
     @Override
     public Collection<String> getClassDefinitions() {
-        return tempClassDefs;
+        return tempClassDef.isEmpty() ?
+                emptyList() :
+                singleton( tempClassDef );
     }
 
     void commit() {
@@ -70,13 +80,13 @@ class JavaCode implements JavaSnippet {
         tempJavaLines.clear();
         imports.addAll( tempImports );
         tempImports.clear();
-        tempClassDefs.clear();
+        tempClassDef = "";
     }
 
     void abort() {
         tempJavaLines.clear();
         tempImports.clear();
-        tempClassDefs.clear();
+        tempClassDef = "";
     }
 
     private String computeFinalLine() {

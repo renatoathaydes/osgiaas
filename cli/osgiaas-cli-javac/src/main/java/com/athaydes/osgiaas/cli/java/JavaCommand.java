@@ -10,7 +10,8 @@ import java.io.PrintStream;
 
 public class JavaCommand implements Command {
 
-    private static final String RESET_ARG = "-r";
+    private static final String RESET_CODE_ARG = "-r";
+    private static final String RESET_ALL_ARG = "-ra";
     private static final String SHOW_ARG = "-s";
     private static final String CLASS_ARG = "-c";
 
@@ -21,7 +22,8 @@ public class JavaCommand implements Command {
     private final JavacService javacService = new JavacService();
     private final JavaCode code = new JavaCode();
     private final ArgsSpec javaArgs = ArgsSpec.builder()
-            .accepts( RESET_ARG )
+            .accepts( RESET_CODE_ARG )
+            .accepts( RESET_ALL_ARG )
             .accepts( SHOW_ARG )
             .accepts( CLASS_ARG )
             .build();
@@ -45,9 +47,10 @@ public class JavaCommand implements Command {
                 "\n\n" +
                 "The java command accepts the following flags:\n" +
                 "  \n" +
-                "  * -r: reset the current statement buffer.\n" +
-                "  * -s: show the current statement buffer.\n" +
-                "  * -c: define a separate class.\n" +
+                "  * " + RESET_CODE_ARG + ": reset the current code statement buffer.\n" +
+                "  * " + RESET_ALL_ARG + ": reset the current code statement buffer and imports.\n" +
+                "  * " + SHOW_ARG + ": show the current statement buffer.\n" +
+                "  * " + CLASS_ARG + ": define a class.\n" +
                 "\n" +
                 "Simple example:\n\n" +
                 "> java return 2 + 2\n" +
@@ -74,15 +77,19 @@ public class JavaCommand implements Command {
         CommandInvocation invocation = javaArgs.parse( line,
                 JAVA_OPTIONS.separatorCode( ' ' ) );
 
-        if ( invocation.hasArg( RESET_ARG ) ) {
-            code.clear();
+        if ( invocation.hasArg( RESET_CODE_ARG ) ) {
+            code.clearCode();
+        }
+
+        if ( invocation.hasArg( RESET_ALL_ARG ) ) {
+            code.clearAll();
         }
 
         String codeToRun = invocation.getUnprocessedInput();
 
         if ( invocation.hasArg( CLASS_ARG ) ) {
             String classDef = codeToRun;
-            code.addClass( classDef );
+            code.setClassDef( classDef );
 
             // let neutral code run to validate the class definition
             codeToRun = "return null;";
