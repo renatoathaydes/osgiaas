@@ -142,6 +142,11 @@ class CliRun implements Runnable {
 
                 if ( execute && ( !trimmedLine.isEmpty() || !lines.isEmpty() ) ) {
                     lines.add( line );
+
+                    // adding a space after the first line allows the command to be recognized
+                    // when alone in the first line
+                    lines.set( 0, lines.get( 0 ) + " " );
+
                     try {
                         runCommand( String.join( "\n", lines ) );
                     } catch ( Throwable e ) {
