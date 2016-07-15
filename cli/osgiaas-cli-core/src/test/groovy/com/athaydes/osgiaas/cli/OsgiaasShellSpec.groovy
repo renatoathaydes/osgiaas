@@ -22,7 +22,12 @@ class OsgiaasShellSpec extends Specification {
             }
         }
 
-        def shell = new OsgiaasShell( { [ command ] as Set }, { [ ] } )
+        def commands = new Commands().with {
+            addCommand command
+            return it
+        }
+
+        def shell = new OsgiaasShell( commands, { [ ] } )
 
         and: 'mocked out streams'
         def outClosable = Mock( AutoCloseable )
@@ -54,7 +59,13 @@ class OsgiaasShellSpec extends Specification {
             if ( cmd ==~ 'hello.*' ) [ 'x' + cmd, 'y' + cmd ] else [ cmd ]
         } as CommandModifier
 
-        def shell = new OsgiaasShell( { [ xhello, yhello ] as Set }, { [ modifier ] } )
+        def commands = new Commands().with {
+            addCommand xhello
+            addCommand yhello
+            return it
+        }
+
+        def shell = new OsgiaasShell( commands, { [ modifier ] } )
 
         and: 'mocked out streams'
         def outClosable = Mock( AutoCloseable )
@@ -82,7 +93,14 @@ class OsgiaasShellSpec extends Specification {
         def command2 = mockSimpleCommand( null, 'c2', 'c22' )
         def command3 = mockSimpleCommand( null, 'c3', 'again c3' )
 
-        def shell = new OsgiaasShell( { [ command1, command2, command3 ] as Set }, { [ ] as Set } )
+        def commands = new Commands().with {
+            addCommand command1
+            addCommand command2
+            addCommand command3
+            return it
+        }
+
+        def shell = new OsgiaasShell( commands, { [ ] } )
 
         and: 'mocked out output streams'
         def outClosable = Mock( AutoCloseable )
@@ -118,7 +136,14 @@ class OsgiaasShellSpec extends Specification {
         def receiver3 = [ ]
         def command3 = mockStreamingCommand( receiver3, 'c3', 'again c3' )
 
-        def shell = new OsgiaasShell( { [ command1, command2, command3 ] as Set }, { [ ] as Set } )
+        def commands = new Commands().with {
+            addCommand command1
+            addCommand command2
+            addCommand command3
+            return it
+        }
+
+        def shell = new OsgiaasShell( commands, { [ ] } )
 
         and: 'mocked out output streams'
         def outClosable = Mock( AutoCloseable )
@@ -158,7 +183,14 @@ class OsgiaasShellSpec extends Specification {
         def receiver3 = [ ]
         def command3 = mockStreamingCommand( receiver3, 'c3', 'again c3' )
 
-        def shell = new OsgiaasShell( { [ command1, command2, command3 ] as Set }, { [ ] as Set } )
+        def commands = new Commands().with {
+            addCommand command1
+            addCommand command2
+            addCommand command3
+            return it
+        }
+
+        def shell = new OsgiaasShell( commands, { [ ] } )
 
         and: 'mocked out output streams'
         def outClosable = Mock( AutoCloseable )
