@@ -56,6 +56,9 @@ runOsgi {
 
     copyManifestTo 'generated-sources/MANIFEST.MF'
 
+    // enable debugging
+    javaArgs = '-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=n'
+
     // required by Groovy
     config += [ 'org.osgi.framework.system.packages.extra': 'sun.reflect,jdk.nashorn.api.scripting' ]
 
