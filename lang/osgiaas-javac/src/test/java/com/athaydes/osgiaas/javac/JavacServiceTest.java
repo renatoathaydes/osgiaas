@@ -3,6 +3,7 @@ package com.athaydes.osgiaas.javac;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -76,5 +77,17 @@ public class JavacServiceTest {
         assertEquals( Arrays.asList( 2, 4, 6 ), result );
     }
 
+    @Test
+    public void canDefineClass() throws Exception {
+        String classDef = "class Hello{ public static String get() {return \"hello\";}}";
+
+        Callable script = javacService.compileJavaSnippet(
+                JavaSnippet.Builder.withCode( "return Hello.get();" )
+                        .withClassDefinitions( Collections.singleton( classDef ) ) );
+
+        Object result = script.call();
+
+        assertEquals( "hello", result );
+    }
 
 }

@@ -15,8 +15,6 @@ public class JavacService {
     @SuppressWarnings( "FieldCanBeLocal" )
     private static final AtomicLong classCount = new AtomicLong( 0L );
 
-    private static final String packageName = "snippet";
-
     public Class compileJavaClass( ClassLoader classLoader,
                                    String qualifiedName,
                                    String code ) {
@@ -49,7 +47,7 @@ public class JavacService {
 
         try {
             return ( Callable ) compileJavaClass(
-                    classLoader, snippetClass.qualifiedName, snippetClass.code
+                    classLoader, snippetClass.className, snippetClass.code
             ).newInstance();
         } catch ( Exception e ) {
             throw new RuntimeException( e );
@@ -70,8 +68,7 @@ public class JavacService {
                 .map( it -> it + "\n" )
                 .reduce( ( a, b ) -> a + b ).orElse( "" );
 
-        return new SnippetClass( className, "package " + packageName + ";\n" +
-                importStatements +
+        return new SnippetClass( className, importStatements +
                 ( classes.isEmpty() ? "" : "\n" + classes ) +
                 "public class " + className + " implements Callable {\n" +
                 "public Object call() throws Exception {\n" +
@@ -89,14 +86,12 @@ public class JavacService {
     }
 
     private static class SnippetClass {
-        final String qualifiedName;
         final String className;
         final String code;
 
         public SnippetClass( String className, String code ) {
             this.code = code;
             this.className = className;
-            this.qualifiedName = packageName + "." + className;
         }
     }
 
