@@ -105,20 +105,14 @@ public class JavacServiceTest {
 
         // compiler error
         try {
-            javacService.compileJavaSnippet(
-                    JavaSnippet.Builder.withCode( "return null;" )
-                            .withClassDefinitions( Collections.singleton( errorDef ) ),
-                    classLoader );
+            javacService.compileJavaClass( classLoader, "Bad", errorDef );
             fail( "Should not have compiled class successfully" );
         } catch ( Throwable t ) {
             // ignore
         }
 
         // compile good class
-        javacService.compileJavaSnippet(
-                JavaSnippet.Builder.withCode( "return null;" )
-                        .withClassDefinitions( Collections.singleton( classDef ) ),
-                classLoader );
+        javacService.compileJavaClass( classLoader, "Good", classDef );
 
         // use good class
         Callable script = javacService.compileJavaSnippet(
