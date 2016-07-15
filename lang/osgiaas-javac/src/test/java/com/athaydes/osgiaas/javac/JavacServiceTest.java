@@ -1,13 +1,17 @@
 package com.athaydes.osgiaas.javac;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 @SuppressWarnings( "WeakerAccess" )
 public class JavacServiceTest {
@@ -89,5 +93,41 @@ public class JavacServiceTest {
 
         assertEquals( "hello", result );
     }
+
+    @Test
+    @Ignore( "Waiting for fix of bug: https://github.com/OpenHFT/Java-Runtime-Compiler/issues/12" )
+    public void canDefineClassAfterCompilerError() throws Exception {
+        String errorDef = "clazz Bad{ public String get() {return \"bad\";}}";
+        String classDef = "class Good{ public String get() {return \"good\";}}";
+
+        // use our own classloader to be more realistic
+        ClassLoader classLoader = new URLClassLoader( new URL[]{ } );
+
+        // compiler error
+        try {
+            javacService.compileJavaSnippet(
+                    JavaSnippet.Builder.withCode( "return null;" )
+                            .withClassDefinitions( Collections.singleton( errorDef ) ),
+                    classLoader );
+            fail( "Should not have compiled class successfully" );
+        } catch ( Throwable t ) {
+            // ignore
+        }
+
+        // compile good class
+        javacService.compileJavaSnippet(
+                JavaSnippet.Builder.withCode( "return null;" )
+                        .withClassDefinitions( Collections.singleton( classDef ) ),
+                classLoader );
+
+        // use good class
+        Callable script = javacService.compileJavaSnippet(
+                JavaSnippet.Builder.withCode( "return new Good().get();" ) );
+
+        Object result = script.call();
+
+        assertEquals( "good", result );
+    }
+
 
 }
