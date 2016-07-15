@@ -19,7 +19,7 @@ public class JavaCommand implements Command {
             CommandHelper.CommandBreakupOptions.create()
                     .includeQuotes( true );
 
-    private final JavacService javacService = new JavacService();
+    private final JavacService javacService = JavacService.createDefault();
     private final JavaCode code = new JavaCode();
     private final ArgsSpec javaArgs = ArgsSpec.builder()
             .accepts( RESET_CODE_ARG )

@@ -19,7 +19,7 @@ public class JavacServiceTest {
     public static String string;
     public static int integer;
 
-    private final JavacService javacService = new JavacService();
+    private final JavacService javacService = JavacService.createDefault();
 
     @Test
     public void canCompileSimpleJavaSnippets() throws Exception {
