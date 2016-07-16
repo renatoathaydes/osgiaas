@@ -106,11 +106,14 @@ public class JavaCommand implements Command {
                         getClass().getClassLoader(), className, codeToRun ) );
             }
         } else {
-            if ( invocation.hasArg( SHOW_ARG ) ) {
+            boolean show = invocation.hasArg( SHOW_ARG );
+
+            if ( show ) {
                 out.println( javacService.getJavaSnippetClass( code ) );
             }
 
-            if ( !codeToRun.isEmpty() ) {
+            // run the current code if some input was given, or in any case when no show option
+            if ( !codeToRun.isEmpty() || !show ) {
                 runJava( codeToRun, out, err );
             }
         }
