@@ -2,8 +2,10 @@ package com.athaydes.osgiaas.javac.internal;
 
 import com.athaydes.osgiaas.javac.JavaSnippet;
 import com.athaydes.osgiaas.javac.JavacService;
+import net.openhft.compiler.CachedCompiler;
 import net.openhft.compiler.CompilerUtils;
 
+import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -17,23 +19,29 @@ public class DefaultJavacService implements JavacService {
     @SuppressWarnings( "FieldCanBeLocal" )
     private static final AtomicLong classCount = new AtomicLong( 0L );
 
+    private final CachedCompiler compiler;
+
+    public DefaultJavacService() {
+        this.compiler = CompilerUtils.CACHED_COMPILER;
+    }
+
     @Override
     public Class compileJavaClass( ClassLoader classLoader,
                                    String qualifiedName,
                                    String code ) {
-        try {
-            return CompilerUtils.CACHED_COMPILER
-                    .loadFromJava( classLoader, qualifiedName, code );
-        } catch ( Exception e ) {
-            throw new RuntimeException( e );
-        }
+        return compileJavaClass( classLoader, qualifiedName, code, null );
     }
 
     @Override
-    public Callable compileJavaSnippet( String snippet, ClassLoader classLoader ) {
-        return compileJavaSnippet(
-                JavaSnippet.Builder.withCode( snippet ),
-                classLoader );
+    public Class compileJavaClass( ClassLoader classLoader,
+                                   String qualifiedName,
+                                   String code,
+                                   /*Nullable*/ PrintWriter printWriter ) {
+        try {
+            return compiler.loadFromJava( classLoader, qualifiedName, code, printWriter );
+        } catch ( Exception e ) {
+            throw new RuntimeException( e );
+        }
     }
 
     @Override
@@ -44,17 +52,37 @@ public class DefaultJavacService implements JavacService {
     }
 
     @Override
+    public Callable compileJavaSnippet( String snippet, ClassLoader classLoader ) {
+        return compileJavaSnippet(
+                JavaSnippet.Builder.withCode( snippet ),
+                classLoader );
+    }
+
+    @Override
+    public Callable compileJavaSnippet( String snippet, ClassLoader classLoader, PrintWriter writer ) {
+        return compileJavaSnippet(
+                JavaSnippet.Builder.withCode( snippet ),
+                classLoader, writer );
+    }
+
+    @Override
     public Callable compileJavaSnippet( JavaSnippet snippet ) {
-        return compileJavaSnippet( snippet, getClass().getClassLoader() );
+        return compileJavaSnippet( snippet, getClass().getClassLoader(), null );
     }
 
     @Override
     public Callable compileJavaSnippet( JavaSnippet snippet, ClassLoader classLoader ) {
+        return compileJavaSnippet( snippet, classLoader, null );
+    }
+
+    @Override
+    public Callable compileJavaSnippet( JavaSnippet snippet, ClassLoader classLoader,
+                                        /*Nullable*/ PrintWriter writer ) {
         SnippetClass snippetClass = asCallableSnippet( snippet );
 
         try {
             return ( Callable ) compileJavaClass(
-                    classLoader, snippetClass.className, snippetClass.code
+                    classLoader, snippetClass.className, snippetClass.code, writer
             ).newInstance();
         } catch ( Exception e ) {
             throw new RuntimeException( e );
@@ -71,12 +99,7 @@ public class DefaultJavacService implements JavacService {
                 .map( it -> "import " + it + ";\n" )
                 .reduce( ( a, b ) -> a + b ).orElse( "" );
 
-        String classes = snippet.getClassDefinitions().stream()
-                .map( it -> it + "\n" )
-                .reduce( ( a, b ) -> a + b ).orElse( "" );
-
         return new SnippetClass( className, importStatements +
-                ( classes.isEmpty() ? "" : "\n" + classes ) +
                 "public class " + className + " implements Callable {\n" +
                 "public Object call() throws Exception {\n" +
                 "" + snippet.getExecutableCode() + "\n" +

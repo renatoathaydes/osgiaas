@@ -24,16 +24,10 @@ public interface JavaSnippet {
      */
     Collection<String> getImports();
 
-    /**
-     * @return class definitions to include in the runnable snippet.
-     */
-    Collection<String> getClassDefinitions();
-
     class Builder implements JavaSnippet {
 
         private String code = "";
         private Collection<String> imports = emptyList();
-        private Collection<String> classDefs = emptyList();
 
         private Builder() {
         }
@@ -49,11 +43,6 @@ public interface JavaSnippet {
             return this;
         }
 
-        public Builder withClassDefinitions( Collection<String> classDefinitions ) {
-            this.classDefs = classDefinitions;
-            return this;
-        }
-
         @Override
         public String getExecutableCode() {
             return code;
@@ -64,10 +53,6 @@ public interface JavaSnippet {
             return imports;
         }
 
-        @Override
-        public Collection<String> getClassDefinitions() {
-            return classDefs;
-        }
     }
 
 }

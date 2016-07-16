@@ -4,9 +4,21 @@ import com.athaydes.osgiaas.api.cli.CommandHelper;
 import com.athaydes.osgiaas.api.cli.CommandInvocation;
 import com.athaydes.osgiaas.api.cli.args.ArgsSpec;
 import com.athaydes.osgiaas.javac.JavacService;
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParseException;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.PackageDeclaration;
+import com.github.javaparser.ast.body.TypeDeclaration;
 import org.apache.felix.shell.Command;
 
+import javax.annotation.Nullable;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Optional;
 
 public class JavaCommand implements Command {
 
@@ -88,20 +100,45 @@ public class JavaCommand implements Command {
         String codeToRun = invocation.getUnprocessedInput();
 
         if ( invocation.hasArg( CLASS_ARG ) ) {
-            String classDef = codeToRun;
-            code.setClassDef( classDef );
+            @Nullable String className = extractClassName( codeToRun, err );
+            if ( className != null ) {
+                out.println( javacService.compileJavaClass(
+                        getClass().getClassLoader(), className, codeToRun ) );
+            }
+        } else {
+            if ( invocation.hasArg( SHOW_ARG ) ) {
+                out.println( javacService.getJavaSnippetClass( code ) );
+            }
 
-            // let neutral code run to validate the class definition
-            codeToRun = "return null;";
+            if ( !codeToRun.isEmpty() ) {
+                runJava( codeToRun, out, err );
+            }
         }
 
-        if ( invocation.hasArg( SHOW_ARG ) ) {
-            out.println( javacService.getJavaSnippetClass( code ) );
+    }
+
+    @Nullable
+    private static String extractClassName( String code, PrintStream err ) {
+        InputStream inputStream = new ByteArrayInputStream( code.getBytes( StandardCharsets.UTF_8 ) );
+        try {
+            CompilationUnit compilationUnit = JavaParser.parse( inputStream );
+            List<TypeDeclaration> types = compilationUnit.getTypes();
+            if ( types.size() == 1 ) {
+                String simpleType = types.get( 0 ).getName();
+                return Optional.ofNullable( compilationUnit.getPackage() )
+                        .map( PackageDeclaration::getPackageName )
+                        .map( it -> it + "." + simpleType )
+                        .orElse( simpleType );
+            } else if ( types.size() == 0 ) {
+                err.println( "No class definition found" );
+            } else {
+                err.println( "Too many class definitions found. Only one class can be defined at a time." );
+            }
+        } catch ( ParseException e ) {
+            e.printStackTrace( err );
         }
 
-        if ( !codeToRun.isEmpty() ) {
-            runJava( codeToRun, out, err );
-        }
+        return null;
     }
 
     private void runJava( String input, PrintStream out, PrintStream err ) {
@@ -109,7 +146,7 @@ public class JavaCommand implements Command {
 
         try {
             Object result = javacService.compileJavaSnippet(
-                    code, getClass().getClassLoader()
+                    code, getClass().getClassLoader(), new PrintWriter( err )
             ).call();
 
             code.commit();

@@ -1,8 +1,9 @@
 package com.athaydes.osgiaas.javac;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Arrays;
@@ -95,7 +96,7 @@ public class JavacServiceTest {
     }
 
     @Test
-    @Ignore( "Waiting for fix of bug: https://github.com/OpenHFT/Java-Runtime-Compiler/issues/12" )
+//    @Ignore( "Waiting for fix of bug: https://github.com/OpenHFT/Java-Runtime-Compiler/issues/12" )
     public void canDefineClassAfterCompilerError() throws Exception {
         String errorDef = "clazz Bad{ public String get() {return \"bad\";}}";
         String classDef = "class Good{ public String get() {return \"good\";}}";
@@ -103,20 +104,22 @@ public class JavacServiceTest {
         // use our own classloader to be more realistic
         ClassLoader classLoader = new URLClassLoader( new URL[]{ } );
 
+        PrintWriter writer = new PrintWriter( new StringWriter() );
+
         // compiler error
         try {
-            javacService.compileJavaClass( classLoader, "Bad", errorDef );
+            javacService.compileJavaClass( classLoader, "Bad", errorDef, writer );
             fail( "Should not have compiled class successfully" );
         } catch ( Throwable t ) {
             // ignore
         }
 
         // compile good class
-        javacService.compileJavaClass( classLoader, "Good", classDef );
+        javacService.compileJavaClass( classLoader, "Good", classDef, writer );
 
         // use good class
         Callable script = javacService.compileJavaSnippet(
-                JavaSnippet.Builder.withCode( "return new Good().get();" ) );
+                JavaSnippet.Builder.withCode( "return new Good().get();" ), classLoader, writer );
 
         Object result = script.call();
 
