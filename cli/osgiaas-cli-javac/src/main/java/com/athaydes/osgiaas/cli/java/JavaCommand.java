@@ -3,6 +3,7 @@ package com.athaydes.osgiaas.cli.java;
 import com.athaydes.osgiaas.api.cli.CommandHelper;
 import com.athaydes.osgiaas.api.cli.CommandInvocation;
 import com.athaydes.osgiaas.api.cli.args.ArgsSpec;
+import com.athaydes.osgiaas.javac.ClassLoaderContext;
 import com.athaydes.osgiaas.javac.JavacService;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseException;
@@ -10,15 +11,18 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import org.apache.felix.shell.Command;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 
 public class JavaCommand implements Command {
 
@@ -31,14 +35,33 @@ public class JavaCommand implements Command {
             CommandHelper.CommandBreakupOptions.create()
                     .includeQuotes( true );
 
+    private Bundle bundle;
+
     private final JavacService javacService = JavacService.createDefault();
     private final JavaCode code = new JavaCode();
+
+    private ClassLoaderContext classLoaderContext;
+
     private final ArgsSpec javaArgs = ArgsSpec.builder()
             .accepts( RESET_CODE_ARG )
             .accepts( RESET_ALL_ARG )
             .accepts( SHOW_ARG )
             .accepts( CLASS_ARG )
             .build();
+
+    private static final Callable<?> ERROR = () -> null;
+
+    public void setClassLoaderContext( ClassLoaderContext classLoaderContext ) {
+        this.classLoaderContext = classLoaderContext;
+    }
+
+    public void activate( BundleContext context ) {
+        this.bundle = context.getBundle();
+    }
+
+    public void deactivate( BundleContext context ) {
+        this.bundle = null;
+    }
 
     @Override
     public String getName() {
@@ -86,6 +109,8 @@ public class JavaCommand implements Command {
 
     @Override
     public void execute( String line, PrintStream out, PrintStream err ) {
+        Objects.requireNonNull( classLoaderContext, "Did not set ClassLoaderCapabilities" );
+
         CommandInvocation invocation = javaArgs.parse( line,
                 JAVA_OPTIONS.separatorCode( ' ' ) );
 
@@ -103,7 +128,7 @@ public class JavaCommand implements Command {
             @Nullable String className = extractClassName( codeToRun, err );
             if ( className != null ) {
                 out.println( javacService.compileJavaClass(
-                        getClass().getClassLoader(), className, codeToRun ) );
+                        classLoaderContext, className, codeToRun ) );
             }
         } else {
             boolean show = invocation.hasArg( SHOW_ARG );
@@ -138,7 +163,7 @@ public class JavaCommand implements Command {
                 err.println( "Too many class definitions found. Only one class can be defined at a time." );
             }
         } catch ( ParseException e ) {
-            e.printStackTrace( err );
+            err.println( e );
         }
 
         return null;
@@ -146,20 +171,28 @@ public class JavaCommand implements Command {
 
     private void runJava( String input, PrintStream out, PrintStream err ) {
         breakupJavaLines( input );
+        Binding.out = out;
+        Binding.err = err;
+        Binding.ctx = bundle.getBundleContext();
 
         try {
-            Object result = javacService.compileJavaSnippet(
-                    code, getClass().getClassLoader(), new PrintWriter( err )
-            ).call();
+            Callable<?> callable = javacService.compileJavaSnippet(
+                    code, classLoaderContext, err
+            ).orElse( ERROR );
 
-            code.commit();
+            if ( callable != ERROR ) {
+                code.commit();
+                Object result = callable.call();
 
-            if ( result != null ) {
-                out.println( result );
+                if ( result != null ) {
+                    out.println( result );
+                }
+            } else {
+                code.abort();
             }
         } catch ( Throwable e ) {
             code.abort();
-            err.println( e );
+            e.printStackTrace( err );
         }
     }
 

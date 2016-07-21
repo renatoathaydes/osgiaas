@@ -19,6 +19,10 @@ class JavaCode implements JavaSnippet {
     private final Set<String> imports = new HashSet<>();
     private final Set<String> tempImports = new HashSet<>();
 
+    public JavaCode() {
+        imports.add( "static " + Binding.class.getName() + ".*" );
+    }
+
     void addLine( String line ) {
         if ( line.startsWith( "import " ) ) {
             tempImports.add( line.substring( "import ".length() ) );
