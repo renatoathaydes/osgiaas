@@ -127,8 +127,9 @@ public class JavaCommand implements Command {
         if ( invocation.hasArg( CLASS_ARG ) ) {
             @Nullable String className = extractClassName( codeToRun, err );
             if ( className != null ) {
-                out.println( javacService.compileJavaClass(
-                        classLoaderContext, className, codeToRun ) );
+                Optional<Class<Object>> javaClass = javacService.compileJavaClass(
+                        classLoaderContext, className, codeToRun, err );
+                javaClass.ifPresent( out::println );
             }
         } else {
             boolean show = invocation.hasArg( SHOW_ARG );
