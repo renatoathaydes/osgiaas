@@ -1,0 +1,17 @@
+apply plugin: 'java'
+
+group = 'test'
+version = '1.0'
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src'
+        }
+    }
+}
+
+task createResourceJar( type: Copy, dependsOn: 'jar' ) {
+    from project.jar
+    into project.file( '../../resources/' )
+}

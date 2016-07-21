@@ -1,45 +1,81 @@
 package com.athaydes.osgiaas.javac;
 
-import com.athaydes.osgiaas.javac.internal.DefaultJavacService;
+import com.athaydes.osgiaas.javac.internal.DefaultClassLoaderContext;
+import com.athaydes.osgiaas.javac.internal.SnippetClass;
+import com.athaydes.osgiaas.javac.internal.compiler.OsgiaasJavaCompilerService;
 
-import java.io.PrintWriter;
+import java.io.PrintStream;
+import java.util.Optional;
 import java.util.concurrent.Callable;
+
+import static com.athaydes.osgiaas.javac.internal.SnippetClass.asCallableSnippet;
 
 /**
  * Java Compiler Service.
  */
 public interface JavacService {
 
-    Class compileJavaClass( ClassLoader classLoader,
-                            String qualifiedName,
-                            String code );
+    default PrintStream defaultWriter() {
+        return System.err;
+    }
 
-    Class compileJavaClass( ClassLoader classLoader,
-                            String qualifiedName,
-                            String code,
-                            PrintWriter writer );
+    default <T> Optional<Class<T>> compileJavaClass( ClassLoaderContext classLoaderContext,
+                                                     String qualifiedName,
+                                                     String code ) {
+        return compileJavaClass( classLoaderContext, qualifiedName, code, defaultWriter() );
+    }
 
-    Callable compileJavaSnippet( String snippet );
+    <T> Optional<Class<T>> compileJavaClass( ClassLoaderContext classLoaderContextContext,
+                                             String qualifiedName,
+                                             String code,
+                                             PrintStream writer );
 
-    Callable compileJavaSnippet( String snippet, ClassLoader classLoader );
+    default Optional<Callable<?>> compileJavaSnippet( String snippet ) {
+        return compileJavaSnippet( JavaSnippet.Builder.withCode( snippet ),
+                DefaultClassLoaderContext.INSTANCE, defaultWriter() );
+    }
 
-    Callable compileJavaSnippet( String snippet, ClassLoader classLoader, PrintWriter writer );
+    default Optional<Callable<?>> compileJavaSnippet( String snippet, ClassLoaderContext classLoaderContext ) {
+        return compileJavaSnippet( JavaSnippet.Builder.withCode( snippet ),
+                classLoaderContext, defaultWriter() );
+    }
 
-    Callable compileJavaSnippet( JavaSnippet snippet );
+    default Optional<Callable<?>> compileJavaSnippet( String snippet,
+                                                      ClassLoaderContext classLoaderContext,
+                                                      PrintStream writer ) {
+        return compileJavaSnippet( JavaSnippet.Builder.withCode( snippet ), classLoaderContext, writer );
+    }
 
-    Callable compileJavaSnippet( JavaSnippet snippet, ClassLoader classLoader );
+    default Optional<Callable<?>> compileJavaSnippet( JavaSnippet snippet ) {
+        return compileJavaSnippet( snippet, DefaultClassLoaderContext.INSTANCE, defaultWriter() );
+    }
 
-    Callable compileJavaSnippet( JavaSnippet snippet, ClassLoader classLoader, PrintWriter writer );
+    default Optional<Callable<?>> compileJavaSnippet( JavaSnippet snippet, ClassLoaderContext classLoaderContext ) {
+        return compileJavaSnippet( snippet, classLoaderContext, defaultWriter() );
+    }
 
-    String getJavaSnippetClass( String snippet );
+    default Optional<Callable<?>> compileJavaSnippet( JavaSnippet snippet,
+                                                      ClassLoaderContext classLoaderContext,
+                                                      PrintStream writer ) {
+        SnippetClass snippetClass = asCallableSnippet( snippet );
+        try {
+            return compileJavaClass(
+                    classLoaderContext, snippetClass.getClassName(), snippetClass.getCode(), writer
+            ).map( ( SnippetClass::uncheckedInstantiator ) );
+        } catch ( Exception e ) {
+            throw new RuntimeException( e );
+        }
+    }
 
-    String getJavaSnippetClass( JavaSnippet snippet );
+    default String getJavaSnippetClass( JavaSnippet snippet ) {
+        return asCallableSnippet( snippet ).getCode();
+    }
 
     /**
      * @return a default implementation of the JavacService.
      */
     static JavacService createDefault() {
-        return new DefaultJavacService();
+        return new OsgiaasJavaCompilerService();
     }
 
 }

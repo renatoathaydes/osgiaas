@@ -1,3 +1,5 @@
+import org.gradle.tooling.GradleConnector
+
 apply plugin: 'java'
 apply plugin: 'osgi'
 apply plugin: 'maven'
@@ -15,12 +17,22 @@ jar {
     }
 }
 
-dependencies {
-    compile 'net.openhft:compiler:2.2.5-SNAPSHOT', {
-        exclude group: 'org.slf4j'
-        exclude group: 'com.intellij'
+task prepareTestResources() {
+    def connection = GradleConnector.newConnector()
+            .forProjectDirectory( file( 'src/test/resources-generator/hello' ) )
+            .connect()
+
+    try {
+        connection.newBuild().forTasks( "createResourceJar" )
+                .setStandardOutput( System.out )
+                .run()
+    } finally {
+        connection.close()
     }
-    testCompile 'junit:junit:4.12'
-    testCompile 'org.slf4j:slf4j-api:1.7.21'
 }
 
+tasks.test.dependsOn tasks.prepareTestResources
+
+dependencies {
+    testCompile 'junit:junit:4.12'
+}
