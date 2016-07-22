@@ -123,14 +123,12 @@ public class JavaCommand implements Command {
         }
 
         String codeToRun = invocation.getUnprocessedInput();
+        @Nullable String className;
 
-        if ( invocation.hasArg( CLASS_ARG ) ) {
-            @Nullable String className = extractClassName( codeToRun, err );
-            if ( className != null ) {
-                Optional<Class<Object>> javaClass = javacService.compileJavaClass(
-                        classLoaderContext, className, codeToRun, err );
-                javaClass.ifPresent( out::println );
-            }
+        if ( invocation.hasArg( CLASS_ARG ) && ( className = extractClassName( codeToRun, err ) ) != null ) {
+            Optional<Class<Object>> javaClass = javacService.compileJavaClass(
+                    classLoaderContext, className, codeToRun, err );
+            javaClass.ifPresent( out::println );
         } else {
             boolean show = invocation.hasArg( SHOW_ARG );
 
@@ -164,7 +162,8 @@ public class JavaCommand implements Command {
                 err.println( "Too many class definitions found. Only one class can be defined at a time." );
             }
         } catch ( ParseException e ) {
-            err.println( e );
+            // ignore error, let the compiler provide an error message
+            return "Err";
         }
 
         return null;
