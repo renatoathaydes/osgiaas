@@ -16,6 +16,12 @@ dependencies {
     testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
 }
 
+jar {
+    manifest {
+        instruction 'Export-Package', ''
+    }
+}
+
 declarativeServices {
     declarations = project.file( 'src/main/osgi/declarativeServices.groovy' )
 }
