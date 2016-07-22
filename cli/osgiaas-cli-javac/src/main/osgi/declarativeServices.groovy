@@ -18,6 +18,15 @@ component( name: 'javaCommand', immediate: true, xmlns: SCR_NAMESPACE ) {
             'target': '(service.bundle=osgiaas-cli-java)' )
 }
 
+component( name: 'javaCompleter', immediate: true, xmlns: SCR_NAMESPACE ) {
+    commonProperties()
+    implementation( 'class': 'com.athaydes.osgiaas.cli.java.JavaCompleter' )
+    property( name: 'service.description', value: 'OSGiaaS Java Command Completer' )
+    service {
+        provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter' )
+    }
+}
+
 component( name: 'classLoaderCapabilities', immediate: true, xmlns: SCR_NAMESPACE ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.java.ClassLoaderCapabilities' )

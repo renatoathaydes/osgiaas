@@ -26,10 +26,10 @@ import java.util.concurrent.Callable;
 
 public class JavaCommand implements Command {
 
-    private static final String RESET_CODE_ARG = "-r";
-    private static final String RESET_ALL_ARG = "-ra";
-    private static final String SHOW_ARG = "-s";
-    private static final String CLASS_ARG = "-c";
+    static final String RESET_CODE_ARG = "-r";
+    static final String RESET_ALL_ARG = "-ra";
+    static final String SHOW_ARG = "-s";
+    static final String CLASS_ARG = "-c";
 
     private static final CommandHelper.CommandBreakupOptions JAVA_OPTIONS =
             CommandHelper.CommandBreakupOptions.create()
