@@ -28,7 +28,9 @@ class GroovyCompleter implements CommandCompleter {
             CompletionMatcher.alternativeMatchers(
                     nameMatcher( GroovyCommand.SHOW_PRE_ARG ),
                     nameMatcher( GroovyCommand.CLEAN_PRE_ARG ),
-                    nameMatcher( GroovyCommand.ADD_PRE_ARG )
+                    nameMatcher( GroovyCommand.ADD_PRE_ARG ),
+                    nameMatcher( 'System' ),
+                    nameMatcher( 'def' )
             ) ) )
 
     @Override

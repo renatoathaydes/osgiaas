@@ -19,6 +19,10 @@ public class JavaCompleter implements CommandCompleter {
             nameMatcher( JavaCommand.RESET_ALL_ARG ),
             nameMatcher( JavaCommand.SHOW_ARG ),
             nameMatcher( "return" ),
+            nameMatcher( "out" ),
+            nameMatcher( "err" ),
+            nameMatcher( "ctx" ),
+            nameMatcher( "binding" ),
             nameMatcher( "System" ),
             nameMatcher( "String" )
     ) );
