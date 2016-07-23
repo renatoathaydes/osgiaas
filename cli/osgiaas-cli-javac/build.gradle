@@ -18,7 +18,8 @@ dependencies {
 
 jar {
     manifest {
-        instruction 'Export-Package', ''
+        instruction 'Export-Package', 'com.athaydes.osgiaas.cli.java.api'
+        instruction 'DynamicImport-Package', '*'
     }
 }
 

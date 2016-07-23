@@ -1,4 +1,4 @@
-package com.athaydes.osgiaas.cli.java;
+package com.athaydes.osgiaas.cli.java.api;
 
 import org.osgi.framework.BundleContext;
 

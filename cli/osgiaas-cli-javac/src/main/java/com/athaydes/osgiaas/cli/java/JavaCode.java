@@ -1,5 +1,6 @@
 package com.athaydes.osgiaas.cli.java;
 
+import com.athaydes.osgiaas.cli.java.api.Binding;
 import com.athaydes.osgiaas.javac.JavaSnippet;
 
 import java.util.Collection;
