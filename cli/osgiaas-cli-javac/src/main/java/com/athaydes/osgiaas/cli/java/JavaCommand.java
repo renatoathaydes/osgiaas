@@ -2,7 +2,9 @@ package com.athaydes.osgiaas.cli.java;
 
 import com.athaydes.osgiaas.api.cli.CommandHelper;
 import com.athaydes.osgiaas.api.cli.CommandInvocation;
+import com.athaydes.osgiaas.api.cli.StreamingCommand;
 import com.athaydes.osgiaas.api.cli.args.ArgsSpec;
+import com.athaydes.osgiaas.api.stream.LineOutputStream;
 import com.athaydes.osgiaas.javac.ClassLoaderContext;
 import com.athaydes.osgiaas.javac.JavacService;
 import com.github.javaparser.JavaParser;
@@ -17,18 +19,25 @@ import org.osgi.framework.BundleContext;
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-public class JavaCommand implements Command {
+public class JavaCommand implements Command, StreamingCommand {
+
+    private static final String JAVA_ID_REGEX = "([a-zA-Z_$][a-zA-Z\\d_$]*\\.)*[a-zA-Z_$][a-zA-Z\\d_$]*";
 
     static final String RESET_CODE_ARG = "-r";
     static final String RESET_ALL_ARG = "-ra";
     static final String SHOW_ARG = "-s";
+
     static final String CLASS_ARG = "-c";
 
     private static final CommandHelper.CommandBreakupOptions JAVA_OPTIONS =
@@ -36,9 +45,12 @@ public class JavaCommand implements Command {
                     .includeQuotes( true );
 
     private Bundle bundle;
-
     private final JavacService javacService = JavacService.createDefault();
     private final JavaCode code = new JavaCode();
+    private final Pattern lambdaIdentifierRegex =
+            Pattern.compile(
+                    "\\s*(\\()?\\s*(?<id>" + JAVA_ID_REGEX + ")\\s*(\\))?\\s*->(?<body>.+)",
+                    Pattern.DOTALL );
 
     private ClassLoaderContext classLoaderContext;
 
@@ -104,7 +116,46 @@ public class JavaCommand implements Command {
                 ":}\n" +
                 "<\n" +
                 "> java return new Person(\"Mary\", 24);\n" +
-                "< Person(Mary, 24)\n";
+                "< Person(Mary, 24)\n\n" +
+                "When run through pipes, the Java snippet should be a Function<String, ?> that takes " +
+                "each input line as an argument, returning something to be printed (or null).\n'n" +
+                "Example:\n" +
+                "> some_command | java line -> line.contains(\"text\") ? line : null";
+    }
+
+    @Override
+    public OutputStream pipe( String command, PrintStream out, PrintStream err ) {
+        CommandInvocation invocation = javaArgs.parse( command,
+                JAVA_OPTIONS.separatorCode( ' ' ) );
+
+        Matcher identifierMatcher = lambdaIdentifierRegex.matcher( invocation.getUnprocessedInput() );
+
+        if ( identifierMatcher.matches() ) {
+            String lambdaArgIdentifier = identifierMatcher.group( "id" );
+            String lambdaBody = identifierMatcher.group( "body" );
+            String lineConsumerCode = "return (java.util.function.Function<String, ?>)" +
+                    "((" + lambdaArgIdentifier.trim() + ") -> " + lambdaBody + ");";
+
+            Optional<Callable<?>> callable = javacService
+                    .compileJavaSnippet( lineConsumerCode, classLoaderContext, err );
+            if ( callable.isPresent() ) {
+                try {
+                    Function<String, ?> callback = ( Function<String, ?> ) callable.get().call();
+                    return new LineOutputStream( line -> {
+                        @Nullable Object output = callback.apply( line );
+                        if ( output != null ) {
+                            out.println( output );
+                        }
+                    }, out );
+                } catch ( Exception e ) {
+                    err.println( e );
+                }
+            }
+        }
+
+        throw new RuntimeException( "When used in a pipeline, the Java snippet must be in the form of a " +
+                "Function<String, ?> that takes one text line of the input at a time.\n" +
+                "Example: ... | java line -> line.contains(\"text\") ? line : null" );
     }
 
     @Override
