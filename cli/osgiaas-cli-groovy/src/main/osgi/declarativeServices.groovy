@@ -1,8 +1,10 @@
+final SCR_NAMESPACE = "http://www.osgi.org/xmlns/scr/v1.3.0"
+
 commonProperties = { ->
     property( name: 'service.vendor', value: 'com.athaydes' )
 }
 
-component( name: 'groovyCommand', immediate: true ) {
+component( xmlns: SCR_NAMESPACE, name: 'groovyCommand', immediate: true ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.groovy.command.GroovyCommand' )
     property( name: 'service.description', value: 'OSGiaaS Groovy Command' )
@@ -13,7 +15,7 @@ component( name: 'groovyCommand', immediate: true ) {
     }
 }
 
-component( name: 'groovyCompleter', immediate: true ) {
+component( xmlns: SCR_NAMESPACE, name: 'groovyCompleter', immediate: true ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.groovy.completer.GroovyCompleter' )
     property( name: 'service.description', value: 'Groovy Command Completer' )
