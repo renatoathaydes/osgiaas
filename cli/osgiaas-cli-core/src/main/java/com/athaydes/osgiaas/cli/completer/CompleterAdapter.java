@@ -1,7 +1,6 @@
 package com.athaydes.osgiaas.cli.completer;
 
 import com.athaydes.osgiaas.api.cli.CommandCompleter;
-import com.athaydes.osgiaas.api.cli.CommandHelper;
 import jline.console.completer.Completer;
 
 import java.util.List;
@@ -34,7 +33,7 @@ public class CompleterAdapter implements Completer {
         if ( result < 0 ) {
             return result;
         } else {
-            return CommandHelper.lastSeparatorIndex( prefix ) + 1;
+            return result - cmdBeindUsed.length();
         }
     }
 
