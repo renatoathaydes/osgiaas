@@ -132,7 +132,12 @@ public class JavaCommand implements Command, StreamingCommand {
 
         if ( identifierMatcher.matches() ) {
             String lambdaArgIdentifier = identifierMatcher.group( "id" );
-            String lambdaBody = identifierMatcher.group( "body" );
+            String lambdaBody = identifierMatcher.group( "body" ).trim();
+
+            if ( lambdaBody.endsWith( ";" ) ) {
+                lambdaBody = lambdaBody.substring( 0, lambdaBody.length() - 1 );
+            }
+
             String lineConsumerCode = "return (java.util.function.Function<String, ?>)" +
                     "((" + lambdaArgIdentifier.trim() + ") -> " + lambdaBody + ");";
 
@@ -154,7 +159,7 @@ public class JavaCommand implements Command, StreamingCommand {
         }
 
         throw new RuntimeException( "When used in a pipeline, the Java snippet must be in the form of a " +
-                "Function<String, ?> that takes one text line of the input at a time.\n" +
+                "lambda of type Function<String, ?> that takes one text line of the input at a time.\n" +
                 "Example: ... | java line -> line.contains(\"text\") ? line : null" );
     }
 
