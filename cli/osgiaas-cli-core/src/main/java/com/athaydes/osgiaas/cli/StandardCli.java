@@ -8,12 +8,14 @@ import com.athaydes.osgiaas.api.cli.CommandModifier;
 import com.athaydes.osgiaas.api.cli.KnowsCommandBeingUsed;
 import com.athaydes.osgiaas.api.service.DynamicServiceHelper;
 import com.athaydes.osgiaas.api.service.HasManyServices;
-import com.athaydes.osgiaas.cli.util.HasManyCommandCompleters;
-import jline.console.completer.Completer;
+import com.athaydes.osgiaas.cli.completer.CompleterAdapter;
 import org.apache.felix.shell.Command;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Comparator;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
@@ -25,18 +27,7 @@ public class StandardCli extends HasManyServices<CommandModifier>
     private final AtomicReference<KnowsCommandBeingUsed> knowsCommandBeingUsed = new AtomicReference<>();
     private final Commands commands = new Commands();
     private final OsgiaasShell shell = new OsgiaasShell( commands, this::getServices );
-
-    private final HasManyCommandCompleters completers = new HasManyCommandCompleters() {
-        @Override
-        protected void addCompleter( Completer completer ) {
-            withCli( cli -> cli.addCompleter( completer ) );
-        }
-
-        @Override
-        protected void removeCompleter( Completer completer ) {
-            withCli( cli -> cli.removeCompleter( completer ) );
-        }
-    };
+    private final Map<CommandCompleter, CompleterAdapter> completers = new ConcurrentHashMap<>();
 
     private volatile String prompt = ">> ";
     private volatile AnsiColor promptColor = AnsiColor.RESET;
@@ -122,11 +113,16 @@ public class StandardCli extends HasManyServices<CommandModifier>
     }
 
     public void addCommandCompleter( CommandCompleter commandCompleter ) {
-        completers.addService( commandCompleter );
+        CompleterAdapter completer = new CompleterAdapter( commandCompleter, this::commandBeingUsed );
+        completers.put( commandCompleter, completer );
+        withCli( cli -> cli.addCompleter( completer ) );
     }
 
     public void removeCommandCompleter( CommandCompleter commandCompleter ) {
-        completers.removeService( commandCompleter );
+        @Nullable CompleterAdapter completer = completers.remove( commandCompleter );
+        if ( completer != null ) {
+            withCli( cli -> cli.removeCompleter( completer ) );
+        }
     }
 
     public void addCommand( Command command ) {

@@ -1,12 +1,10 @@
 package com.athaydes.osgiaas.cli.completer;
 
 import com.athaydes.osgiaas.api.cli.CommandCompleter;
-import com.athaydes.osgiaas.api.cli.KnowsCommandBeingUsed;
 import com.athaydes.osgiaas.api.cli.completer.BaseCompleter;
 import com.athaydes.osgiaas.api.cli.completer.CompletionMatcher;
 import com.athaydes.osgiaas.cli.util.UsesCliProperties;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
@@ -19,10 +17,6 @@ public abstract class AbstractTakesCommandsAsArgsCompleter extends UsesCliProper
 
     public AbstractTakesCommandsAsArgsCompleter() {
         this.completer = new Completer( commandName(), this::availableCommands );
-    }
-
-    public void setKnowsCommandBeingUsed( @Nullable KnowsCommandBeingUsed knowsCommandBeingUsed ) {
-        completer.setKnowsCommandBeingUsed( knowsCommandBeingUsed );
     }
 
     private String[] availableCommands() {
@@ -49,11 +43,6 @@ public abstract class AbstractTakesCommandsAsArgsCompleter extends UsesCliProper
                     () -> Stream.of( availableCommandsGetter.get() )
                             .filter( c -> !c.equals( command ) )
                             .map( c -> CompletionMatcher.nameMatcher( c ) ) ) );
-        }
-
-        @Override
-        public void setKnowsCommandBeingUsed( @Nullable KnowsCommandBeingUsed knowsCommandBeingUsed ) {
-            super.setKnowsCommandBeingUsed( knowsCommandBeingUsed );
         }
     }
 

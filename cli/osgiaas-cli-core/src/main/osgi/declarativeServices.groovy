@@ -98,7 +98,6 @@ component( name: 'colorCommandCompleter', xmlns: SCR_NAMESPACE ) {
     service {
         provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter' )
     }
-    usingCommandReference()
 }
 
 component( name: 'promptCommand', xmlns: SCR_NAMESPACE ) {
@@ -130,7 +129,6 @@ component( name: 'useCommandCompleter', xmlns: SCR_NAMESPACE ) {
         provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter' )
     }
     cliPropertiesReference()
-    usingCommandReference()
 }
 
 component( name: 'helpCommandCompleter', xmlns: SCR_NAMESPACE ) {
@@ -141,7 +139,6 @@ component( name: 'helpCommandCompleter', xmlns: SCR_NAMESPACE ) {
         provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter' )
     }
     cliPropertiesReference()
-    usingCommandReference()
 }
 
 component( name: 'aliasCommand', xmlns: SCR_NAMESPACE ) {
@@ -182,7 +179,6 @@ component( name: 'highlightCommandCompleter', xmlns: SCR_NAMESPACE ) {
     service {
         provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter' )
     }
-    usingCommandReference()
 }
 
 component( name: 'grepCommand', xmlns: SCR_NAMESPACE ) {
@@ -201,7 +197,6 @@ component( name: 'grepCommandCompleter', xmlns: SCR_NAMESPACE ) {
     service {
         provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter' )
     }
-    usingCommandReference()
 }
 
 component( name: 'runCommand', xmlns: SCR_NAMESPACE ) {

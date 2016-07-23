@@ -2,7 +2,6 @@ package com.athaydes.osgiaas.cli.groovy.completer
 
 import com.athaydes.osgiaas.api.cli.CommandCompleter
 import com.athaydes.osgiaas.api.cli.CommandHelper
-import com.athaydes.osgiaas.api.cli.KnowsCommandBeingUsed
 import com.athaydes.osgiaas.api.cli.completer.BaseCompleter
 import com.athaydes.osgiaas.api.cli.completer.CompletionMatcher
 import com.athaydes.osgiaas.api.service.DynamicServiceHelper
@@ -25,9 +24,6 @@ class GroovyCompleter implements CommandCompleter {
 
     final AtomicReference<GroovyCommand> groovyRef = new AtomicReference<>()
 
-    @Nullable
-    KnowsCommandBeingUsed knowsCommandBeingUsed = null
-
     final BaseCompleter argsMatcher = new BaseCompleter( nameMatcher( 'groovy',
             CompletionMatcher.alternativeMatchers(
                     nameMatcher( GroovyCommand.SHOW_PRE_ARG ),
@@ -37,13 +33,7 @@ class GroovyCompleter implements CommandCompleter {
 
     @Override
     int complete( String buffer, int cursor, List<CharSequence> candidates ) {
-        String prefix = buffer
-        KnowsCommandBeingUsed knowsCommandBeingUsed = this.knowsCommandBeingUsed
-        if ( knowsCommandBeingUsed?.using() ) {
-            prefix = knowsCommandBeingUsed.using() + " $prefix"
-        }
-
-        if ( !prefix.startsWith( 'groovy ' ) ) {
+        if ( !buffer.startsWith( 'groovy ' ) ) {
             // only auto-complete groovy
             return -1
         }
@@ -51,8 +41,7 @@ class GroovyCompleter implements CommandCompleter {
         int result = argsMatcher.complete( buffer, cursor, candidates )
 
         DynamicServiceHelper.let( groovyRef, { GroovyCommand groovy ->
-            int alternativeResult = new DynamicCompleter(
-                    groovy.shell.context.variables, knowsCommandBeingUsed )
+            int alternativeResult = new DynamicCompleter( groovy.shell.context.variables )
                     .complete( buffer, cursor, candidates )
 
             if ( alternativeResult < 0 ) {
@@ -82,12 +71,11 @@ class GroovyCompleter implements CommandCompleter {
 @CompileStatic
 class DynamicCompleter extends BaseCompleter {
 
-    DynamicCompleter( Map vars, KnowsCommandBeingUsed knowsCommandBeingUsed ) {
+    DynamicCompleter( Map vars ) {
         super( nameMatcher( 'groovy',
                 vars.keySet().collect {
                     nameMatcher( it as String )
-                } as CompletionMatcher[] ),
-                knowsCommandBeingUsed )
+                } as CompletionMatcher[] ) )
     }
 }
 

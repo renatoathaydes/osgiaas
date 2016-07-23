@@ -1,11 +1,9 @@
 package com.athaydes.osgiaas.cli.java;
 
 import com.athaydes.osgiaas.api.cli.CommandCompleter;
-import com.athaydes.osgiaas.api.cli.KnowsCommandBeingUsed;
 import com.athaydes.osgiaas.api.cli.completer.BaseCompleter;
 import com.athaydes.osgiaas.api.cli.completer.CompletionMatcher;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -24,9 +22,6 @@ public class JavaCompleter implements CommandCompleter {
             nameMatcher( "System" ),
             nameMatcher( "String" )
     ) );
-
-    @Nullable
-    private KnowsCommandBeingUsed knowsCommandBeingUsed = null;
 
     private static Stream<CompletionMatcher> forClassArg() {
         return Stream.of(
