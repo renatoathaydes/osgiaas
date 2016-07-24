@@ -52,8 +52,7 @@ runOsgi {
             // uncomment to include the Knopflerfish GUI
             // ['org.knopflerfish.bundle:desktop:5.0.1'] +
             subprojects.findAll {
-                println "Checking module name : ${it.name}"
-                it.name != 'modules' && it.name != 'cli' && it.name != 'lang'
+                !( it.name in [ 'modules', 'cli', 'lang', 'infra' ] )
             }
 
     copyManifestTo 'generated-sources/MANIFEST.MF'

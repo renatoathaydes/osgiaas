@@ -1,6 +1,10 @@
 rootProject.name = 'osgiaas'
 
-include 'modules:osgiaas-api', 'modules:osgiaas-grab', 'modules:osgiaas-autoupdate', 'modules:osgiaas-slf4j-impl'
+// infrastructur modules
+include 'modules:infra:osgiaas-api',
+        'modules:infra:osgiaas-grab',
+        'modules:infra:osgiaas-autoupdate',
+        'modules:infra:osgiaas-slf4j-impl'
 
 // language modules
 include 'modules:lang:osgiaas-javac'

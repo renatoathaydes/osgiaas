@@ -19,7 +19,7 @@ dependencies {
     compile 'com.google.code.findbugs:jsr305:3.0.1'
     compile 'biz.aQute.bnd:biz.aQute.bndlib:3.1.0'
 
-    compile project( ':modules:osgiaas-api' )
+    compile project( ':modules:infra:osgiaas-api' )
     compile 'org.codehaus.groovy:groovy-all:2.4.5'
     compile 'org.osgi:osgi.core:6.0.0'
     compile 'org.osgi:osgi.cmpn:6.0.0'

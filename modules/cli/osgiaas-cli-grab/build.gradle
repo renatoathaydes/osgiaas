@@ -21,6 +21,6 @@ declarativeServices {
 
 dependencies {
     compile project( ':modules:cli:osgiaas-cli-api' )
-    compile project( ':modules:osgiaas-grab' )
+    compile project( ':modules:infra:osgiaas-grab' )
     compile 'org.codehaus.groovy:groovy-all:2.4.5'
 }
