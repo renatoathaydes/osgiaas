@@ -1,5 +1,32 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'org.dm.gradle:gradle-bundle-plugin:0.8.2'
+    }
+}
+
 apply plugin: 'java'
-apply plugin: 'osgi'
 apply plugin: 'maven'
+apply plugin: 'org.dm.bundle'
 
 version '1.7.0'
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile 'org.slf4j:slf4j-api:1.7.21'
+    compile 'org.osgi:osgi.core:6.0.0'
+    compile 'org.osgi:org.osgi.service.log:1.3.0'
+    compile 'com.google.code.findbugs:jsr305:3.0.1'
+}
+
+bundle {
+    instruction 'Export-Package', 'org.slf4j.impl'
+    instruction 'Fragment-Host', 'slf4j.api'
+    instruction 'Bundle-Description', 'Implementation of sfl4j-api that forwards logs to the OSGi LogService'
+}
