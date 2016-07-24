@@ -52,4 +52,11 @@ final class OsgiaasFileObject extends SimpleJavaFileObject {
     byte[] getByteCode() {
         return byteCode.toByteArray();
     }
+
+    @Override
+    public String toString() {
+        return "OsgiaasFileObject{" +
+                "name=" + getName() +
+                '}';
+    }
 }

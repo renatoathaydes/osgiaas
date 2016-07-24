@@ -2,6 +2,8 @@ package com.athaydes.osgiaas.javac.internal.compiler;
 
 import com.athaydes.osgiaas.javac.ClassLoaderContext;
 import com.athaydes.osgiaas.javac.internal.CompilerUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaCompiler;
@@ -17,6 +19,8 @@ import java.util.Optional;
 
 @SuppressWarnings( "WeakerAccess" )
 public class OsgiaasJavaCompiler {
+
+    private static final Logger logger = LoggerFactory.getLogger( OsgiaasJavaCompiler.class );
 
     private final OsgiaasClassLoader classLoader;
     private final JavaCompiler compiler;
@@ -34,6 +38,7 @@ public class OsgiaasJavaCompiler {
         compiler = ToolProvider.getSystemJavaCompiler();
 
         if ( compiler == null ) {
+            logger.error( "The Java compiler is not present in the classpath" );
             throw new IllegalStateException( "Cannot find the system Java compiler. "
                     + "Check that your class path includes tools.jar" );
         }
@@ -54,6 +59,7 @@ public class OsgiaasJavaCompiler {
     <T> Optional<Class<T>> compile( String qualifiedClassName,
                                     CharSequence javaSource,
                                     PrintStream writer ) {
+        logger.info( "Compiling {} from source code", qualifiedClassName );
         String className = CompilerUtils.simpleClassNameFrom( qualifiedClassName );
         String packageName = CompilerUtils.packageOf( qualifiedClassName );
 

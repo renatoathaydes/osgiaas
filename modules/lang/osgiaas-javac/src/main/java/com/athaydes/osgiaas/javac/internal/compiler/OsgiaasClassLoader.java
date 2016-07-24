@@ -1,6 +1,8 @@
 package com.athaydes.osgiaas.javac.internal.compiler;
 
 import com.athaydes.osgiaas.javac.ClassLoaderContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.tools.JavaFileObject;
 import java.io.ByteArrayInputStream;
@@ -17,6 +19,8 @@ import static com.athaydes.osgiaas.javac.internal.CompilerUtils.classNameFromPat
 import static com.athaydes.osgiaas.javac.internal.CompilerUtils.packageOf;
 
 final class OsgiaasClassLoader extends ClassLoader {
+
+    private static final Logger logger = LoggerFactory.getLogger( OsgiaasClassLoader.class );
 
     private final Map<String, OsgiaasFileObject> fileByClassName = new HashMap<>();
     private final Map<String, Collection<JavaFileObject>> filesByPackage = new HashMap<>();
@@ -40,6 +44,7 @@ final class OsgiaasClassLoader extends ClassLoader {
     }
 
     private Collection<JavaFileObject> computeClassesIn( String packageName ) {
+        logger.debug( "Computing classes in package {}", packageName );
         return classLoaderContext.getClassesIn( packageName ).stream()
                 .map( path -> loadBytecodeFrom(
                         new OsgiaasFileObject( classNameFromPath( path ), JavaFileObject.Kind.CLASS ),
@@ -56,6 +61,7 @@ final class OsgiaasClassLoader extends ClassLoader {
                 out.write( buffer, 0, len );
             }
         } catch ( IOException e ) {
+            logger.warn( "Problem loading bytecode for {}: {}", file, e );
             throw new RuntimeException( e );
         } finally {
             try {
