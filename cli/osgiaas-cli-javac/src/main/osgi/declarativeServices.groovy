@@ -23,7 +23,7 @@ component( name: 'javaCompleter', immediate: true, xmlns: SCR_NAMESPACE ) {
     implementation( 'class': 'com.athaydes.osgiaas.cli.java.JavaCompleter' )
     property( name: 'service.description', value: 'OSGiaaS Java Command Completer' )
     service {
-        provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter' )
+        provide( 'interface': 'com.athaydes.osgiaas.cli.CommandCompleter' )
     }
 }
 

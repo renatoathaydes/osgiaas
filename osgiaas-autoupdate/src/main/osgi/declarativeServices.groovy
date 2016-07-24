@@ -1,10 +1,12 @@
+final SCR_NAMESPACE = "http://www.osgi.org/xmlns/scr/v1.3.0"
+
 commonProperties = { ->
     property( name: 'service.vendor', value: 'com.athaydes' )
 }
 
-component( name: 'autoUpdaterService', immediate: true ) {
+component( xmlns: SCR_NAMESPACE, name: 'autoUpdaterService', immediate: true ) {
     commonProperties()
-    implementation( 'class': 'com.athaydes.osgiaas.autoupdate.AutoUpdaterService' )
+    implementation( 'class': 'com.athaydes.osgiaas.autoupdate.impl.AutoUpdaterService' )
     property( name: 'service.description', value: 'OSGiaaS AutoUpdater bundle registerer service' )
     reference( name: 'autoUpdater',
             'interface': 'com.athaydes.osgiaas.api.autoupdate.AutoUpdater',

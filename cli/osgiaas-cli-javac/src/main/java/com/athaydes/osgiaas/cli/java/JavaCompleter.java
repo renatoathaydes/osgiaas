@@ -1,14 +1,14 @@
 package com.athaydes.osgiaas.cli.java;
 
-import com.athaydes.osgiaas.api.cli.CommandCompleter;
-import com.athaydes.osgiaas.api.cli.completer.BaseCompleter;
-import com.athaydes.osgiaas.api.cli.completer.CompletionMatcher;
+import com.athaydes.osgiaas.cli.CommandCompleter;
+import com.athaydes.osgiaas.cli.completer.BaseCompleter;
+import com.athaydes.osgiaas.cli.completer.CompletionMatcher;
 
 import java.util.List;
 import java.util.stream.Stream;
 
-import static com.athaydes.osgiaas.api.cli.completer.CompletionMatcher.alternativeMatchers;
-import static com.athaydes.osgiaas.api.cli.completer.CompletionMatcher.nameMatcher;
+import static com.athaydes.osgiaas.cli.completer.CompletionMatcher.alternativeMatchers;
+import static com.athaydes.osgiaas.cli.completer.CompletionMatcher.nameMatcher;
 
 public class JavaCompleter implements CommandCompleter {
 

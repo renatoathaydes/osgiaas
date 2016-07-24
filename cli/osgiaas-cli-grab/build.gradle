@@ -20,9 +20,6 @@ declarativeServices {
 }
 
 dependencies {
-    // TODO use Bnd to wrap grabbed jars if necessary
-    //compile 'biz.aQute.bnd:biz.aQute.bndlib:3.1.0'
-
     compile project( ':cli:osgiaas-cli-api' )
     compile project( ':osgiaas-grab' )
     compile 'org.codehaus.groovy:groovy-all:2.4.5'

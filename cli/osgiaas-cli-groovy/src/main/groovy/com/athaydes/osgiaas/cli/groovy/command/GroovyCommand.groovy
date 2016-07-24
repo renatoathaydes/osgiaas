@@ -1,9 +1,9 @@
 package com.athaydes.osgiaas.cli.groovy.command
 
-import com.athaydes.osgiaas.api.cli.CommandHelper
-import com.athaydes.osgiaas.api.cli.StreamingCommand
-import com.athaydes.osgiaas.api.cli.args.ArgsSpec
 import com.athaydes.osgiaas.api.stream.LineOutputStream
+import com.athaydes.osgiaas.cli.CommandHelper
+import com.athaydes.osgiaas.cli.StreamingCommand
+import com.athaydes.osgiaas.cli.args.ArgsSpec
 import groovy.transform.CompileStatic
 import org.osgi.framework.BundleContext
 

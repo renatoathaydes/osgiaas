@@ -10,7 +10,7 @@ component( xmlns: SCR_NAMESPACE, name: 'groovyCommand', immediate: true ) {
     property( name: 'service.description', value: 'OSGiaaS Groovy Command' )
     service {
         provide( 'interface': 'org.apache.felix.shell.Command' )
-        provide( 'interface': 'com.athaydes.osgiaas.api.cli.StreamingCommand' )
+        provide( 'interface': 'com.athaydes.osgiaas.cli.StreamingCommand' )
         provide( 'interface': 'com.athaydes.osgiaas.cli.groovy.command.GroovyCommand' )
     }
 }
@@ -26,6 +26,6 @@ component( xmlns: SCR_NAMESPACE, name: 'groovyCompleter', immediate: true ) {
             'bind': 'setGroovyCommand',
             'unbind': 'unsetGroovyCommand' )
     service {
-        provide( 'interface': 'com.athaydes.osgiaas.api.cli.CommandCompleter' )
+        provide( 'interface': 'com.athaydes.osgiaas.cli.CommandCompleter' )
     }
 }

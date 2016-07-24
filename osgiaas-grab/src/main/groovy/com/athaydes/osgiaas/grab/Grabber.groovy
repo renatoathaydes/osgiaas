@@ -1,5 +1,6 @@
 package com.athaydes.osgiaas.grab
 
+import com.athaydes.osgiaas.grab.ivy.IvyModuleParser
 import com.athaydes.osgiaas.grab.wrap.JarWrapper
 import groovy.transform.CompileStatic
 

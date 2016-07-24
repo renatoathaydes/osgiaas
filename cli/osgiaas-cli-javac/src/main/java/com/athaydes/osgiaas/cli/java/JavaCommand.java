@@ -1,10 +1,10 @@
 package com.athaydes.osgiaas.cli.java;
 
-import com.athaydes.osgiaas.api.cli.CommandHelper;
-import com.athaydes.osgiaas.api.cli.CommandInvocation;
-import com.athaydes.osgiaas.api.cli.StreamingCommand;
-import com.athaydes.osgiaas.api.cli.args.ArgsSpec;
 import com.athaydes.osgiaas.api.stream.LineOutputStream;
+import com.athaydes.osgiaas.cli.CommandHelper;
+import com.athaydes.osgiaas.cli.CommandInvocation;
+import com.athaydes.osgiaas.cli.StreamingCommand;
+import com.athaydes.osgiaas.cli.args.ArgsSpec;
 import com.athaydes.osgiaas.cli.java.api.Binding;
 import com.athaydes.osgiaas.javac.ClassLoaderContext;
 import com.athaydes.osgiaas.javac.JavacService;

@@ -1,11 +1,11 @@
 package com.athaydes.osgiaas.cli.groovy.completer
 
-import com.athaydes.osgiaas.api.cli.CommandCompleter
-import com.athaydes.osgiaas.api.cli.CommandHelper
-import com.athaydes.osgiaas.api.cli.completer.BaseCompleter
-import com.athaydes.osgiaas.api.cli.completer.CompletionMatcher
 import com.athaydes.osgiaas.api.service.DynamicServiceHelper
 import com.athaydes.osgiaas.api.stream.NoOpPrintStream
+import com.athaydes.osgiaas.cli.CommandCompleter
+import com.athaydes.osgiaas.cli.CommandHelper
+import com.athaydes.osgiaas.cli.completer.BaseCompleter
+import com.athaydes.osgiaas.cli.completer.CompletionMatcher
 import com.athaydes.osgiaas.cli.groovy.command.GroovyCommand
 import groovy.transform.CompileStatic
 import org.codehaus.groovy.runtime.DefaultGroovyMethods
@@ -17,7 +17,7 @@ import java.lang.reflect.Modifier
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Function
 
-import static com.athaydes.osgiaas.api.cli.completer.CompletionMatcher.nameMatcher
+import static CompletionMatcher.nameMatcher
 
 @CompileStatic
 class GroovyCompleter implements CommandCompleter {

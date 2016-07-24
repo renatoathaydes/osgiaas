@@ -1,7 +1,7 @@
 package com.athaydes.osgiaas.cli.grab
 
-import com.athaydes.osgiaas.api.cli.CommandHelper
-import com.athaydes.osgiaas.api.cli.args.ArgsSpec
+import com.athaydes.osgiaas.cli.CommandHelper
+import com.athaydes.osgiaas.cli.args.ArgsSpec
 import com.athaydes.osgiaas.grab.GrabException
 import com.athaydes.osgiaas.grab.Grabber
 import groovy.transform.CompileStatic

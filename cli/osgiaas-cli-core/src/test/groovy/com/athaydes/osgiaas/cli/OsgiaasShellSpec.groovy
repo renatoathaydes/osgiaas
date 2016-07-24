@@ -1,8 +1,8 @@
 package com.athaydes.osgiaas.cli
 
-import com.athaydes.osgiaas.api.cli.CommandModifier
-import com.athaydes.osgiaas.api.cli.StreamingCommand
 import com.athaydes.osgiaas.api.stream.LineOutputStream
+import com.athaydes.osgiaas.cli.core.Commands
+import com.athaydes.osgiaas.cli.core.OsgiaasShell
 import org.apache.felix.shell.Command
 import spock.lang.Specification
 
