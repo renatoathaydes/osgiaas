@@ -1,14 +1,14 @@
 rootProject.name = 'osgiaas'
 
-include 'osgiaas-api', 'osgiaas-grab', 'osgiaas-autoupdate', 'osgiaas-slf4j-impl'
+include 'modules:osgiaas-api', 'modules:osgiaas-grab', 'modules:osgiaas-autoupdate', 'modules:osgiaas-slf4j-impl'
 
 // language modules
-include 'lang:osgiaas-javac'
+include 'modules:lang:osgiaas-javac'
 
 // CLI modules
-include 'cli:osgiaas-cli-api',
-        'cli:osgiaas-cli-core',
-        'cli:osgiaas-cli-grab',
-        'cli:osgiaas-cli-groovy',
-        'cli:osgiaas-cli-javac',
-        'cli:osgiaas-cli-js'
+include 'modules:cli:osgiaas-cli-api',
+        'modules:cli:osgiaas-cli-core',
+        'modules:cli:osgiaas-cli-grab',
+        'modules:cli:osgiaas-cli-groovy',
+        'modules:cli:osgiaas-cli-javac',
+        'modules:cli:osgiaas-cli-js'

@@ -1,24 +1,23 @@
 apply plugin: 'java'
-apply plugin: 'groovy'
 apply plugin: 'osgi'
 apply plugin: 'com.athaydes.osgi-ds'
 apply plugin: 'maven'
 
-sourceCompatibility = 1.8
+repositories {
+    jcenter()
+}
 
 dependencies {
-    compile project( ':cli:osgiaas-cli-api' )
-    compile project( ':lang:osgiaas-javac' )
-    compile 'com.github.javaparser:javaparser-core:2.4.0'
+    compile project( ':modules:cli:osgiaas-cli-api' )
     compile 'org.osgi:osgi.core:6.0.0'
+    compile 'org.osgi:org.osgi.service.component:1.3.0'
 
-    testCompile 'org.codehaus.groovy:groovy-all:2.4.5'
     testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
 }
 
 jar {
     manifest {
-        instruction 'Export-Package', 'com.athaydes.osgiaas.cli.java.api'
+        instruction 'Export-Package', ''
         instruction 'DynamicImport-Package', '*'
     }
 }
