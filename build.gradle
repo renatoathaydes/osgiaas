@@ -1,10 +1,9 @@
 buildscript {
     repositories {
         jcenter()
-        mavenLocal()
     }
     dependencies {
-        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.5.1-SNAPSHOT"
+        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.5.1"
     }
 }
 
