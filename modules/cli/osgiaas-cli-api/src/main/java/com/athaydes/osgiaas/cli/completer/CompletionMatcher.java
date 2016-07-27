@@ -110,4 +110,14 @@ public interface CompletionMatcher {
         return new MultiPartCompletionMatcher( separator, parts, children );
     }
 
+    /**
+     * Use the provided matcher to match at any level.
+     *
+     * @param matcher to complete at any level
+     * @return matcher that can complete at any level using the provided matcher.
+     */
+    static CompletionMatcher anyLevelMatcher( CompletionMatcher matcher ) {
+        return new AnyLevelMatcher( matcher );
+    }
+
 }

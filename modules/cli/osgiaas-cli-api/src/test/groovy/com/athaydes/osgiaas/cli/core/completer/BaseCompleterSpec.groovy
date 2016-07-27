@@ -1,5 +1,6 @@
 package com.athaydes.osgiaas.cli.core.completer
 
+import com.athaydes.osgiaas.cli.completer.AnyLevelMatcher
 import com.athaydes.osgiaas.cli.completer.BaseCompleter
 import com.athaydes.osgiaas.cli.completer.CompletionMatcher
 import spock.lang.Specification
@@ -7,15 +8,18 @@ import spock.lang.Unroll
 
 import java.util.stream.Stream
 
+import static com.athaydes.osgiaas.cli.completer.CompletionMatcher.alternativeMatchers
+import static com.athaydes.osgiaas.cli.completer.CompletionMatcher.nameMatcher
+
 @Unroll
 class BaseCompleterSpec extends Specification {
 
     def "BaseCompleter can complete simple commands arguments"() {
         given: "A simple command completer based on BaseCompleter"
-        def completer = new BaseCompleter( CompletionMatcher.nameMatcher( 'cmd', [
-                CompletionMatcher.nameMatcher( 'opt1' ),
-                CompletionMatcher.nameMatcher( 'something' ),
-                CompletionMatcher.nameMatcher( 'other' ),
+        def completer = new BaseCompleter( nameMatcher( 'cmd', [
+                nameMatcher( 'opt1' ),
+                nameMatcher( 'something' ),
+                nameMatcher( 'other' ),
         ] as CompletionMatcher[] ) )
 
         when: "Some example user commands are queried for completion"
@@ -43,23 +47,23 @@ class BaseCompleterSpec extends Specification {
 
     def "BaseCompleter can complete complex commands arguments"() {
         given: "A simple command completer based on BaseCompleter"
-        def completer = new BaseCompleter( CompletionMatcher.nameMatcher( 'cmd', [
-                CompletionMatcher.nameMatcher( 'opt1', [
-                        CompletionMatcher.nameMatcher( 'def', [
-                                CompletionMatcher.nameMatcher( '123' ),
-                                CompletionMatcher.nameMatcher( '456' ),
+        def completer = new BaseCompleter( nameMatcher( 'cmd', [
+                nameMatcher( 'opt1', [
+                        nameMatcher( 'def', [
+                                nameMatcher( '123' ),
+                                nameMatcher( '456' ),
                         ] as CompletionMatcher[] ),
-                        CompletionMatcher.nameMatcher( 'ghi', [
-                                CompletionMatcher.nameMatcher( 'xyz' )
+                        nameMatcher( 'ghi', [
+                                nameMatcher( 'xyz' )
                         ] as CompletionMatcher[] ),
-                        CompletionMatcher.nameMatcher( 'jkl' )
+                        nameMatcher( 'jkl' )
                 ] as CompletionMatcher[] ),
-                CompletionMatcher.nameMatcher( 'something' ),
-                CompletionMatcher.nameMatcher( 'other', [
-                        CompletionMatcher.nameMatcher( 'o1' ),
-                        CompletionMatcher.nameMatcher( 'o2', [
-                                CompletionMatcher.nameMatcher( 'o2.1' ),
-                                CompletionMatcher.nameMatcher( 'o2.2' ),
+                nameMatcher( 'something' ),
+                nameMatcher( 'other', [
+                        nameMatcher( 'o1' ),
+                        nameMatcher( 'o2', [
+                                nameMatcher( 'o2.1' ),
+                                nameMatcher( 'o2.2' ),
                         ] as CompletionMatcher[] ),
                 ] as CompletionMatcher[] ),
         ] as CompletionMatcher[] ) )
@@ -104,23 +108,23 @@ class BaseCompleterSpec extends Specification {
 
     def "BaseCompleter can complete multi-part commands arguments"() {
         given: "A simple command completer based on BaseCompleter"
-        def asMatcher = { String s -> CompletionMatcher.nameMatcher( s ) }
+        def asMatcher = { String s -> nameMatcher( s ) }
         def alternatives = { Collection<CompletionMatcher> matchers ->
-            CompletionMatcher.alternativeMatchers( matchers.&stream )
+            alternativeMatchers( matchers.&stream )
         }
-        def completer = new BaseCompleter( CompletionMatcher.nameMatcher( 'cmd', [
+        def completer = new BaseCompleter( nameMatcher( 'cmd', [
                 CompletionMatcher.multiPartMatcher( '-', [
                         alternatives( [ 'p1', 'p2', 'p3' ].collect( asMatcher ) ),
                         alternatives( [ 'queue', 'row', 'seat' ].collect( asMatcher ) ),
-                        CompletionMatcher.nameMatcher( 'table' )
+                        nameMatcher( 'table' )
                 ], {
                     Stream.of( CompletionMatcher.multiPartMatcher( '+', [
                             alternatives( [ 'abc', 'def' ].collect( asMatcher ) ),
                             alternatives( [ 'ghi', 'jkl' ].collect( asMatcher ) )
                     ], { Stream.empty() } ) )
                 } ),
-                CompletionMatcher.nameMatcher( 'something' ),
-                CompletionMatcher.nameMatcher( 'other' ),
+                nameMatcher( 'something' ),
+                nameMatcher( 'other' ),
         ] as CompletionMatcher[] ) )
 
         when: "Some example user commands are queried for completion"
@@ -157,6 +161,38 @@ class BaseCompleterSpec extends Specification {
         'cmd p3-seat-table z'     | 19     | -1            | [ ]
         'cmd p3-seat-table def-'  | 22     | -1            | [ ]
         'cmd p3-seat-table def+z' | 23     | -1            | [ ]
+    }
+
+    def "BaseCompleter can complete at any level using DelegateMatcher"() {
+        given:
+        def completer = new BaseCompleter( new AnyLevelMatcher(
+                alternativeMatchers(
+                        nameMatcher( "abcde" ),
+                        nameMatcher( "xyz" ),
+                        nameMatcher( "abxyz" )
+                ) ) )
+
+        when: "Some example user commands are queried for completion"
+        def candidates = [ ]
+        def index = completer.complete( command, cursor, candidates )
+
+        then: "The expected completions are added"
+        candidates == expectedCandidates
+
+        and: "The expected index is returned"
+        index == expectedIndex
+
+        where:
+        command           | cursor | expectedIndex | expectedCandidates
+        'cmd '            | 4      | 4             | [ 'abcde', 'xyz', 'abxyz' ]
+        'cmd a'           | 5      | 4             | [ 'abcde', 'abxyz' ]
+        'cmd abc'         | 7      | 4             | [ 'abcde' ]
+        'cmd x'           | 5      | 4             | [ 'xyz' ]
+        'cmd p'           | 5      | -1            | [ ]
+        'cmd xxx '        | 8      | 8             | [ 'abcde', 'xyz', 'abxyz' ]
+        'cmd xxx x'       | 9      | 8             | [ 'xyz' ]
+        'cmd xxx mm nn x' | 15     | 14            | [ 'xyz' ]
+        'cmd xxx mm nn '  | 14     | 14            | [ 'abcde', 'xyz', 'abxyz' ]
     }
 
 }
