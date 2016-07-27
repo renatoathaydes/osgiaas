@@ -50,6 +50,10 @@ public class RunCommand implements Command {
         return "Runs a OS program.";
     }
 
+    public Path getWorkingDirectory() {
+        return workingDirectory;
+    }
+
     @Override
     public void execute( String line, PrintStream out, PrintStream err ) {
         List<String> commands = CommandHelper.breakupArguments( line );

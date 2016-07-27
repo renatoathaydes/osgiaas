@@ -205,7 +205,21 @@ component( name: 'runCommand', xmlns: SCR_NAMESPACE ) {
     property( name: 'service.description', value: 'OsgiAAS Cli Run Command' )
     service {
         provide( 'interface': 'org.apache.felix.shell.Command' )
+        provide( 'interface': 'com.athaydes.osgiaas.cli.core.command.RunCommand' )
     }
+}
+
+component( name: 'runCommandCompleter', xmlns: SCR_NAMESPACE ) {
+    commonProperties()
+    implementation( 'class': 'com.athaydes.osgiaas.cli.core.completer.RunCommandCompleter' )
+    property( name: 'service.description', value: 'OsgiAAS Cli Run Command Completer' )
+    service {
+        provide( 'interface': 'com.athaydes.osgiaas.cli.CommandCompleter' )
+    }
+    reference( name: 'runCommand',
+            'interface': 'com.athaydes.osgiaas.cli.core.command.RunCommand',
+            'cardinality': '1..1',
+            'bind': 'setCommand' )
 }
 
 component( name: 'andCommandModifier', xmlns: SCR_NAMESPACE ) {
