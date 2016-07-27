@@ -3,21 +3,37 @@ package com.athaydes.osgiaas.cli.core.command;
 import com.athaydes.osgiaas.cli.CommandHelper;
 import org.apache.felix.shell.Command;
 
+import javax.annotation.Nullable;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class RunCommand implements Command {
 
     private final ExecutorService executorService = Executors.newFixedThreadPool( 2 );
+
+    private Path workingDirectory = getUserHome();
+
+    private static Path getUserHome() {
+        @Nullable String home = System.getProperty( "user.home" );
+        if ( home != null && new File( home ).isDirectory() ) {
+            return Paths.get( home );
+        } else {
+            return Paths.get( "." );
+        }
+    }
 
     @Override
     public String getName() {
@@ -36,18 +52,28 @@ public class RunCommand implements Command {
 
     @Override
     public void execute( String line, PrintStream out, PrintStream err ) {
-        String[] commands = line.trim().split( "\\s+" );
-        if ( commands.length > 1 ) {
-            commands = Arrays.copyOfRange( commands, 1, commands.length );
+        List<String> commands = CommandHelper.breakupArguments( line );
+        if ( commands.size() > 1 ) {
+            commands = commands.stream().skip( 1 ).collect( Collectors.toList() );
             runCommand( out, err, commands );
         } else {
             CommandHelper.printError( err, getUsage(), "No arguments provided" );
         }
     }
 
-    private void runCommand( PrintStream out, PrintStream err, String[] commands ) {
-        try {
-            Process process = new ProcessBuilder( commands ).start();
+    private void runCommand( PrintStream out, PrintStream err, List<String> commands ) {
+        // treat 'cd' command specially
+        if ( commands.size() > 0 && commands.get( 0 ).equals( "cd" ) ) {
+            if ( commands.size() > 2 ) {
+                err.println( "Too many arguments" );
+            } else {
+                Path path = commands.size() == 1 ? getUserHome() : Paths.get( commands.get( 1 ) );
+                changeDirectory( out, err, path );
+            }
+        } else try {
+            Process process = new ProcessBuilder( commands )
+                    .directory( workingDirectory.toFile() )
+                    .start();
 
             CountDownLatch latch = new CountDownLatch( 2 );
 
@@ -67,6 +93,18 @@ public class RunCommand implements Command {
             }
         } catch ( IOException | InterruptedException e ) {
             e.printStackTrace( err );
+        }
+    }
+
+    private void changeDirectory( PrintStream out, PrintStream err, Path path ) {
+        Path newDir = workingDirectory.resolve( path ).normalize();
+        if ( newDir.toFile().isDirectory() ) {
+            workingDirectory = newDir;
+            out.println( workingDirectory );
+        } else {
+            err.println( newDir.toFile().exists() ?
+                    "Not a directory" :
+                    "Directory does not exist" );
         }
     }
 
