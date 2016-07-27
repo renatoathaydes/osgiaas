@@ -9,6 +9,7 @@ repositories {
 }
 
 dependencies {
+    compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
     compile project( ':modules:infra:osgiaas-api' )
     compile project( ':modules:cli:osgiaas-cli-api' )
     compile 'org.codehaus.groovy:groovy-all:2.4.5'
