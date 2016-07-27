@@ -14,10 +14,9 @@
 buildscript {
     repositories {
         jcenter()
-        mavenLocal()
     }
     dependencies {
-        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.5.0"
+        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.5.1"
     }
 }
 
@@ -29,19 +28,13 @@ repositories {
 }
 
 dependencies {
-    // the osgiaas-cli bundle
-    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli:1.0-SNAPSHOT', {
+    // the osgiaas-cli core bundle
+    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-core:1.0-SNAPSHOT', {
         exclude group: 'org.osgi'
     }
 
-    // OSGi framework services
-    osgiRuntime 'org.apache.felix:org.apache.felix.scr:2.0.2'
-    osgiRuntime 'org.apache.felix:org.apache.felix.log:1.0.1', {
-        exclude group: '*'
-    }
-
-    // OBR CLI commands
-    osgiRuntime 'org.apache.felix:org.apache.felix.bundlerepository:2.0.6', {
+    // OSGi Declarative Services implementation
+    osgiRuntime 'org.apache.felix:org.apache.felix.scr:2.0.2', {
         exclude group: '*'
     }
 
@@ -50,5 +43,5 @@ dependencies {
 }
 
 runOsgi {
-    bundles = [] // all bundles added as osgiRuntime dependencies
+    bundles = [ ] // all bundles added as osgiRuntime dependencies
 }
