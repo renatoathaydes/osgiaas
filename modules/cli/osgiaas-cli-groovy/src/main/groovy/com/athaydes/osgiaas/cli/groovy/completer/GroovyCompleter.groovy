@@ -93,7 +93,7 @@ class PropertiesCompleter implements CommandCompleter {
             ( float )  : Float,
             ( double ) : Double,
             ( long )   : Long
-    ].asImmutable()
+    ].asImmutable() as Map<Class, Class>
 
     Function<String, Object> groovyRunner
 
