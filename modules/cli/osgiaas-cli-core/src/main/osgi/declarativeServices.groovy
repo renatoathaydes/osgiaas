@@ -199,7 +199,7 @@ component( name: 'grepCommandCompleter', xmlns: SCR_NAMESPACE ) {
     }
 }
 
-component( name: 'runCommand', xmlns: SCR_NAMESPACE ) {
+component( name: 'runCommand', xmlns: SCR_NAMESPACE, deactivate: 'stop' ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.core.command.RunCommand' )
     property( name: 'service.description', value: 'OsgiAAS Cli Run Command' )

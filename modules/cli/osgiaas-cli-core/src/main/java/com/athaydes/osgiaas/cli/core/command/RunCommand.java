@@ -54,6 +54,10 @@ public class RunCommand implements Command {
         return workingDirectory;
     }
 
+    public void stop() {
+        executorService.shutdownNow();
+    }
+
     @Override
     public void execute( String line, PrintStream out, PrintStream err ) {
         List<String> commands = CommandHelper.breakupArguments( line );
@@ -77,6 +81,7 @@ public class RunCommand implements Command {
         } else try {
             Process process = new ProcessBuilder( commands )
                     .directory( workingDirectory.toFile() )
+                    .redirectInput( ProcessBuilder.Redirect.INHERIT )
                     .start();
 
             CountDownLatch latch = new CountDownLatch( 2 );
