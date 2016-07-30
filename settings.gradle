@@ -7,7 +7,8 @@ include 'modules:infra:osgiaas-api',
         'modules:infra:osgiaas-slf4j-impl'
 
 // language modules
-include 'modules:lang:osgiaas-javac'
+include 'modules:lang:osgiaas-javac',
+        'modules:lang:osgiaas-autocomplete'
 
 // CLI modules
 include 'modules:cli:osgiaas-cli-api',
