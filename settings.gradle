@@ -8,7 +8,8 @@ include 'modules:infra:osgiaas-api',
 
 // language modules
 include 'modules:lang:osgiaas-javac',
-        'modules:lang:osgiaas-autocomplete'
+        'modules:lang:osgiaas-autocomplete',
+        'modules:lang:osgiaas-java-autocomplete'
 
 // CLI modules
 include 'modules:cli:osgiaas-cli-api',
