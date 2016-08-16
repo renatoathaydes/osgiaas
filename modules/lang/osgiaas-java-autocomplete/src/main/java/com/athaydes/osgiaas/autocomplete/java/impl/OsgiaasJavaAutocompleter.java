@@ -6,7 +6,6 @@ import com.athaydes.osgiaas.autocomplete.java.JavaAutocompleter;
 import com.athaydes.osgiaas.autocomplete.java.JavaAutocompleterResult;
 import com.athaydes.osgiaas.cli.CommandHelper;
 import com.github.javaparser.JavaParser;
-import com.github.javaparser.ParseException;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.ClassExpr;
@@ -67,6 +66,11 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
     public JavaAutocompleterResult completionsFor( String codeFragment, Map<String, Object> bindings ) {
         LinkedList<String> codeParts = new LinkedList<>();
         CommandHelper.breakupArguments( codeFragment, codeParts::add, OPTIONS );
+
+        // ensure an empty last part in case the code fragment ends with a dot
+        if ( codeFragment.trim().endsWith( "." ) ) {
+            codeParts.add( "" );
+        }
 
         if ( codeParts.size() < 2 ) {
             return new JavaAutocompleterResult( textCompleter.completionsFor(
@@ -145,8 +149,7 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
         try {
             CompilationUnit cu = JavaParser.parse( new StringReader( classCode ), false );
             return new LastStatementTypeDiscoverer().discover( cu );
-        } catch ( ParseException e ) {
-            e.printStackTrace();
+        } catch ( Throwable e ) {
             return Void.class;
         }
     }

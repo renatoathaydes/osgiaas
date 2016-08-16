@@ -54,6 +54,32 @@ class OsgiaasJavaAutocompleterSpec extends Specification {
         'ho.getF'  | [ ho: List ] | [ 'getField(', 'getFields()' ] | 3
     }
 
+    def "Can complete third-level text based on the type of the previous words"() {
+        when: 'completions are requested for #text with bindings #bindings'
+        def result = completer.completionsFor( text, bindings )
+
+        then: 'the expected completions are provided: #expectedCompletions'
+        result.completions as Set == expectedCompletions as Set
+        result.completionIndex == expectedIndex
+
+        where:
+        text                | bindings     | expectedCompletions                 | expectedIndex
+        'hi.toString().toU' | [ hi: 'Hi' ] | [ 'toUpperCase()', 'toUpperCase(' ] | 14
+        'hi.toString().'    | [ hi: 'Hi' ] | [ 'CASE_INSENSITIVE_ORDER', 'charAt(', 'chars()', 'codePointAt(',
+                                               'codePointBefore(', 'codePointCount(', 'codePoints()', 'compareTo(',
+                                               'compareTo(', 'compareToIgnoreCase(', 'concat(', 'contains(',
+                                               'contentEquals(', 'contentEquals(', 'copyValueOf(', 'copyValueOf(',
+                                               'endsWith(', 'equals(', 'equalsIgnoreCase(', 'format(', 'format(',
+                                               'getBytes(', 'getBytes()', 'getChars(', 'getClass()', 'hashCode()',
+                                               'indexOf(', 'intern()', 'isEmpty()', 'join(', 'join(', 'lastIndexOf(',
+                                               'lastIndexOf(', 'length()', 'matches(', 'notify()', 'notifyAll()',
+                                               'offsetByCodePoints(', 'regionMatches(', 'replace(', 'replaceAll(',
+                                               'replaceFirst(', 'split(', 'startsWith(', 'subSequence(', 'substring(',
+                                               'toCharArray()', 'toLowerCase(', 'toLowerCase()', 'toString()',
+                                               'toUpperCase(', 'toUpperCase()', 'trim()', 'valueOf(',
+                                               'wait(', 'wait()' ]               | 14
+    }
+
     def "Can find out the type of the first part of the input"() {
         when: 'the type of the first part of "#text" is requested'
         def result = completer.findTypeOfFirstPart( text )

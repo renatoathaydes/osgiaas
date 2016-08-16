@@ -10,6 +10,7 @@ dependencies {
     compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
     compile project( ':modules:cli:osgiaas-cli-api' )
     compile project( ':modules:lang:osgiaas-javac' )
+    compile project( ':modules:lang:osgiaas-java-autocomplete' )
     compile 'com.github.javaparser:javaparser-core:2.4.0'
     compile 'org.osgi:osgi.core:6.0.0'
 
