@@ -16,6 +16,27 @@ class OsgiaasJavaAutocompleterSpec extends Specification {
             Autocompleter.getStartWithAutocompleter(),
             DefaultContext.instance )
 
+    def "Can find out the correct index to start looking at the code fragment"() {
+        when: 'the completer gets the start index to complete a code fragment'
+        def result = completer.indexToStartCompletion( codeFragment )
+
+        then: 'the index returned should be after the last code delimiter, not including trailing whitespaces'
+        result == expectedStartIndex
+        codeFragment.substring( result ) == expectedCode
+
+        where:
+        codeFragment                 | expectedStartIndex | expectedCode
+        ''                           | 0                  | ''
+        ' '                          | 0                  | ' '
+        'a.'                         | 0                  | 'a.'
+        'class A {} a.'              | 11                 | 'a.'
+        'class A {} a. '             | 11                 | 'a. '
+        'class A {} a.b().c.'        | 11                 | 'a.b().c.'
+        'class A {} a.b().c  '       | 11                 | 'a.b().c  '
+        '  a.'                       | 2                  | 'a.'
+        'class A {void main() {\na.' | 23                 | 'a.'
+    }
+
     def "Can complete simple text based on bindings and Java keywords"() {
         when: 'completions are requested for #text with bindings #bindings'
         def result = completer.completionsFor( text, bindings )
@@ -26,17 +47,18 @@ class OsgiaasJavaAutocompleterSpec extends Specification {
 
         then: 'the expected completions are provided: #expectedCompletions'
         result.completions == allExpectedCompletions
-        result.completionIndex == 0
+        result.completionIndex == expectedIndex
 
         where:
-        text   | bindings                    | useAllTopLevelCompletions | expectedCompletions
-        ''     | [ : ]                       | true                      | [ ]
-        ''     | [ hi: 1, bye: 2 ]           | true                      | [ 'hi', 'bye' ]
-        ''     | [ _one: 1 ]                 | true                      | [ '_one' ]
-        'publ' | [ : ]                       | false                     | [ 'public' ]
-        'publ' | [ publicize: true ]         | false                     | [ 'public', 'publicize' ]
-        'publ' | [ publicize: true, pub: 1 ] | false                     | [ 'public', 'publicize' ]
-        'pr'   | [ : ]                       | false                     | [ 'private', 'protected' ]
+        text   | bindings                    | useAllTopLevelCompletions | expectedCompletions        | expectedIndex
+        ''     | [ : ]                       | true                      | [ ]                        | 0
+        ''     | [ hi: 1, bye: 2 ]           | true                      | [ 'hi', 'bye' ]            | 0
+        ''     | [ _one: 1 ]                 | true                      | [ '_one' ]                 | 0
+        'publ' | [ : ]                       | false                     | [ 'public' ]               | 0
+        'publ' | [ publicize: true ]         | false                     | [ 'public', 'publicize' ]  | 0
+        'publ' | [ publicize: true, pub: 1 ] | false                     | [ 'public', 'publicize' ]  | 0
+        'pr'   | [ : ]                       | false                     | [ 'private', 'protected' ] | 0
+        'a pr' | [ : ]                       | false                     | [ 'private', 'protected' ] | 2
     }
 
     def "Can complete second-level text based on the type of the first-level word"() {

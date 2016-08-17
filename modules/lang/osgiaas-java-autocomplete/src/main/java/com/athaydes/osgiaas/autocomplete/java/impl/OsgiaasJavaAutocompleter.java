@@ -23,10 +23,12 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -64,8 +66,10 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
 
     @Override
     public JavaAutocompleterResult completionsFor( String codeFragment, Map<String, Object> bindings ) {
+        int startIndex = indexToStartCompletion( codeFragment );
+        String toComplete = codeFragment.substring( startIndex );
         LinkedList<String> codeParts = new LinkedList<>();
-        CommandHelper.breakupArguments( codeFragment, codeParts::add, OPTIONS );
+        CommandHelper.breakupArguments( toComplete, codeParts::add, OPTIONS );
 
         // ensure an empty last part in case the code fragment ends with a dot
         if ( codeFragment.trim().endsWith( "." ) ) {
@@ -74,16 +78,35 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
 
         if ( codeParts.size() < 2 ) {
             return new JavaAutocompleterResult( textCompleter.completionsFor(
-                    codeFragment,
-                    topLevelCompletions( bindings.keySet() ) ), 0 );
+                    toComplete,
+                    topLevelCompletions( bindings.keySet() ) ), startIndex );
         } else {
             LastTypeAndTextToComplete lttc = lastTypeAndTextToComplete( codeParts, bindings );
             List<String> options = optionsFor( lttc.lastType );
             String text = lttc.textToComplete;
             int index = codeFragment.length() - text.length();
             return new JavaAutocompleterResult(
-                    textCompleter.completionsFor( text, options ), index );
+                    textCompleter.completionsFor( text, options ), startIndex + index );
         }
+    }
+
+    /**
+     * @param codeFragment original code fragment
+     * @return last index, excepting whitespaces, right after a code delimiter
+     */
+    int indexToStartCompletion( String codeFragment ) {
+        Set<Character> codeDelimiters = new HashSet<>( Arrays.asList( ';', '{', '}', ' ', '\n', '\t' ) );
+        boolean ignoringWhitespace = true;
+        for (int i = codeFragment.length() - 1; i > 0; i--) {
+            char c = codeFragment.charAt( i );
+            if ( ignoringWhitespace && c == ' ' ) continue;
+            ignoringWhitespace = false;
+            if ( codeDelimiters.contains( c ) ) {
+                return i + 1;
+            }
+        }
+
+        return 0;
     }
 
     private List<String> optionsFor( Class<?> type ) {
