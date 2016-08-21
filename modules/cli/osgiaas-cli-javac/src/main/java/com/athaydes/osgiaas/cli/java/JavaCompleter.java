@@ -17,6 +17,8 @@ import static com.athaydes.osgiaas.cli.completer.CompletionMatcher.nameMatcher;
 
 public class JavaCompleter implements CommandCompleter {
 
+    private JavaCommand javaCommand;
+
     private final BaseCompleter argsMatcher = new BaseCompleter( nameMatcher( "java",
             nameMatcher( JavaCommand.CLASS_ARG, JavaCompleter::forClassArg ),
             nameMatcher( JavaCommand.RESET_CODE_ARG ),
@@ -29,6 +31,10 @@ public class JavaCompleter implements CommandCompleter {
                 nameMatcher( "class" ), nameMatcher( "interface" ),
                 nameMatcher( "public", alternativeMatchers(
                         nameMatcher( "class" ), nameMatcher( "interface" ) ) ) );
+    }
+
+    public void setJavaCommand( JavaCommand javaCommand ) {
+        this.javaCommand = javaCommand;
     }
 
     @Override
@@ -57,8 +63,7 @@ public class JavaCompleter implements CommandCompleter {
     }
 
     private JavaAutocompleteContext getContext() {
-        // TODO get context from the Java command
-        return JavaAutocompleteContext.emptyContext();
+        return javaCommand.getAutocompleContext();
     }
 
 }

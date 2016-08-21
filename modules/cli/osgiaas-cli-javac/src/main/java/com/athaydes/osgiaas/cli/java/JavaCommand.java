@@ -1,12 +1,12 @@
 package com.athaydes.osgiaas.cli.java;
 
 import com.athaydes.osgiaas.api.stream.LineOutputStream;
+import com.athaydes.osgiaas.autocomplete.java.JavaAutocompleteContext;
 import com.athaydes.osgiaas.cli.CommandHelper;
 import com.athaydes.osgiaas.cli.CommandInvocation;
 import com.athaydes.osgiaas.cli.StreamingCommand;
 import com.athaydes.osgiaas.cli.args.ArgsSpec;
 import com.athaydes.osgiaas.cli.java.api.Binding;
-import com.athaydes.osgiaas.javac.ClassLoaderContext;
 import com.athaydes.osgiaas.javac.JavacService;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseException;
@@ -53,7 +53,7 @@ public class JavaCommand implements Command, StreamingCommand {
                     "\\s*(\\()?\\s*(?<id>" + JAVA_ID_REGEX + ")\\s*(\\))?\\s*->(?<body>.+)",
                     Pattern.DOTALL );
 
-    private ClassLoaderContext classLoaderContext;
+    private ClassLoaderCapabilities classLoaderContext;
 
     private final ArgsSpec javaArgs = ArgsSpec.builder()
             .accepts( RESET_CODE_ARG )
@@ -64,7 +64,7 @@ public class JavaCommand implements Command, StreamingCommand {
 
     private static final Callable<?> ERROR = () -> null;
 
-    public void setClassLoaderContext( ClassLoaderContext classLoaderContext ) {
+    public void setClassLoaderContext( ClassLoaderCapabilities classLoaderContext ) {
         this.classLoaderContext = classLoaderContext;
     }
 
@@ -122,6 +122,10 @@ public class JavaCommand implements Command, StreamingCommand {
                 "each input line as an argument, returning something to be printed (or null).\n'n" +
                 "Example:\n" +
                 "> some_command | java line -> line.contains(\"text\") ? line : null";
+    }
+
+    JavaAutocompleteContext getAutocompleContext() {
+        return code;
     }
 
     @Override
@@ -253,6 +257,7 @@ public class JavaCommand implements Command, StreamingCommand {
         }
     }
 
+
     private void breakupJavaLines( String input ) {
         CommandHelper.breakupArguments( input, ( javaLine ) -> {
             javaLine = javaLine.trim();
@@ -262,6 +267,4 @@ public class JavaCommand implements Command, StreamingCommand {
             return true;
         }, JAVA_OPTIONS.separatorCode( ';' ) );
     }
-
-
 }

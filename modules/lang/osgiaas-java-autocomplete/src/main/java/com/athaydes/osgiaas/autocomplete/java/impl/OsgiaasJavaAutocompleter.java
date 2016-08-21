@@ -8,12 +8,19 @@ import com.athaydes.osgiaas.cli.CommandHelper;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.ClassExpr;
 import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.expr.StringLiteralExpr;
+import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.javaparser.ast.stmt.ReturnStmt;
 import com.github.javaparser.ast.stmt.Statement;
+import com.github.javaparser.ast.type.ClassOrInterfaceType;
+import com.github.javaparser.ast.type.ReferenceType;
+import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.visitor.GenericVisitorAdapter;
 
 import javax.annotation.Nullable;
@@ -23,6 +30,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -253,6 +261,7 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
         @Override
         public Class<?> visit( MethodDeclaration declaration, MethodDeclaration arg ) {
             List<Statement> statements = declaration.getBody().getStmts();
+
             Statement lastStatement = statements.get( statements.size() - 1 );
 
             if ( lastStatement instanceof ReturnStmt ) try {
@@ -263,13 +272,53 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
                     return classForName( ( ( ObjectCreationExpr ) expr ).getType().getName() );
                 else if ( expr.getClass().equals( StringLiteralExpr.class ) )
                     return String.class;
-                else
+                else if ( expr.getClass().equals( NameExpr.class ) ) {
+                    Map<String, Class<?>> typeByVariableName = getTypesByVariableName( statements );
+                    String name = ( ( NameExpr ) expr ).getName();
+                    return typeByVariableName.getOrDefault( name, Void.class );
+                } else
                     return Void.class;
             } catch ( ClassNotFoundException ignore ) {
                 // class does not exist
             }
 
             return Void.class;
+        }
+
+        private Map<String, Class<?>> getTypesByVariableName( List<Statement> statements ) {
+            Map<String, Class<?>> typeByVariableName = new HashMap<>();
+
+            for (Statement statement : statements) {
+                if ( statement instanceof ExpressionStmt ) {
+                    Expression expression = ( ( ExpressionStmt ) statement ).getExpression();
+                    if ( expression instanceof VariableDeclarationExpr ) {
+                        VariableDeclarationExpr varExpression = ( VariableDeclarationExpr ) expression;
+                        @Nullable Class<?> type = typeOf( varExpression.getType() );
+                        if ( type != null ) {
+                            for (VariableDeclarator var : varExpression.getVars()) {
+                                typeByVariableName.put( var.getId().getName(), type );
+                            }
+                        }
+                    }
+                }
+            }
+
+            return typeByVariableName;
+        }
+
+        @Nullable
+        private Class<?> typeOf( Type type ) {
+            if ( type instanceof ReferenceType ) {
+                return typeOf( ( ( ReferenceType ) type ).getType() );
+            }
+            if ( type instanceof ClassOrInterfaceType ) {
+                try {
+                    return classForName( ( ( ClassOrInterfaceType ) type ).getName() );
+                } catch ( ClassNotFoundException e ) {
+                    // class not found, ignore
+                }
+            }
+            return null;
         }
 
         private Class<?> classForName( String name ) throws ClassNotFoundException {

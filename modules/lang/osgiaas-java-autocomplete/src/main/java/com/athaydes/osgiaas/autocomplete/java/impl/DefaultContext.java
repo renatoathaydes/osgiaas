@@ -2,8 +2,8 @@ package com.athaydes.osgiaas.autocomplete.java.impl;
 
 import com.athaydes.osgiaas.autocomplete.java.JavaAutocompleteContext;
 
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 public class DefaultContext implements JavaAutocompleteContext {
 
@@ -18,7 +18,7 @@ public class DefaultContext implements JavaAutocompleteContext {
     }
 
     @Override
-    public List<String> getImports() {
+    public Collection<String> getImports() {
         return Collections.emptyList();
     }
 

@@ -1,5 +1,6 @@
 package com.athaydes.osgiaas.cli.java;
 
+import com.athaydes.osgiaas.autocomplete.java.JavaAutocompleteContext;
 import com.athaydes.osgiaas.cli.java.api.Binding;
 import com.athaydes.osgiaas.javac.JavaSnippet;
 
@@ -13,7 +14,7 @@ import java.util.stream.Stream;
 /**
  * Keeps state about the Java code to be executed in the shell.
  */
-class JavaCode implements JavaSnippet {
+class JavaCode implements JavaSnippet, JavaAutocompleteContext {
     private final LinkedList<String> javaLines = new LinkedList<>();
     private final LinkedList<String> tempJavaLines = new LinkedList<>();
 
@@ -50,6 +51,13 @@ class JavaCode implements JavaSnippet {
         return Stream.concat( javaLines.stream(), tempJavaLines.stream() )
                 .map( it -> it + ";\n" )
                 .reduce( "", ( a, b ) -> a + b ) + finalLine;
+    }
+
+    @Override
+    public String getMethodBody( String codeSnippet ) {
+        return Stream.concat( javaLines.stream(), tempJavaLines.stream() )
+                .map( it -> it + ";\n" )
+                .reduce( "", ( a, b ) -> a + b ) + codeSnippet;
     }
 
     @Override

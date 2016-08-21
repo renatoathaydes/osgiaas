@@ -10,9 +10,10 @@ component( name: 'javaCommand', immediate: true, xmlns: SCR_NAMESPACE ) {
     property( name: 'service.description', value: 'OSGiaaS Java Command' )
     service {
         provide( 'interface': 'org.apache.felix.shell.Command' )
+        provide( 'interface': 'com.athaydes.osgiaas.cli.java.JavaCommand' )
     }
     reference( name: 'classLoaderCapabilities',
-            'interface': 'com.athaydes.osgiaas.javac.ClassLoaderContext',
+            'interface': 'com.athaydes.osgiaas.cli.java.ClassLoaderCapabilities',
             'cardinality': '1..1',
             'bind': 'setClassLoaderContext',
             'target': '(service.bundle=osgiaas-cli-java)' )
@@ -25,6 +26,10 @@ component( name: 'javaCompleter', immediate: true, xmlns: SCR_NAMESPACE ) {
     service {
         provide( 'interface': 'com.athaydes.osgiaas.cli.CommandCompleter' )
     }
+    reference( name: 'javaCommand',
+            'interface': 'com.athaydes.osgiaas.cli.java.JavaCommand',
+            'cardinality': '1..1',
+            'bind': 'setJavaCommand' )
 }
 
 component( name: 'classLoaderCapabilities', immediate: true, xmlns: SCR_NAMESPACE ) {
@@ -34,5 +39,6 @@ component( name: 'classLoaderCapabilities', immediate: true, xmlns: SCR_NAMESPAC
     property( name: 'service.description', value: 'JavaCommand ClassLoaderCapabilities' )
     service {
         provide( 'interface': 'com.athaydes.osgiaas.javac.ClassLoaderContext' )
+        provide( 'interface': 'com.athaydes.osgiaas.cli.java.ClassLoaderCapabilities' )
     }
 }
