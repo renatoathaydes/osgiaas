@@ -84,7 +84,7 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
             LastTypeAndTextToComplete lttc = lastTypeAndTextToComplete( codeParts, bindings );
             List<String> options = optionsFor( lttc.lastType );
             String text = lttc.textToComplete;
-            int index = codeFragment.length() - text.length();
+            int index = toComplete.length() - text.length();
             return new JavaAutocompleterResult(
                     textCompleter.completionsFor( text, options ), startIndex + index );
         }

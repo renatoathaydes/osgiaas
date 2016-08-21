@@ -25,16 +25,17 @@ class OsgiaasJavaAutocompleterSpec extends Specification {
         codeFragment.substring( result ) == expectedCode
 
         where:
-        codeFragment                 | expectedStartIndex | expectedCode
-        ''                           | 0                  | ''
-        ' '                          | 0                  | ' '
-        'a.'                         | 0                  | 'a.'
-        'class A {} a.'              | 11                 | 'a.'
-        'class A {} a. '             | 11                 | 'a. '
-        'class A {} a.b().c.'        | 11                 | 'a.b().c.'
-        'class A {} a.b().c  '       | 11                 | 'a.b().c  '
-        '  a.'                       | 2                  | 'a.'
-        'class A {void main() {\na.' | 23                 | 'a.'
+        codeFragment                    | expectedStartIndex | expectedCode
+        ''                              | 0                  | ''
+        ' '                             | 0                  | ' '
+        'a.'                            | 0                  | 'a.'
+        'class A {} a.'                 | 11                 | 'a.'
+        'class A {} a. '                | 11                 | 'a. '
+        'class A {} a.b().c.'           | 11                 | 'a.b().c.'
+        'class A {} a.b().c  '          | 11                 | 'a.b().c  '
+        '  a.'                          | 2                  | 'a.'
+        'class A {void main() {\na.'    | 23                 | 'a.'
+        '  "abc".toString(); "cde".toS' | 20                 | '"cde".toS'
     }
 
     def "Can complete simple text based on bindings and Java keywords"() {
@@ -70,10 +71,11 @@ class OsgiaasJavaAutocompleterSpec extends Specification {
         result.completionIndex == expectedIndex
 
         where:
-        text       | bindings     | expectedCompletions            | expectedIndex
-        'hi.toS'   | [ hi: 'Hi' ] | [ 'toString()' ]               | 3
-        '"hi".toS' | [ : ]        | [ 'toString()' ]               | 5
-        'ho.getF'  | [ ho: List ] | [ 'getField(', 'getFields()' ] | 3
+        text             | bindings     | expectedCompletions            | expectedIndex
+        'hi.toS'         | [ hi: 'Hi' ] | [ 'toString()' ]               | 3
+        '"hi".toS'       | [ : ]        | [ 'toString()' ]               | 5
+        'ho.getF'        | [ ho: List ] | [ 'getField(', 'getFields()' ] | 3
+        'return ho.getF' | [ ho: List ] | [ 'getField(', 'getFields()' ] | 10
     }
 
     def "Can complete third-level text based on the type of the previous words"() {
