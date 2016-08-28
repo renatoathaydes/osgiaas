@@ -43,6 +43,7 @@ class CliRun implements Runnable {
         consoleReader = new ConsoleReader( input, System.out );
         started = new AtomicBoolean( false );
         consoleReader.setPrompt( getPrompt() );
+        consoleReader.setExpandEvents( false );
     }
 
     void addCompleter( Completer completer ) {
