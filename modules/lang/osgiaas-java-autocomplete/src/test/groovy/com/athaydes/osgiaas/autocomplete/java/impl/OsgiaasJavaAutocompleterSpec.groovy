@@ -7,6 +7,8 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
+import java.lang.reflect.Array
+
 @Unroll
 class OsgiaasJavaAutocompleterSpec extends Specification {
 
@@ -18,24 +20,25 @@ class OsgiaasJavaAutocompleterSpec extends Specification {
 
     def "Can find out the correct index to start looking at the code fragment"() {
         when: 'the completer gets the start index to complete a code fragment'
-        def result = completer.indexToStartCompletion( codeFragment )
+        def startIndex = completer.indexToStartCompletion( codeFragment )
 
         then: 'the index returned should be after the last code delimiter, not including trailing whitespaces'
-        result == expectedStartIndex
-        codeFragment.substring( result ) == expectedCode
+        codeFragment.substring( startIndex ) == expectedCode
 
         where:
-        codeFragment                    | expectedStartIndex | expectedCode
-        ''                              | 0                  | ''
-        ' '                             | 0                  | ' '
-        'a.'                            | 0                  | 'a.'
-        'class A {} a.'                 | 11                 | 'a.'
-        'class A {} a. '                | 11                 | 'a. '
-        'class A {} a.b().c.'           | 11                 | 'a.b().c.'
-        'class A {} a.b().c  '          | 11                 | 'a.b().c  '
-        '  a.'                          | 2                  | 'a.'
-        'class A {void main() {\na.'    | 23                 | 'a.'
-        '  "abc".toString(); "cde".toS' | 20                 | '"cde".toS'
+        codeFragment                              | expectedCode
+        ''                                        | ''
+        ' '                                       | ' '
+        'a.'                                      | 'a.'
+        'class A {} a.'                           | 'a.'
+        'class A {} a. '                          | 'a. '
+        'class A {} a.b().c.'                     | 'a.b().c.'
+        'class A {} a.b().c  '                    | 'a.b().c  '
+        '  a.'                                    | 'a.'
+        'class A {void main() {\na.'              | 'a.'
+        '  "abc".toString(); "cde".toS'           | '"cde".toS'
+        'new A().hi'                              | 'new A().hi'
+        'class A{void main() { return new A().hi' | 'new A().hi'
     }
 
     def "Can complete simple text based on bindings and Java keywords"() {
@@ -77,6 +80,7 @@ class OsgiaasJavaAutocompleterSpec extends Specification {
         'ho.getF'          | [ ho: List ] | [ 'getField(', 'getFields()' ] | 3
         'return ho.getF'   | [ ho: List ] | [ 'getField(', 'getFields()' ] | 10
         'Integer.class.ca' | [ : ]        | [ 'cast(' ]                    | 14
+        'new int[0].len'   | [ : ]        | [ 'length' ]                   | 11
     }
 
     def "Can complete third-level text based on the type of the previous words"() {
@@ -90,6 +94,7 @@ class OsgiaasJavaAutocompleterSpec extends Specification {
         where:
         text                | bindings     | expectedCompletions                 | expectedIndex
         'hi.toString().toU' | [ hi: 'Hi' ] | [ 'toUpperCase()', 'toUpperCase(' ] | 14
+        'hi.getBytes().le'  | [ hi: 'Hi' ] | [ 'length' ]                        | 14
         'hi.toString().'    | [ hi: 'Hi' ] | [ 'CASE_INSENSITIVE_ORDER', 'charAt(', 'chars()', 'codePointAt(',
                                                'codePointBefore(', 'codePointCount(', 'codePoints()', 'compareTo(',
                                                'compareTo(', 'compareToIgnoreCase(', 'concat(', 'contains(',
@@ -119,9 +124,10 @@ class OsgiaasJavaAutocompleterSpec extends Specification {
         'new String().to'   | String
         'Boolean.class'     | Class
         'Boolean.class.get' | Class
-        '2'                 | Void // all primivite types can just return Void
+        '2'                 | Void // all primitive types can just return Void
         "'a'"               | Void
         '4L'                | Void
+        'new int[0].le'     | Array
     }
 
     def "Can find out the type of the first part of the input using imports"() {
@@ -155,13 +161,13 @@ class OsgiaasJavaAutocompleterSpec extends Specification {
         result.textToComplete == expectedTextToComplete
 
         where:
-        codeParts                  | bindings   | expectedType | expectedTextToComplete
-        [ '"hi"', 'to' ]           | [ : ]      | String       | 'to'
-        [ 'hi', 'to' ]             | [ hi: '' ] | String       | 'to'
-        [ 'n', 'to' ]              | [ n: 0 ]   | Integer      | 'to'
-        [ '10', '' ]               | [ : ]      | Void         | ''
-        [ 'hi', 'toString()', '' ] | [ hi: '' ] | String       | ''
-        //[ 'hi', 'getBytes()', 'length', '' ] | [ hi: '' ] | int          | ''
+        codeParts                    | bindings   | expectedType | expectedTextToComplete
+        [ '"hi"', 'to' ]             | [ : ]      | String       | 'to'
+        [ 'hi', 'to' ]               | [ hi: '' ] | String       | 'to'
+        [ 'n', 'to' ]                | [ n: 0 ]   | Integer      | 'to'
+        [ '10', '' ]                 | [ : ]      | Void         | ''
+        [ 'hi', 'toString()', '' ]   | [ hi: '' ] | String       | ''
+        [ 'hi', 'getBytes()', 'le' ] | [ hi: '' ] | Array        | 'le'
     }
 
 }

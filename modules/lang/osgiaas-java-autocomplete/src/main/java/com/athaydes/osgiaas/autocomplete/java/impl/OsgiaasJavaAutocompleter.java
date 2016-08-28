@@ -9,6 +9,7 @@ import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.expr.ArrayCreationExpr;
 import com.github.javaparser.ast.expr.ClassExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.NameExpr;
@@ -25,6 +26,7 @@ import com.github.javaparser.ast.visitor.GenericVisitorAdapter;
 
 import javax.annotation.Nullable;
 import java.io.StringReader;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -37,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -103,9 +106,26 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
 
     /**
      * @param codeFragment original code fragment
-     * @return last index, excepting whitespaces, right after a code delimiter
+     * @return last index, excepting whitespaces, right after a code delimiter.
+     * If the 'new' operator is found right before the chosen index, it is included as well.
      */
     int indexToStartCompletion( String codeFragment ) {
+        IntFunction<Integer> maybeIndexOfPreviousNew = ( index ) -> {
+            for (int i = index - 1; i > 0; i--) {
+                char c = codeFragment.charAt( i );
+                if ( c == ' ' || c == '\n' ) {
+                    continue;
+                }
+                // found non-whitespace previous to index, check if it's the 'new' keyword
+                if ( i > 1 && codeFragment.substring( i - 2, i + 1 ).equals( "new" ) ) {
+                    return i - 2;
+                } else {
+                    break;
+                }
+            }
+            return index;
+        };
+
         Set<Character> codeDelimiters = new HashSet<>( Arrays.asList( ';', '{', '}', ' ', '\n', '\t' ) );
         boolean ignoringWhitespace = true;
         for (int i = codeFragment.length() - 1; i > 0; i--) {
@@ -113,7 +133,7 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
             if ( ignoringWhitespace && c == ' ' ) continue;
             ignoringWhitespace = false;
             if ( codeDelimiters.contains( c ) ) {
-                return i + 1;
+                return maybeIndexOfPreviousNew.apply( i + 1 );
             }
         }
 
@@ -124,8 +144,15 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
         Stream<String> methods = Stream.of( type.getMethods() )
                 .map( this::completionFor );
 
-        Stream<String> fields = Stream.of( type.getFields() )
-                .map( Field::getName );
+        Stream<String> fields;
+
+        if ( type == Array.class ) {
+            // Java arrays have only one synthetic field: length
+            fields = Stream.of( "length" );
+        } else {
+            fields = Stream.of( type.getFields() )
+                    .map( Field::getName );
+        }
 
         return Stream.concat( methods, fields )
                 .sorted()
@@ -153,6 +180,11 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
         Class<?> topLevelType = topLevelType( firstPart, bindings );
 
         Class<?> lastType = findLastType( codeParts, topLevelType );
+
+        if ( lastType.isArray() ) {
+            lastType = Array.class;
+        }
+
         String lastPart = codeParts.getLast();
 
         return new LastTypeAndTextToComplete( lastType, lastPart );
@@ -282,6 +314,8 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
                     return Class.class;
                 else if ( expr instanceof ObjectCreationExpr )
                     return classForName( ( ( ObjectCreationExpr ) expr ).getType().getName() );
+                else if ( expr instanceof ArrayCreationExpr )
+                    return Array.class;
                 else if ( expr.getClass().equals( StringLiteralExpr.class ) )
                     return String.class;
                 else if ( expr.getClass().equals( NameExpr.class ) ) {
