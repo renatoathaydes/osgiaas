@@ -55,7 +55,10 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
             "abstract", "assert", "boolean",
             "break", "byte", "case", "catch", "char", "class", "const",
             "continue", "default", "do", "double", "else", "enum", "extends", "false",
-            "final", "finally", "float", "for", "goto", "if", "implements",
+            "final", "finally", "float", "for",
+            // reserved keyword, but not used
+            // "goto",
+            "if", "implements",
             "import", "instanceof", "int", "interface", "long", "native",
             "new", "null", "package", "private", "protected", "public",
             "return", "short", "static", "strictfp", "super", "switch",
@@ -140,7 +143,14 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
             LinkedList<String> codeParts, Map<String, Object> bindings ) {
         assert codeParts.size() >= 2;
 
-        Class<?> topLevelType = topLevelType( codeParts.removeFirst(), bindings );
+        String firstPart = codeParts.removeFirst();
+
+        // special case for class expressions
+        if ( codeParts.getFirst().equals( "class" ) ) {
+            firstPart += "." + codeParts.removeFirst();
+        }
+
+        Class<?> topLevelType = topLevelType( firstPart, bindings );
 
         Class<?> lastType = findLastType( codeParts, topLevelType );
         String lastPart = codeParts.getLast();
@@ -267,6 +277,8 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
             if ( lastStatement instanceof ReturnStmt ) try {
                 Expression expr = ( ( ReturnStmt ) lastStatement ).getExpr();
                 if ( expr instanceof ClassExpr )
+                    // we could return the correct class type here, but that would cause misleading auto-completions
+                    // because the runtime of the expression is a Class without with the type parameter erased
                     return Class.class;
                 else if ( expr instanceof ObjectCreationExpr )
                     return classForName( ( ( ObjectCreationExpr ) expr ).getType().getName() );

@@ -71,11 +71,12 @@ class OsgiaasJavaAutocompleterSpec extends Specification {
         result.completionIndex == expectedIndex
 
         where:
-        text             | bindings     | expectedCompletions            | expectedIndex
-        'hi.toS'         | [ hi: 'Hi' ] | [ 'toString()' ]               | 3
-        '"hi".toS'       | [ : ]        | [ 'toString()' ]               | 5
-        'ho.getF'        | [ ho: List ] | [ 'getField(', 'getFields()' ] | 3
-        'return ho.getF' | [ ho: List ] | [ 'getField(', 'getFields()' ] | 10
+        text               | bindings     | expectedCompletions            | expectedIndex
+        'hi.toS'           | [ hi: 'Hi' ] | [ 'toString()' ]               | 3
+        '"hi".toS'         | [ : ]        | [ 'toString()' ]               | 5
+        'ho.getF'          | [ ho: List ] | [ 'getField(', 'getFields()' ] | 3
+        'return ho.getF'   | [ ho: List ] | [ 'getField(', 'getFields()' ] | 10
+        'Integer.class.ca' | [ : ]        | [ 'cast(' ]                    | 14
     }
 
     def "Can complete third-level text based on the type of the previous words"() {
