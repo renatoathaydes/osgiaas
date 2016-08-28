@@ -28,7 +28,9 @@ import javax.annotation.Nullable;
 import java.io.StringReader;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -40,6 +42,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.IntFunction;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -91,14 +94,17 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
         }
 
         if ( codeParts.size() < 2 ) {
-            return new JavaAutocompleterResult( textCompleter.completionsFor(
+            List<String> completions = textCompleter.completionsFor(
                     toComplete,
-                    topLevelCompletions( bindings.keySet() ) ), startIndex );
+                    topLevelCompletions( bindings.keySet() ) );
+
+            return new JavaAutocompleterResult( completions, startIndex );
         } else {
             LastTypeAndTextToComplete lttc = lastTypeAndTextToComplete( codeParts, bindings );
             List<String> options = optionsFor( lttc.lastType );
             String text = lttc.textToComplete;
             int index = toComplete.length() - text.length();
+
             return new JavaAutocompleterResult(
                     textCompleter.completionsFor( text, options ), startIndex + index );
         }
@@ -140,17 +146,21 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
         return 0;
     }
 
-    private List<String> optionsFor( Class<?> type ) {
-        Stream<String> methods = Stream.of( type.getMethods() )
+    private List<String> optionsFor( ResultType resultType ) {
+        Class<?> type = resultType.type;
+
+        Stream<String> methods = filterMembers(
+                Stream.of( type.getMethods() ), resultType.isStatic )
                 .map( this::completionFor );
 
         Stream<String> fields;
 
-        if ( type == Array.class ) {
+        if ( type == Array.class && !resultType.isStatic ) {
             // Java arrays have only one synthetic field: length
             fields = Stream.of( "length" );
         } else {
-            fields = Stream.of( type.getFields() )
+            fields = filterMembers(
+                    Stream.of( type.getFields() ), resultType.isStatic )
                     .map( Field::getName );
         }
 
@@ -177,12 +187,11 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
             firstPart += "." + codeParts.removeFirst();
         }
 
-        Class<?> topLevelType = topLevelType( firstPart, bindings );
+        ResultType topLevelType = topLevelType( firstPart, bindings );
+        ResultType lastType = findLastType( codeParts, topLevelType );
 
-        Class<?> lastType = findLastType( codeParts, topLevelType );
-
-        if ( lastType.isArray() ) {
-            lastType = Array.class;
+        if ( lastType.type.isArray() ) {
+            lastType = new ResultType( Array.class, false );
         }
 
         String lastPart = codeParts.getLast();
@@ -203,7 +212,7 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
         return builder.toString();
     }
 
-    protected Class<?> findTypeOfFirstPart( String code ) {
+    protected ResultType findTypeOfFirstPart( String code ) {
         int lastDot = code.lastIndexOf( '.' );
         if ( lastDot > 0 ) {
             String lastPart = code.substring( lastDot, code.length() );
@@ -223,49 +232,68 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
             CompilationUnit cu = JavaParser.parse( new StringReader( classCode ), false );
             return new LastStatementTypeDiscoverer().discover( cu );
         } catch ( Throwable e ) {
-            return Void.class;
+            return ResultType.VOID;
         }
     }
 
-    protected Class<?> topLevelType( String text, Map<String, Object> bindings ) {
+    protected ResultType topLevelType( String text, Map<String, Object> bindings ) {
         @Nullable Object object = bindings.get( text );
         if ( object != null ) {
-            return object.getClass();
+            return new ResultType( object.getClass(), false );
         }
 
         return findTypeOfFirstPart( text );
     }
 
-    private Class<?> findLastType( LinkedList<String> codeParts, Class<?> type ) {
+    private static <M extends Member> Stream<M> filterMembers( Stream<M> members, boolean isStatic ) {
+        Predicate<Member> keepStaticMembersOrNot = isStatic ?
+                ( member ) -> Modifier.isStatic( member.getModifiers() ) :
+                ( member ) -> !Modifier.isStatic( member.getModifiers() );
+
+        return members.filter( keepStaticMembersOrNot );
+    }
+
+    private ResultType findLastType( LinkedList<String> codeParts, ResultType type ) {
+        ResultType current = type;
+
         while ( codeParts.size() > 1 ) {
             String part = codeParts.removeFirst();
+
             int openBracketIndex = part.indexOf( '(' );
+
             if ( openBracketIndex > 0 ) {
                 String methodName = part.substring( 0, openBracketIndex );
-                Optional<Method> firstMethod = Stream.of( type.getMethods() )
+                Optional<Method> firstMethod = filterMembers(
+                        Stream.of( current.type.getMethods() ), current.isStatic )
                         .filter( it -> it.getName().equals( methodName ) )
                         .findFirst();
+
                 if ( firstMethod.isPresent() ) {
-                    type = firstMethod.get().getReturnType();
+                    Class<?> fieldType = firstMethod.get().getReturnType();
+                    boolean isStatic = fieldType.equals( Class.class );
+                    current = new ResultType( fieldType, isStatic );
                 } else {
                     // no completion possible
-                    type = Void.class;
+                    current = ResultType.VOID;
                     break;
                 }
             } else {
-                Optional<Field> field = Stream.of( type.getFields() )
+                Optional<Field> field = filterMembers(
+                        Stream.of( type.type.getFields() ), current.isStatic )
                         .filter( it -> it.getName().equals( part ) )
                         .findFirst();
+
                 if ( field.isPresent() ) {
-                    type = field.get().getType();
+                    current = new ResultType( field.get().getType(), false );
                 } else {
                     // no completion possible
-                    type = Void.class;
+                    current = ResultType.VOID;
                     break;
                 }
             }
         }
-        return type;
+
+        return current;
     }
 
     protected String completionFor( Method method ) {
@@ -277,10 +305,11 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
     }
 
     protected static class LastTypeAndTextToComplete {
-        final Class<?> lastType;
+        final ResultType lastType;
         final String textToComplete;
 
-        public LastTypeAndTextToComplete( Class<?> lastType, String textToComplete ) {
+        public LastTypeAndTextToComplete( ResultType lastType,
+                                          String textToComplete ) {
             this.lastType = lastType;
             this.textToComplete = textToComplete;
         }
@@ -294,14 +323,33 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
         }
     }
 
-    private class LastStatementTypeDiscoverer extends GenericVisitorAdapter<Class<?>, MethodDeclaration> {
+    protected static class ResultType {
+        final Class<?> type;
+        final boolean isStatic;
+        static final ResultType VOID = new ResultType( Void.TYPE, false );
 
-        Class<?> discover( CompilationUnit cu ) {
+        protected ResultType( Class<?> type, boolean isStatic ) {
+            this.type = type;
+            this.isStatic = isStatic;
+        }
+
+        @Override
+        public String toString() {
+            return "ResultType{" +
+                    "type=" + type +
+                    ", isStatic=" + isStatic +
+                    '}';
+        }
+    }
+
+    private class LastStatementTypeDiscoverer extends GenericVisitorAdapter<ResultType, MethodDeclaration> {
+
+        ResultType discover( CompilationUnit cu ) {
             return visit( cu, null );
         }
 
         @Override
-        public Class<?> visit( MethodDeclaration declaration, MethodDeclaration arg ) {
+        public ResultType visit( MethodDeclaration declaration, MethodDeclaration arg ) {
             List<Statement> statements = declaration.getBody().getStmts();
 
             Statement lastStatement = statements.get( statements.size() - 1 );
@@ -311,30 +359,30 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
                 if ( expr instanceof ClassExpr )
                     // we could return the correct class type here, but that would cause misleading auto-completions
                     // because the runtime of the expression is a Class without with the type parameter erased
-                    return Class.class;
+                    return new ResultType( Class.class, false );
                 else if ( expr instanceof ObjectCreationExpr )
-                    return classForName( ( ( ObjectCreationExpr ) expr ).getType().getName() );
+                    return new ResultType( classForName( ( ( ObjectCreationExpr ) expr ).getType().getName() ), false );
                 else if ( expr instanceof ArrayCreationExpr )
-                    return Array.class;
+                    return new ResultType( Array.class, false );
                 else if ( expr.getClass().equals( StringLiteralExpr.class ) )
-                    return String.class;
+                    return new ResultType( String.class, false );
                 else if ( expr.getClass().equals( NameExpr.class ) ) {
                     Map<String, Class<?>> typeByVariableName = getTypesByVariableName( statements );
                     String name = ( ( NameExpr ) expr ).getName();
                     @Nullable Class<?> variableType = typeByVariableName.get( name );
                     if ( variableType == null ) {
                         // attempt to return a class matching the apparent-variable name
-                        return classForName( name );
+                        return new ResultType( classForName( name ), true );
                     } else {
-                        return variableType;
+                        return new ResultType( variableType, false );
                     }
                 } else
-                    return Void.class;
+                    return ResultType.VOID;
             } catch ( ClassNotFoundException ignore ) {
                 // class does not exist
             }
 
-            return Void.class;
+            return ResultType.VOID;
         }
 
         private Map<String, Class<?>> getTypesByVariableName( List<Statement> statements ) {

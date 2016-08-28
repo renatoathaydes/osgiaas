@@ -82,6 +82,10 @@ class OsgiaasJavaAutocompleterSpec extends Specification {
         'return ho.getF'   | [ ho: List ] | [ 'getField(', 'getFields()' ] | 10
         'Integer.class.ca' | [ : ]        | [ 'cast(' ]                    | 14
         'new int[0].len'   | [ : ]        | [ 'length' ]                   | 11
+        'new int[0].get'   | [ : ]        | [ 'getClass()' ]               | 11
+        'Integer.MAX'      | [ : ]        | [ 'MAX_VALUE' ]                | 8
+        '20.MAX'           | [ : ]        | [ ]                            | -1
+        'new Object().TY'  | [ : ]        | [ ]                            | -1
     }
 
     def "Can complete third-level text based on the type of the previous words"() {
@@ -96,18 +100,18 @@ class OsgiaasJavaAutocompleterSpec extends Specification {
         text                | bindings     | expectedCompletions                 | expectedIndex
         'hi.toString().toU' | [ hi: 'Hi' ] | [ 'toUpperCase()', 'toUpperCase(' ] | 14
         'hi.getBytes().le'  | [ hi: 'Hi' ] | [ 'length' ]                        | 14
-        'hi.toString().'    | [ hi: 'Hi' ] | [ 'CASE_INSENSITIVE_ORDER', 'charAt(', 'chars()', 'codePointAt(',
+        'hi.toString().'    | [ hi: 'Hi' ] | [ 'charAt(', 'chars()', 'codePointAt(',
                                                'codePointBefore(', 'codePointCount(', 'codePoints()', 'compareTo(',
                                                'compareTo(', 'compareToIgnoreCase(', 'concat(', 'contains(',
-                                               'contentEquals(', 'contentEquals(', 'copyValueOf(', 'copyValueOf(',
-                                               'endsWith(', 'equals(', 'equalsIgnoreCase(', 'format(', 'format(',
+                                               'contentEquals(', 'contentEquals(',
+                                               'endsWith(', 'equals(', 'equalsIgnoreCase(',
                                                'getBytes(', 'getBytes()', 'getChars(', 'getClass()', 'hashCode()',
-                                               'indexOf(', 'intern()', 'isEmpty()', 'join(', 'join(', 'lastIndexOf(',
+                                               'indexOf(', 'intern()', 'isEmpty()', 'lastIndexOf(',
                                                'lastIndexOf(', 'length()', 'matches(', 'notify()', 'notifyAll()',
                                                'offsetByCodePoints(', 'regionMatches(', 'replace(', 'replaceAll(',
                                                'replaceFirst(', 'split(', 'startsWith(', 'subSequence(', 'substring(',
                                                'toCharArray()', 'toLowerCase(', 'toLowerCase()', 'toString()',
-                                               'toUpperCase(', 'toUpperCase()', 'trim()', 'valueOf(',
+                                               'toUpperCase(', 'toUpperCase()', 'trim()',
                                                'wait(', 'wait()' ]               | 14
     }
 
@@ -116,19 +120,20 @@ class OsgiaasJavaAutocompleterSpec extends Specification {
         def result = completer.findTypeOfFirstPart( text )
 
         then: 'the correct type is provided: #expectedType'
-        result == expectedType
+        result.type == expectedType
+        result.isStatic == expectedStatic
 
         where:
-        text                | expectedType
-        'new Object().g'    | Object
-        '"hello"'           | String
-        'new String().to'   | String
-        'Boolean.class'     | Class
-        'Boolean.class.get' | Class
-        '2'                 | Void // all primitive types can just return Void
-        "'a'"               | Void
-        '4L'                | Void
-        'new int[0].le'     | Array
+        text                | expectedType | expectedStatic
+        'new Object().g'    | Object       | false
+        '"hello"'           | String       | false
+        'new String().to'   | String       | false
+        'Boolean.class'     | Class        | false
+        'Boolean.class.get' | Class        | false
+        '2'                 | void         | false // all primitive types can just return Void
+        "'a'"               | void         | false
+        '4L'                | void         | false
+        'new int[0].le'     | Array        | false
     }
 
     def "Can find out the type of the first part of the input using imports"() {
@@ -144,16 +149,17 @@ class OsgiaasJavaAutocompleterSpec extends Specification {
         def result = completer.findTypeOfFirstPart( text )
 
         then: 'the correct type is provided: #expectedType'
-        result == expectedType
+        result.type == expectedType
+        result.isStatic == expectedStatic
 
         where:
-        text                | expectedType
-        'new Subject().abc' | Subject
-        'new List(abc).def' | List
-        'Subject.abc'       | Subject
-        'String.ind'        | String // imported with java.lang implicitly
-        'Array.l'           | Array // imported with java.lang.reflect.*
-        'Method.a'          | Method // imported with java.lang.reflect.*
+        text                | expectedType | expectedStatic
+        'new Subject().abc' | Subject      | false
+        'new List(abc).def' | List         | false
+        'Subject.abc'       | Subject      | true
+        'String.ind'        | String       | true // imported with java.lang implicitly
+        'Array.l'           | Array        | true // imported with java.lang.reflect.*
+        'Method.a'          | Method       | true // imported with java.lang.reflect.*
 
     }
 
@@ -162,7 +168,7 @@ class OsgiaasJavaAutocompleterSpec extends Specification {
         def result = completer.lastTypeAndTextToComplete( codeParts as LinkedList, bindings )
 
         then:
-        result.lastType == expectedType
+        result.lastType.type == expectedType
         result.textToComplete == expectedTextToComplete
 
         where:
@@ -170,7 +176,7 @@ class OsgiaasJavaAutocompleterSpec extends Specification {
         [ '"hi"', 'to' ]             | [ : ]      | String       | 'to'
         [ 'hi', 'to' ]               | [ hi: '' ] | String       | 'to'
         [ 'n', 'to' ]                | [ n: 0 ]   | Integer      | 'to'
-        [ '10', '' ]                 | [ : ]      | Void         | ''
+        [ '10', '' ]                 | [ : ]      | void         | ''
         [ 'hi', 'toString()', '' ]   | [ hi: '' ] | String       | ''
         [ 'hi', 'getBytes()', 'le' ] | [ hi: '' ] | Array        | 'le'
     }

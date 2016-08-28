@@ -11,7 +11,7 @@ public class JavaAutocompleterResult {
 
     public JavaAutocompleterResult( List<String> completions, int completionIndex ) {
         this.completions = completions;
-        this.completionIndex = completionIndex;
+        this.completionIndex = completions.isEmpty() ? -1 : completionIndex;
     }
 
     public List<String> getCompletions() {
