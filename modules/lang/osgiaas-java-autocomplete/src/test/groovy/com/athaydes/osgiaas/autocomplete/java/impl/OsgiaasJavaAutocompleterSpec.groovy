@@ -143,6 +143,7 @@ class OsgiaasJavaAutocompleterSpec extends Specification {
         text                | expectedType
         'new Subject().abc' | Subject
         'new List(abc).def' | List
+        'Subject.abc'       | Subject
     }
 
     def "Knows how to breakup text into last type and text to complete"() {

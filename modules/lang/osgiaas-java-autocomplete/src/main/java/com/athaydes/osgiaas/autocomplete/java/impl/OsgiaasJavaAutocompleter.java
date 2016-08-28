@@ -287,7 +287,13 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
                 else if ( expr.getClass().equals( NameExpr.class ) ) {
                     Map<String, Class<?>> typeByVariableName = getTypesByVariableName( statements );
                     String name = ( ( NameExpr ) expr ).getName();
-                    return typeByVariableName.getOrDefault( name, Void.class );
+                    @Nullable Class<?> variableType = typeByVariableName.get( name );
+                    if ( variableType == null ) {
+                        // attempt to return a class matching the apparent-variable name
+                        return classForName( name );
+                    } else {
+                        return variableType;
+                    }
                 } else
                     return Void.class;
             } catch ( ClassNotFoundException ignore ) {
