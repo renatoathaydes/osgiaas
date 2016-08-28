@@ -8,6 +8,7 @@ import spock.lang.Subject
 import spock.lang.Unroll
 
 import java.lang.reflect.Array
+import java.lang.reflect.Method
 
 @Unroll
 class OsgiaasJavaAutocompleterSpec extends Specification {
@@ -135,7 +136,7 @@ class OsgiaasJavaAutocompleterSpec extends Specification {
         def completer = new OsgiaasJavaAutocompleter(
                 Autocompleter.getDefaultAutocompleter(),
                 Stub( JavaAutocompleteContext ) {
-                    getImports() >> [ 'spock.lang.Subject', 'java.util.List' ]
+                    getImports() >> [ 'spock.lang.Subject', 'java.util.List', 'java.lang.reflect.*' ]
                     getMethodBody( _ as String ) >> { String x -> x }
                 } )
 
@@ -150,6 +151,10 @@ class OsgiaasJavaAutocompleterSpec extends Specification {
         'new Subject().abc' | Subject
         'new List(abc).def' | List
         'Subject.abc'       | Subject
+        'String.ind'        | String // imported with java.lang implicitly
+        'Array.l'           | Array // imported with java.lang.reflect.*
+        'Method.a'          | Method // imported with java.lang.reflect.*
+
     }
 
     def "Knows how to breakup text into last type and text to complete"() {

@@ -361,7 +361,12 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
         @Nullable
         private Class<?> typeOf( Type type ) {
             if ( type instanceof ReferenceType ) {
-                return typeOf( ( ( ReferenceType ) type ).getType() );
+                ReferenceType referenceType = ( ReferenceType ) type;
+                if ( referenceType.getArrayCount() > 0 ) {
+                    return Array.class;
+                }
+                // unwrap the reference type and try again
+                return typeOf( referenceType.getType() );
             }
             if ( type instanceof ClassOrInterfaceType ) {
                 try {
@@ -374,21 +379,19 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
         }
 
         private Class<?> classForName( String name ) throws ClassNotFoundException {
-            Optional<String> importedType = context.getImports().stream()
-                    .filter( type -> type.endsWith( "." + name ) )
-                    .findFirst();
-            if ( importedType.isPresent() ) {
-                try {
-                    return Class.forName( importedType.get() );
-                } catch ( ClassNotFoundException ignore ) {
-                    // try something else
+            for (String imp : context.getImports()) {
+                @Nullable String potentialClassName = imp.endsWith( "." + name ) ?
+                        imp :
+                        imp.endsWith( ".*" ) ?
+                                imp.substring( 0, imp.length() - 1 ) + name :
+                                null;
+                if ( potentialClassName != null ) {
+                    try {
+                        return Class.forName( potentialClassName );
+                    } catch ( ClassNotFoundException ignore ) {
+                        // try something else
+                    }
                 }
-            }
-
-            try {
-                return Class.forName( name );
-            } catch ( ClassNotFoundException ignore ) {
-                // try something else
             }
 
             // last guess
