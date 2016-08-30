@@ -1,7 +1,6 @@
 package com.athaydes.osgiaas.cli.java;
 
 import com.athaydes.osgiaas.autocomplete.java.JavaAutocompleteContext;
-import com.athaydes.osgiaas.cli.java.api.Binding;
 import com.athaydes.osgiaas.javac.JavaSnippet;
 
 import java.util.Collection;
@@ -22,7 +21,8 @@ class JavaCode implements JavaSnippet, JavaAutocompleteContext {
     private final Set<String> tempImports = new HashSet<>();
 
     public JavaCode() {
-        imports.add( "static " + Binding.class.getName() + ".*" );
+        resetCode();
+        resetImports();
     }
 
     void addLine( String line ) {
@@ -33,16 +33,26 @@ class JavaCode implements JavaSnippet, JavaAutocompleteContext {
         }
     }
 
-    void clearCode() {
+    void resetCode() {
         tempJavaLines.clear();
         javaLines.clear();
+
+        javaLines.add( "PrintStream out = Binding.out" );
+        javaLines.add( "PrintStream err = Binding.err" );
+        javaLines.add( "BundleContext ctx = Binding.ctx" );
     }
 
-    void clearAll() {
-        tempJavaLines.clear();
-        javaLines.clear();
+    void resetImports() {
         tempImports.clear();
         imports.clear();
+        imports.add( "com.athaydes.osgiaas.cli.java.api.Binding" );
+        imports.add( "java.io.PrintStream" );
+        imports.add( "org.osgi.framework.BundleContext" );
+    }
+
+    void resetAll() {
+        resetCode();
+        resetImports();
     }
 
     @Override

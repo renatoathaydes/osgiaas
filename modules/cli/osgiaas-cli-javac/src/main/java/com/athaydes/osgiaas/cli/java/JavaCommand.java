@@ -176,11 +176,11 @@ public class JavaCommand implements Command, StreamingCommand {
                 JAVA_OPTIONS.separatorCode( ' ' ) );
 
         if ( invocation.hasArg( RESET_CODE_ARG ) ) {
-            code.clearCode();
+            code.resetCode();
         }
 
         if ( invocation.hasArg( RESET_ALL_ARG ) ) {
-            code.clearAll();
+            code.resetAll();
         }
 
         String codeToRun = invocation.getUnprocessedInput();
