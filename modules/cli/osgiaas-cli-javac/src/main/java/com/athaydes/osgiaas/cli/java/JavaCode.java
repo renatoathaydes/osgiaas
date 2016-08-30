@@ -19,10 +19,16 @@ class JavaCode implements JavaSnippet, JavaAutocompleteContext {
 
     private final Set<String> imports = new HashSet<>();
     private final Set<String> tempImports = new HashSet<>();
+    private boolean addBindingsToCode = true;
 
     public JavaCode() {
         resetCode();
         resetImports();
+    }
+
+    void setAddBindingsToCode( boolean addBindingsToCode ) {
+        this.addBindingsToCode = addBindingsToCode;
+        resetCode();
     }
 
     void addLine( String line ) {
@@ -37,9 +43,11 @@ class JavaCode implements JavaSnippet, JavaAutocompleteContext {
         tempJavaLines.clear();
         javaLines.clear();
 
-        javaLines.add( "PrintStream out = Binding.out" );
-        javaLines.add( "PrintStream err = Binding.err" );
-        javaLines.add( "BundleContext ctx = Binding.ctx" );
+        if ( addBindingsToCode ) {
+            javaLines.add( "PrintStream out = Binding.out" );
+            javaLines.add( "PrintStream err = Binding.err" );
+            javaLines.add( "BundleContext ctx = Binding.ctx" );
+        }
     }
 
     void resetImports() {

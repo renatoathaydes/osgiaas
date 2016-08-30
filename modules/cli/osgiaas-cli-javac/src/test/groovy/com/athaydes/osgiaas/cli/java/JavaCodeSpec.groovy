@@ -10,7 +10,7 @@ class JavaCodeSpec extends Specification {
     def "Can join Java lines correctly"() {
         given: 'Java Code'
         @Subject
-        def code = new JavaCode()
+        def code = new JavaCode( addBindingsToCode: false )
 
         when: 'Example lines are added to the code'
         lines.each { code.addLine( it ) }
