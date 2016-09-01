@@ -17,7 +17,7 @@ class OsgiaasJavaAutocompleterSpec extends Specification {
     @Subject
     def completer = new OsgiaasJavaAutocompleter(
             Autocompleter.getStartWithAutocompleter(),
-            DefaultContext.instance )
+            EmptyContext.instance )
 
     def "Can find out the correct index to start looking at the code fragment"() {
         when: 'the completer gets the start index to complete a code fragment'

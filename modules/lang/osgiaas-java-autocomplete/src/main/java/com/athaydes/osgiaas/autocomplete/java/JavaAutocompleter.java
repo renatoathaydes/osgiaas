@@ -1,7 +1,7 @@
 package com.athaydes.osgiaas.autocomplete.java;
 
 import com.athaydes.osgiaas.autocomplete.Autocompleter;
-import com.athaydes.osgiaas.autocomplete.java.impl.DefaultContext;
+import com.athaydes.osgiaas.autocomplete.java.impl.EmptyContext;
 import com.athaydes.osgiaas.autocomplete.java.impl.OsgiaasJavaAutocompleter;
 
 import java.util.Map;
@@ -27,7 +27,7 @@ public interface JavaAutocompleter {
     static JavaAutocompleter getDefaultAutocompleter() {
         return new OsgiaasJavaAutocompleter(
                 Autocompleter.getDefaultAutocompleter(),
-                DefaultContext.getInstance() );
+                EmptyContext.getInstance() );
     }
 
     /**
@@ -35,7 +35,7 @@ public interface JavaAutocompleter {
      * based on the provided autocompleter and an empty context.
      */
     static JavaAutocompleter getAutocompleter( Autocompleter autocompleter ) {
-        return new OsgiaasJavaAutocompleter( autocompleter, DefaultContext.getInstance() );
+        return new OsgiaasJavaAutocompleter( autocompleter, EmptyContext.getInstance() );
     }
 
     /**

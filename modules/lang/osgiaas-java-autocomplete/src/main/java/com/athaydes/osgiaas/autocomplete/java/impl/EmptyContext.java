@@ -5,15 +5,15 @@ import com.athaydes.osgiaas.autocomplete.java.JavaAutocompleteContext;
 import java.util.Collection;
 import java.util.Collections;
 
-public final class DefaultContext implements JavaAutocompleteContext {
+public final class EmptyContext implements JavaAutocompleteContext {
 
-    private static final JavaAutocompleteContext INSTANCE = new DefaultContext();
+    private static final JavaAutocompleteContext INSTANCE = new EmptyContext();
 
     public static JavaAutocompleteContext getInstance() {
         return INSTANCE;
     }
 
-    private DefaultContext() {
+    private EmptyContext() {
         // private
     }
 
