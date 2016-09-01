@@ -1,7 +1,6 @@
 package com.athaydes.osgiaas.cli.java;
 
 import com.athaydes.osgiaas.api.stream.LineOutputStream;
-import com.athaydes.osgiaas.autocomplete.java.JavaAutocompleteContext;
 import com.athaydes.osgiaas.cli.CommandHelper;
 import com.athaydes.osgiaas.cli.CommandInvocation;
 import com.athaydes.osgiaas.cli.StreamingCommand;
@@ -124,7 +123,7 @@ public class JavaCommand implements Command, StreamingCommand {
                 "> some_command | java line -> line.contains(\"text\") ? line : null";
     }
 
-    JavaAutocompleteContext getAutocompleContext() {
+    JavaCode getAutocompleContext() {
         return code;
     }
 

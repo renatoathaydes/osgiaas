@@ -18,7 +18,7 @@ public interface JavaAutocompleter {
      * @param bindings     current bindings the Java code has access to
      * @return possible completions
      */
-    JavaAutocompleterResult completionsFor( String codeFragment, Map<String, Object> bindings );
+    JavaAutocompleterResult completionsFor( String codeFragment, Map<String, ResultType> bindings );
 
     /**
      * @return the default {@link JavaAutocompleter} implementation, which uses a

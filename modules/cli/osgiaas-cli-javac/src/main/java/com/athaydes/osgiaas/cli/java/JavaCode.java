@@ -39,6 +39,10 @@ class JavaCode implements JavaSnippet, JavaAutocompleteContext {
         }
     }
 
+    Collection<String> getJavaLines() {
+        return javaLines;
+    }
+
     void resetCode() {
         tempJavaLines.clear();
         javaLines.clear();

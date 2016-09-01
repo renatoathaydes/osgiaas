@@ -2,6 +2,7 @@ package com.athaydes.osgiaas.autocomplete.java.impl
 
 import com.athaydes.osgiaas.autocomplete.Autocompleter
 import com.athaydes.osgiaas.autocomplete.java.JavaAutocompleteContext
+import com.athaydes.osgiaas.autocomplete.java.ResultType
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -44,7 +45,8 @@ class OsgiaasJavaAutocompleterSpec extends Specification {
 
     def "Can complete simple text based on bindings and Java keywords"() {
         when: 'completions are requested for #text with bindings #bindings'
-        def result = completer.completionsFor( text, bindings )
+        def resultTypeBindings = bindings.collectEntries { k, v -> [ ( k ): new ResultType( v.class, false ) ] }
+        def result = completer.completionsFor( text, resultTypeBindings as Map<String, ResultType> )
 
         def allExpectedCompletions = useAllTopLevelCompletions ?
                 completer.topLevelCompletions( [ ] ) + expectedCompletions :
@@ -68,7 +70,8 @@ class OsgiaasJavaAutocompleterSpec extends Specification {
 
     def "Can complete second-level text based on the type of the first-level word"() {
         when: 'completions are requested for #text with bindings #bindings'
-        def result = completer.completionsFor( text, bindings )
+        def resultTypeBindings = bindings.collectEntries { k, v -> [ ( k ): new ResultType( v.class, false ) ] }
+        def result = completer.completionsFor( text, resultTypeBindings as Map<String, ResultType> )
 
         then: 'the expected completions are provided: #expectedCompletions'
         result.completions == expectedCompletions
@@ -90,7 +93,8 @@ class OsgiaasJavaAutocompleterSpec extends Specification {
 
     def "Can complete third-level text based on the type of the previous words"() {
         when: 'completions are requested for #text with bindings #bindings'
-        def result = completer.completionsFor( text, bindings )
+        def resultTypeBindings = bindings.collectEntries { k, v -> [ ( k ): new ResultType( v.class, false ) ] }
+        def result = completer.completionsFor( text, resultTypeBindings as Map<String, ResultType> )
 
         then: 'the expected completions are provided: #expectedCompletions'
         result.completions as Set == expectedCompletions as Set
@@ -121,7 +125,7 @@ class OsgiaasJavaAutocompleterSpec extends Specification {
 
         then: 'the correct type is provided: #expectedType'
         result.type == expectedType
-        result.isStatic == expectedStatic
+        result.static == expectedStatic
 
         where:
         text                | expectedType | expectedStatic
@@ -150,7 +154,7 @@ class OsgiaasJavaAutocompleterSpec extends Specification {
 
         then: 'the correct type is provided: #expectedType'
         result.type == expectedType
-        result.isStatic == expectedStatic
+        result.static == expectedStatic
 
         where:
         text                | expectedType | expectedStatic
@@ -160,12 +164,14 @@ class OsgiaasJavaAutocompleterSpec extends Specification {
         'String.ind'        | String       | true // imported with java.lang implicitly
         'Array.l'           | Array        | true // imported with java.lang.reflect.*
         'Method.a'          | Method       | true // imported with java.lang.reflect.*
-
     }
 
     def "Knows how to breakup text into last type and text to complete"() {
         when:
-        def result = completer.lastTypeAndTextToComplete( codeParts as LinkedList, bindings )
+        def resultTypeBindings = bindings.collectEntries { k, v -> [ ( k ): new ResultType( v.class, false ) ] }
+        def result = completer.lastTypeAndTextToComplete(
+                codeParts as LinkedList,
+                resultTypeBindings as Map<String, ResultType> )
 
         then:
         result.lastType.type == expectedType

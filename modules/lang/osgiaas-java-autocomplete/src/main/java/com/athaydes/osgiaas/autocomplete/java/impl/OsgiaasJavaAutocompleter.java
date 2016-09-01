@@ -4,6 +4,7 @@ import com.athaydes.osgiaas.autocomplete.Autocompleter;
 import com.athaydes.osgiaas.autocomplete.java.JavaAutocompleteContext;
 import com.athaydes.osgiaas.autocomplete.java.JavaAutocompleter;
 import com.athaydes.osgiaas.autocomplete.java.JavaAutocompleterResult;
+import com.athaydes.osgiaas.autocomplete.java.ResultType;
 import com.athaydes.osgiaas.cli.CommandHelper;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
@@ -66,7 +67,7 @@ public final class OsgiaasJavaAutocompleter implements JavaAutocompleter {
     }
 
     @Override
-    public JavaAutocompleterResult completionsFor( String codeFragment, Map<String, Object> bindings ) {
+    public JavaAutocompleterResult completionsFor( String codeFragment, Map<String, ResultType> bindings ) {
         int startIndex = indexToStartCompletion( codeFragment );
         String toComplete = codeFragment.substring( startIndex );
         LinkedList<String> codeParts = new LinkedList<>();
@@ -131,20 +132,20 @@ public final class OsgiaasJavaAutocompleter implements JavaAutocompleter {
     }
 
     private List<String> optionsFor( ResultType resultType ) {
-        Class<?> type = resultType.type;
+        Class<?> type = resultType.getType();
 
         Stream<String> methods = filterMembers(
-                Stream.of( type.getMethods() ), resultType.isStatic )
+                Stream.of( type.getMethods() ), resultType.isStatic() )
                 .map( this::completionFor );
 
         Stream<String> fields;
 
-        if ( type == Array.class && !resultType.isStatic ) {
+        if ( type == Array.class && !resultType.isStatic() ) {
             // Java arrays have only one synthetic field: length
             fields = Stream.of( "length" );
         } else {
             fields = filterMembers(
-                    Stream.of( type.getFields() ), resultType.isStatic )
+                    Stream.of( type.getFields() ), resultType.isStatic() )
                     .map( Field::getName );
         }
 
@@ -161,7 +162,7 @@ public final class OsgiaasJavaAutocompleter implements JavaAutocompleter {
     }
 
     protected LastTypeAndTextToComplete lastTypeAndTextToComplete(
-            LinkedList<String> codeParts, Map<String, Object> bindings ) {
+            LinkedList<String> codeParts, Map<String, ResultType> bindings ) {
         assert codeParts.size() >= 2;
 
         String firstPart = codeParts.removeFirst();
@@ -174,7 +175,7 @@ public final class OsgiaasJavaAutocompleter implements JavaAutocompleter {
         ResultType topLevelType = topLevelType( firstPart, bindings );
         ResultType lastType = findLastType( codeParts, topLevelType );
 
-        if ( lastType.type.isArray() ) {
+        if ( lastType.getType().isArray() ) {
             lastType = new ResultType( Array.class, false );
         }
 
@@ -220,10 +221,10 @@ public final class OsgiaasJavaAutocompleter implements JavaAutocompleter {
         }
     }
 
-    private ResultType topLevelType( String text, Map<String, Object> bindings ) {
-        @Nullable Object object = bindings.get( text );
-        if ( object != null ) {
-            return new ResultType( object.getClass(), false );
+    private ResultType topLevelType( String text, Map<String, ResultType> bindings ) {
+        @Nullable ResultType resultType = bindings.get( text );
+        if ( resultType != null ) {
+            return resultType;
         }
 
         return findTypeOfFirstPart( text );
@@ -248,7 +249,7 @@ public final class OsgiaasJavaAutocompleter implements JavaAutocompleter {
             if ( openBracketIndex > 0 ) {
                 String methodName = part.substring( 0, openBracketIndex );
                 Optional<Method> firstMethod = filterMembers(
-                        Stream.of( current.type.getMethods() ), current.isStatic )
+                        Stream.of( current.getType().getMethods() ), current.isStatic() )
                         .filter( it -> it.getName().equals( methodName ) )
                         .findFirst();
 
@@ -263,7 +264,7 @@ public final class OsgiaasJavaAutocompleter implements JavaAutocompleter {
                 }
             } else {
                 Optional<Field> field = filterMembers(
-                        Stream.of( type.type.getFields() ), current.isStatic )
+                        Stream.of( type.getType().getFields() ), current.isStatic() )
                         .filter( it -> it.getName().equals( part ) )
                         .findFirst();
 
