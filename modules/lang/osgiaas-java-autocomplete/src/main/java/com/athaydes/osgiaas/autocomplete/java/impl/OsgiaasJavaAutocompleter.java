@@ -7,22 +7,6 @@ import com.athaydes.osgiaas.autocomplete.java.JavaAutocompleterResult;
 import com.athaydes.osgiaas.cli.CommandHelper;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.body.VariableDeclarator;
-import com.github.javaparser.ast.expr.ArrayCreationExpr;
-import com.github.javaparser.ast.expr.ClassExpr;
-import com.github.javaparser.ast.expr.Expression;
-import com.github.javaparser.ast.expr.NameExpr;
-import com.github.javaparser.ast.expr.ObjectCreationExpr;
-import com.github.javaparser.ast.expr.StringLiteralExpr;
-import com.github.javaparser.ast.expr.VariableDeclarationExpr;
-import com.github.javaparser.ast.stmt.ExpressionStmt;
-import com.github.javaparser.ast.stmt.ReturnStmt;
-import com.github.javaparser.ast.stmt.Statement;
-import com.github.javaparser.ast.type.ClassOrInterfaceType;
-import com.github.javaparser.ast.type.ReferenceType;
-import com.github.javaparser.ast.type.Type;
-import com.github.javaparser.ast.visitor.GenericVisitorAdapter;
 
 import javax.annotation.Nullable;
 import java.io.StringReader;
@@ -34,7 +18,6 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -50,14 +33,15 @@ import static com.athaydes.osgiaas.cli.CommandHelper.CommandBreakupOptions;
 import static com.athaydes.osgiaas.cli.CommandHelper.DOUBLE_QUOTE_CODE;
 import static com.athaydes.osgiaas.cli.CommandHelper.SINGLE_QUOTE_CODE;
 
-public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
+// TODO auto-complete custom classes as well
+public final class OsgiaasJavaAutocompleter implements JavaAutocompleter {
 
     private static final CommandBreakupOptions OPTIONS = CommandBreakupOptions.create()
             .includeQuotes( true )
             .separatorCode( '.' )
             .quoteCodes( DOUBLE_QUOTE_CODE, SINGLE_QUOTE_CODE );
 
-    public static final List<String> JAVA_KEYWORDS = Arrays.asList(
+    private static final List<String> JAVA_KEYWORDS = Arrays.asList(
             "abstract", "assert", "boolean",
             "break", "byte", "case", "catch", "char", "class", "const",
             "continue", "default", "do", "double", "else", "enum", "extends", "false",
@@ -230,13 +214,13 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
 
         try {
             CompilationUnit cu = JavaParser.parse( new StringReader( classCode ), false );
-            return new LastStatementTypeDiscoverer().discover( cu );
+            return new LastStatementTypeDiscoverer( context.getImports() ).discover( cu );
         } catch ( Throwable e ) {
             return ResultType.VOID;
         }
     }
 
-    protected ResultType topLevelType( String text, Map<String, Object> bindings ) {
+    private ResultType topLevelType( String text, Map<String, Object> bindings ) {
         @Nullable Object object = bindings.get( text );
         if ( object != null ) {
             return new ResultType( object.getClass(), false );
@@ -296,7 +280,7 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
         return current;
     }
 
-    protected String completionFor( Method method ) {
+    private String completionFor( Method method ) {
         if ( method.getParameterCount() > 0 ) {
             return method.getName() + "(";
         } else {
@@ -304,12 +288,12 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
         }
     }
 
-    protected static class LastTypeAndTextToComplete {
+    private static class LastTypeAndTextToComplete {
         final ResultType lastType;
         final String textToComplete;
 
-        public LastTypeAndTextToComplete( ResultType lastType,
-                                          String textToComplete ) {
+        LastTypeAndTextToComplete( ResultType lastType,
+                                   String textToComplete ) {
             this.lastType = lastType;
             this.textToComplete = textToComplete;
         }
@@ -321,131 +305,6 @@ public class OsgiaasJavaAutocompleter implements JavaAutocompleter {
                     ", textToComplete='" + textToComplete + '\'' +
                     '}';
         }
-    }
-
-    protected static class ResultType {
-        final Class<?> type;
-        final boolean isStatic;
-        static final ResultType VOID = new ResultType( Void.TYPE, false );
-
-        protected ResultType( Class<?> type, boolean isStatic ) {
-            this.type = type;
-            this.isStatic = isStatic;
-        }
-
-        @Override
-        public String toString() {
-            return "ResultType{" +
-                    "type=" + type +
-                    ", isStatic=" + isStatic +
-                    '}';
-        }
-    }
-
-    private class LastStatementTypeDiscoverer extends GenericVisitorAdapter<ResultType, MethodDeclaration> {
-
-        ResultType discover( CompilationUnit cu ) {
-            return visit( cu, null );
-        }
-
-        @Override
-        public ResultType visit( MethodDeclaration declaration, MethodDeclaration arg ) {
-            List<Statement> statements = declaration.getBody().getStmts();
-
-            Statement lastStatement = statements.get( statements.size() - 1 );
-
-            if ( lastStatement instanceof ReturnStmt ) try {
-                Expression expr = ( ( ReturnStmt ) lastStatement ).getExpr();
-                if ( expr instanceof ClassExpr )
-                    // we could return the correct class type here, but that would cause misleading auto-completions
-                    // because the runtime of the expression is a Class without with the type parameter erased
-                    return new ResultType( Class.class, false );
-                else if ( expr instanceof ObjectCreationExpr )
-                    return new ResultType( classForName( ( ( ObjectCreationExpr ) expr ).getType().getName() ), false );
-                else if ( expr instanceof ArrayCreationExpr )
-                    return new ResultType( Array.class, false );
-                else if ( expr.getClass().equals( StringLiteralExpr.class ) )
-                    return new ResultType( String.class, false );
-                else if ( expr.getClass().equals( NameExpr.class ) ) {
-                    Map<String, Class<?>> typeByVariableName = getTypesByVariableName( statements );
-                    String name = ( ( NameExpr ) expr ).getName();
-                    @Nullable Class<?> variableType = typeByVariableName.get( name );
-                    if ( variableType == null ) {
-                        // attempt to return a class matching the apparent-variable name
-                        return new ResultType( classForName( name ), true );
-                    } else {
-                        return new ResultType( variableType, false );
-                    }
-                } else
-                    return ResultType.VOID;
-            } catch ( ClassNotFoundException ignore ) {
-                // class does not exist
-            }
-
-            return ResultType.VOID;
-        }
-
-        private Map<String, Class<?>> getTypesByVariableName( List<Statement> statements ) {
-            Map<String, Class<?>> typeByVariableName = new HashMap<>();
-
-            for (Statement statement : statements) {
-                if ( statement instanceof ExpressionStmt ) {
-                    Expression expression = ( ( ExpressionStmt ) statement ).getExpression();
-                    if ( expression instanceof VariableDeclarationExpr ) {
-                        VariableDeclarationExpr varExpression = ( VariableDeclarationExpr ) expression;
-                        @Nullable Class<?> type = typeOf( varExpression.getType() );
-                        if ( type != null ) {
-                            for (VariableDeclarator var : varExpression.getVars()) {
-                                typeByVariableName.put( var.getId().getName(), type );
-                            }
-                        }
-                    }
-                }
-            }
-
-            return typeByVariableName;
-        }
-
-        @Nullable
-        private Class<?> typeOf( Type type ) {
-            if ( type instanceof ReferenceType ) {
-                ReferenceType referenceType = ( ReferenceType ) type;
-                if ( referenceType.getArrayCount() > 0 ) {
-                    return Array.class;
-                }
-                // unwrap the reference type and try again
-                return typeOf( referenceType.getType() );
-            }
-            if ( type instanceof ClassOrInterfaceType ) {
-                try {
-                    return classForName( ( ( ClassOrInterfaceType ) type ).getName() );
-                } catch ( ClassNotFoundException e ) {
-                    // class not found, ignore
-                }
-            }
-            return null;
-        }
-
-        private Class<?> classForName( String name ) throws ClassNotFoundException {
-            for (String imp : context.getImports()) {
-                @Nullable String potentialClassName = imp.endsWith( "." + name ) ?
-                        imp :
-                        imp.endsWith( ".*" ) ?
-                                imp.substring( 0, imp.length() - 1 ) + name :
-                                null;
-                if ( potentialClassName != null ) {
-                    try {
-                        return Class.forName( potentialClassName );
-                    } catch ( ClassNotFoundException ignore ) {
-                        // try something else
-                    }
-                }
-            }
-
-            // last guess
-            return Class.forName( "java.lang." + name );
-        }
-
     }
 
 }

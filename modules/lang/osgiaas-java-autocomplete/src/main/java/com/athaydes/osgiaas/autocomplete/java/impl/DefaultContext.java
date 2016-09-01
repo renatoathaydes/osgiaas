@@ -5,7 +5,7 @@ import com.athaydes.osgiaas.autocomplete.java.JavaAutocompleteContext;
 import java.util.Collection;
 import java.util.Collections;
 
-public class DefaultContext implements JavaAutocompleteContext {
+public final class DefaultContext implements JavaAutocompleteContext {
 
     private static final JavaAutocompleteContext INSTANCE = new DefaultContext();
 
