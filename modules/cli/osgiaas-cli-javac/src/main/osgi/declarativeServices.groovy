@@ -38,7 +38,7 @@ component( name: 'classLoaderCapabilities', immediate: true, xmlns: SCR_NAMESPAC
     property( name: 'service.bundle', 'osgiaas-cli-java' )
     property( name: 'service.description', value: 'JavaCommand ClassLoaderCapabilities' )
     service {
-        provide( 'interface': 'com.athaydes.osgiaas.javac.ClassLoaderContext' )
+        provide( 'interface': 'com.athaydes.osgiaas.api.env.ClassLoaderContext' )
         provide( 'interface': 'com.athaydes.osgiaas.cli.java.ClassLoaderCapabilities' )
     }
 }

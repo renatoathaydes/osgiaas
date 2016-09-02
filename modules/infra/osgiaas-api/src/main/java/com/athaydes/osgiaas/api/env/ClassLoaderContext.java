@@ -1,4 +1,4 @@
-package com.athaydes.osgiaas.javac;
+package com.athaydes.osgiaas.api.env;
 
 import java.io.InputStream;
 import java.util.Collection;

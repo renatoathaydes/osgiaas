@@ -1,6 +1,6 @@
 package com.athaydes.osgiaas.cli.java;
 
-import com.athaydes.osgiaas.javac.ClassLoaderContext;
+import com.athaydes.osgiaas.api.env.ClassLoaderContext;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.wiring.BundleWiring;

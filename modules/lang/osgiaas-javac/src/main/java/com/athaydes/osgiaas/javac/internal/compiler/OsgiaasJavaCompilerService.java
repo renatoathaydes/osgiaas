@@ -1,6 +1,6 @@
 package com.athaydes.osgiaas.javac.internal.compiler;
 
-import com.athaydes.osgiaas.javac.ClassLoaderContext;
+import com.athaydes.osgiaas.api.env.ClassLoaderContext;
 import com.athaydes.osgiaas.javac.JavacService;
 
 import java.io.PrintStream;

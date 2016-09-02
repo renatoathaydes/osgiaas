@@ -95,6 +95,7 @@ final class TypeDiscoverer {
 
     }
 
+    // FIXME use the compiler bundle's class loader
     Class<?> classForName( String name ) throws ClassNotFoundException {
         for (String imp : importedClasses) {
             @Nullable String potentialClassName = imp.endsWith( "." + name ) ?

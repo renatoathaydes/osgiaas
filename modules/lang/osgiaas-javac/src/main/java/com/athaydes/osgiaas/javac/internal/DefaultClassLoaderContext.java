@@ -1,6 +1,7 @@
 package com.athaydes.osgiaas.javac.internal;
 
-import com.athaydes.osgiaas.javac.ClassLoaderContext;
+
+import com.athaydes.osgiaas.api.env.ClassLoaderContext;
 
 import java.io.InputStream;
 import java.util.Collection;

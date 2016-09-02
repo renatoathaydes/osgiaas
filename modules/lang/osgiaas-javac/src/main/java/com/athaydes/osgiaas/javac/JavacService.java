@@ -1,5 +1,6 @@
 package com.athaydes.osgiaas.javac;
 
+import com.athaydes.osgiaas.api.env.ClassLoaderContext;
 import com.athaydes.osgiaas.javac.internal.DefaultClassLoaderContext;
 import com.athaydes.osgiaas.javac.internal.SnippetClass;
 import com.athaydes.osgiaas.javac.internal.compiler.OsgiaasJavaCompilerService;
