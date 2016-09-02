@@ -56,6 +56,10 @@ public class OsgiaasJavaCompiler {
         }
     }
 
+    ClassLoaderContext getClassLoaderContext() {
+        return classLoader;
+    }
+
     <T> Optional<Class<T>> compile( String qualifiedClassName,
                                     CharSequence javaSource,
                                     PrintStream writer ) {

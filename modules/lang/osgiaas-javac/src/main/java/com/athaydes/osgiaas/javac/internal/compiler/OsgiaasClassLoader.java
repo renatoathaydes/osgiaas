@@ -11,14 +11,17 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.athaydes.osgiaas.javac.internal.CompilerUtils.classNameFromPath;
 import static com.athaydes.osgiaas.javac.internal.CompilerUtils.packageOf;
 
-final class OsgiaasClassLoader extends ClassLoader {
+final class OsgiaasClassLoader extends ClassLoader
+        implements ClassLoaderContext {
 
     private static final Logger logger = LoggerFactory.getLogger( OsgiaasClassLoader.class );
 
@@ -77,7 +80,11 @@ final class OsgiaasClassLoader extends ClassLoader {
     // expose publicly
     @Override
     public Class<?> loadClass( String name, boolean resolve ) throws ClassNotFoundException {
-        return super.loadClass( name, resolve );
+        try {
+            return super.loadClass( name, resolve );
+        } catch ( ClassNotFoundException e ) {
+            return classLoaderContext.getClassLoader().loadClass( name );
+        }
     }
 
     @Override
@@ -88,6 +95,7 @@ final class OsgiaasClassLoader extends ClassLoader {
             byte[] bytes = file.getByteCode();
             return defineClass( qualifiedClassName, bytes, 0, bytes.length );
         }
+
         return super.findClass( qualifiedClassName );
     }
 
@@ -105,6 +113,31 @@ final class OsgiaasClassLoader extends ClassLoader {
                 return new ByteArrayInputStream( file.getByteCode() );
             }
         }
-        return super.getResourceAsStream( name );
+
+        InputStream inputStream = super.getResourceAsStream( name );
+
+        if ( inputStream == null ) {
+            inputStream = classLoaderContext.getClassLoader().getResourceAsStream( name );
+        }
+
+        return inputStream;
     }
+
+    @Override
+    public ClassLoader getClassLoader() {
+        return this;
+    }
+
+    @Override
+    public Collection<String> getClassesIn( String packageName ) {
+        Collection<String> classes = classLoaderContext.getClassesIn( packageName );
+        Set<String> customClasses = fileByClassName.keySet();
+
+        Set<String> result = new HashSet<>( classes.size() + customClasses.size() );
+        result.addAll( classes );
+        result.addAll( customClasses );
+
+        return result;
+    }
+
 }

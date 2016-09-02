@@ -117,6 +117,13 @@ final class TypeDiscoverer {
             }
         }
 
+        // try just the simple name without a package name
+        try {
+            return findClass( name );
+        } catch ( ClassNotFoundException ignore ) {
+            // didn't work
+        }
+
         // last guess
         return findClass( "java.lang." + name );
     }

@@ -69,7 +69,7 @@ public class JavaCommand implements Command, StreamingCommand {
     }
 
     public ClassLoaderContext getClassLoaderContext() {
-        return classLoaderContext;
+        return javacService.getAugmentedClassLoaderContext( classLoaderContext );
     }
 
     public void setClassLoaderContext( ClassLoaderCapabilities classLoaderContext ) {

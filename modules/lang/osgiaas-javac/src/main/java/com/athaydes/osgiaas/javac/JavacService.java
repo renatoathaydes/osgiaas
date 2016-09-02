@@ -73,6 +73,14 @@ public interface JavacService {
     }
 
     /**
+     * @param classLoaderContext to be augmented
+     * @return the provided classLoader context augmented with the Java compiler's
+     * own loader, which allows the augmented context to see classes compiled by the
+     * JavaC compiler as well as the ones from the provided context.
+     */
+    ClassLoaderContext getAugmentedClassLoaderContext( ClassLoaderContext classLoaderContext );
+
+    /**
      * @return a default implementation of the JavacService.
      */
     static JavacService createDefault() {

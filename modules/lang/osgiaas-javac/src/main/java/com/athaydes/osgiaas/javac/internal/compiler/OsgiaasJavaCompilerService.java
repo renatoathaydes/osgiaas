@@ -17,10 +17,21 @@ public class OsgiaasJavaCompilerService implements JavacService {
                                                     String qualifiedName,
                                                     String code,
                                                     PrintStream writer ) {
-        OsgiaasJavaCompiler compiler = compilerByClassLoader
-                .computeIfAbsent( classLoaderContext.getClassLoader(),
-                        ( loader ) -> new OsgiaasJavaCompiler( classLoaderContext ) );
+        OsgiaasJavaCompiler compiler = getOsgiaasJavaCompiler( classLoaderContext );
         return compiler.compile( qualifiedName, code, writer );
     }
+
+    @Override
+    public ClassLoaderContext getAugmentedClassLoaderContext( ClassLoaderContext classLoaderContext ) {
+        OsgiaasJavaCompiler compiler = getOsgiaasJavaCompiler( classLoaderContext );
+        return compiler.getClassLoaderContext();
+    }
+
+    private OsgiaasJavaCompiler getOsgiaasJavaCompiler( ClassLoaderContext classLoaderContext ) {
+        return compilerByClassLoader
+                .computeIfAbsent( classLoaderContext.getClassLoader(),
+                        ( loader ) -> new OsgiaasJavaCompiler( classLoaderContext ) );
+    }
+
 
 }
