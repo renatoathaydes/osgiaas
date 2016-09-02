@@ -4,12 +4,12 @@ import java.io.InputStream;
 import java.util.Collection;
 
 /**
- * A ClassLoader context that can be used by the compiler to find and load classes.
+ * A ClassLoader context that can be used to find and load classes.
  */
 public interface ClassLoaderContext {
 
     /**
-     * @return the ClassLoader to use to load classes within the compiler.
+     * @return the ClassLoader to associated with this context.
      */
     ClassLoader getClassLoader();
 
