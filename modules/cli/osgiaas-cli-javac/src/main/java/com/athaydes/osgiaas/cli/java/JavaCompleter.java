@@ -57,7 +57,8 @@ public class JavaCompleter implements CommandCompleter {
                     .parseStatements( getContext().getJavaLines().stream()
                                     .map( it -> it + ";" )
                                     .collect( Collectors.toList() ),
-                            getContext().getImports() );
+                            getContext().getImports(),
+                            getContext().getClassLoaderContext().orElse( null ) );
         } catch ( ParseException e ) {
             e.printStackTrace();
         }

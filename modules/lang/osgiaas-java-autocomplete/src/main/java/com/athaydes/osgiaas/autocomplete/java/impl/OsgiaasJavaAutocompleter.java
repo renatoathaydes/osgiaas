@@ -215,7 +215,9 @@ public final class OsgiaasJavaAutocompleter implements JavaAutocompleter {
 
         try {
             CompilationUnit cu = JavaParser.parse( new StringReader( classCode ), false );
-            return new LastStatementTypeDiscoverer( context.getImports() ).discover( cu );
+            return new LastStatementTypeDiscoverer(
+                    context.getImports(), context.getClassLoaderContext().orElse( null ) )
+                    .discover( cu );
         } catch ( Throwable e ) {
             return ResultType.VOID;
         }

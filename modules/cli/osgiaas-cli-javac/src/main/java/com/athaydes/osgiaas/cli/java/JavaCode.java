@@ -1,12 +1,15 @@
 package com.athaydes.osgiaas.cli.java;
 
+import com.athaydes.osgiaas.api.env.ClassLoaderContext;
 import com.athaydes.osgiaas.autocomplete.java.JavaAutocompleteContext;
 import com.athaydes.osgiaas.javac.JavaSnippet;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -20,10 +23,21 @@ class JavaCode implements JavaSnippet, JavaAutocompleteContext {
     private final Set<String> imports = new HashSet<>();
     private final Set<String> tempImports = new HashSet<>();
     private boolean addBindingsToCode = true;
+    private final Supplier<Optional<ClassLoaderContext>> classLoaderContextSupplier;
 
     public JavaCode() {
+        this( Optional::empty );
+    }
+
+    public JavaCode( Supplier<Optional<ClassLoaderContext>> classLoaderContextSupplier ) {
+        this.classLoaderContextSupplier = classLoaderContextSupplier;
         resetCode();
         resetImports();
+    }
+
+    @Override
+    public Optional<ClassLoaderContext> getClassLoaderContext() {
+        return classLoaderContextSupplier.get();
     }
 
     void setAddBindingsToCode( boolean addBindingsToCode ) {

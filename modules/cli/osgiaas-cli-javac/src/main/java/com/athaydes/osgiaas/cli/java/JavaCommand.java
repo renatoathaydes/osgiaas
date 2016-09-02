@@ -1,5 +1,6 @@
 package com.athaydes.osgiaas.cli.java;
 
+import com.athaydes.osgiaas.api.env.ClassLoaderContext;
 import com.athaydes.osgiaas.api.stream.LineOutputStream;
 import com.athaydes.osgiaas.cli.CommandHelper;
 import com.athaydes.osgiaas.cli.CommandInvocation;
@@ -46,7 +47,7 @@ public class JavaCommand implements Command, StreamingCommand {
 
     private Bundle bundle;
     private final JavacService javacService = JavacService.createDefault();
-    private final JavaCode code = new JavaCode();
+    private final JavaCode code;
     private final Pattern lambdaIdentifierRegex =
             Pattern.compile(
                     "\\s*(\\()?\\s*(?<id>" + JAVA_ID_REGEX + ")\\s*(\\))?\\s*->(?<body>.+)",
@@ -62,6 +63,14 @@ public class JavaCommand implements Command, StreamingCommand {
             .build();
 
     private static final Callable<?> ERROR = () -> null;
+
+    public JavaCommand() {
+        this.code = new JavaCode( () -> Optional.ofNullable( getClassLoaderContext() ) );
+    }
+
+    public ClassLoaderContext getClassLoaderContext() {
+        return classLoaderContext;
+    }
 
     public void setClassLoaderContext( ClassLoaderCapabilities classLoaderContext ) {
         this.classLoaderContext = classLoaderContext;

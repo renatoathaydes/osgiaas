@@ -1,5 +1,6 @@
 package com.athaydes.osgiaas.autocomplete.java.impl;
 
+import com.athaydes.osgiaas.api.env.ClassLoaderContext;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
@@ -23,8 +24,13 @@ final class TypeDiscoverer {
 
     private final Iterable<String> importedClasses;
 
-    TypeDiscoverer( Iterable<String> importedClasses ) {
+    @Nullable
+    private final ClassLoaderContext classLoaderContext;
+
+    TypeDiscoverer( Iterable<String> importedClasses,
+                    @Nullable ClassLoaderContext classLoaderContext ) {
         this.importedClasses = importedClasses;
+        this.classLoaderContext = classLoaderContext;
     }
 
     Map<String, Class<?>> getTypesByVariableName( List<Statement> statements ) {
@@ -95,7 +101,6 @@ final class TypeDiscoverer {
 
     }
 
-    // FIXME use the compiler bundle's class loader
     Class<?> classForName( String name ) throws ClassNotFoundException {
         for (String imp : importedClasses) {
             @Nullable String potentialClassName = imp.endsWith( "." + name ) ?
@@ -105,7 +110,7 @@ final class TypeDiscoverer {
                             null;
             if ( potentialClassName != null ) {
                 try {
-                    return Class.forName( potentialClassName );
+                    return findClass( potentialClassName );
                 } catch ( ClassNotFoundException ignore ) {
                     // try something else
                 }
@@ -113,7 +118,15 @@ final class TypeDiscoverer {
         }
 
         // last guess
-        return Class.forName( "java.lang." + name );
+        return findClass( "java.lang." + name );
+    }
+
+    private Class<?> findClass( String className ) throws ClassNotFoundException {
+        if ( classLoaderContext == null ) {
+            return Class.forName( className );
+        } else {
+            return classLoaderContext.getClassLoader().loadClass( className );
+        }
     }
 
 }

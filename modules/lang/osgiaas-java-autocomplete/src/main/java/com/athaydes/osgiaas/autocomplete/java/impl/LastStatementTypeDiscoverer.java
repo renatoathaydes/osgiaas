@@ -1,5 +1,6 @@
 package com.athaydes.osgiaas.autocomplete.java.impl;
 
+import com.athaydes.osgiaas.api.env.ClassLoaderContext;
 import com.athaydes.osgiaas.autocomplete.java.ResultType;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.MethodDeclaration;
@@ -25,8 +26,9 @@ final class LastStatementTypeDiscoverer extends GenericVisitorAdapter<ResultType
 
     private final TypeDiscoverer typeDiscoverer;
 
-    LastStatementTypeDiscoverer( Iterable<String> importedClasses ) {
-        this.typeDiscoverer = new TypeDiscoverer( importedClasses );
+    LastStatementTypeDiscoverer( Iterable<String> importedClasses,
+                                 @Nullable ClassLoaderContext classLoaderContext ) {
+        this.typeDiscoverer = new TypeDiscoverer( importedClasses, classLoaderContext );
     }
 
     ResultType discover( CompilationUnit cu ) {

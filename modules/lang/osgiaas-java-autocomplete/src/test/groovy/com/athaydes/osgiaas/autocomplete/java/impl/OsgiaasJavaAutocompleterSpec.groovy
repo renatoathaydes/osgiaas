@@ -147,6 +147,7 @@ class OsgiaasJavaAutocompleterSpec extends Specification {
                 Stub( JavaAutocompleteContext ) {
                     getImports() >> [ 'spock.lang.Subject', 'java.util.List', 'java.lang.reflect.*' ]
                     getMethodBody( _ as String ) >> { String x -> x }
+                    getClassLoaderContext() >> Optional.empty()
                 } )
 
         when: 'the type of the first part of "#text" is requested'

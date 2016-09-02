@@ -1,5 +1,6 @@
 package com.athaydes.osgiaas.autocomplete.java.impl;
 
+import com.athaydes.osgiaas.api.env.ClassLoaderContext;
 import com.athaydes.osgiaas.autocomplete.java.JavaStatementParser;
 import com.athaydes.osgiaas.autocomplete.java.ResultType;
 import com.github.javaparser.JavaParser;
@@ -7,6 +8,7 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.stmt.Statement;
 
+import javax.annotation.Nullable;
 import java.io.StringReader;
 import java.text.ParseException;
 import java.util.Collection;
@@ -20,7 +22,14 @@ public final class DefaultJavaStatementParser implements JavaStatementParser {
     public Map<String, ResultType> parseStatements( List<String> statements,
                                                     Collection<String> importedClasses )
             throws ParseException {
+        return parseStatements( statements, importedClasses, null );
+    }
 
+    @Override
+    public Map<String, ResultType> parseStatements( List<String> statements,
+                                                    Collection<String> importedClasses,
+                                                    @Nullable ClassLoaderContext classLoaderContext )
+            throws ParseException {
         StringBuilder codeBuilder = new StringBuilder( "class X {" );
         codeBuilder.append( "void run() {" );
         for (String statement : statements) {
@@ -43,7 +52,8 @@ public final class DefaultJavaStatementParser implements JavaStatementParser {
             throw new ParseException( e.getMessage(), 0 );
         }
 
-        return resultTypes( new TypeDiscoverer( importedClasses ).getTypesByVariableName( parsedStatements ) );
+        return resultTypes( new TypeDiscoverer( importedClasses, classLoaderContext )
+                .getTypesByVariableName( parsedStatements ) );
     }
 
     private static Map<String, ResultType> resultTypes( Map<String, Class<?>> types ) {

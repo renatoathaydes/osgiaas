@@ -1,5 +1,6 @@
 package com.athaydes.osgiaas.autocomplete.java;
 
+import com.athaydes.osgiaas.api.env.ClassLoaderContext;
 import com.athaydes.osgiaas.autocomplete.java.impl.DefaultJavaStatementParser;
 
 import java.text.ParseException;
@@ -22,6 +23,21 @@ public interface JavaStatementParser {
      * @throws ParseException if any statement has invalid Java syntax or is not a valid Java statement.
      */
     Map<String, ResultType> parseStatements( List<String> statements, Collection<String> importedClasses )
+            throws ParseException;
+
+    /**
+     * Parse the given Java statements, returning a Map containing the name of each declared variable associated
+     * with its type.
+     *
+     * @param statements         to parse
+     * @param importedClasses    all imported classes that should be visible by each statement
+     * @param classLoaderContext classLoader context to use when trying to locate classes
+     * @return the name and type of each variable declaration
+     * @throws ParseException if any statement has invalid Java syntax or is not a valid Java statement.
+     */
+    Map<String, ResultType> parseStatements( List<String> statements,
+                                             Collection<String> importedClasses,
+                                             ClassLoaderContext classLoaderContext )
             throws ParseException;
 
     /**
