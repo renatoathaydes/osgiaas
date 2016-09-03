@@ -255,12 +255,13 @@ public class JavaCommand implements Command, StreamingCommand {
             ).orElse( ERROR );
 
             if ( callable != ERROR ) {
-                code.commit();
                 Object result = callable.call();
 
                 if ( result != null ) {
                     out.println( result );
                 }
+
+                code.commit();
             } else {
                 code.abort();
             }
