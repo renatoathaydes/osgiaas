@@ -34,7 +34,6 @@ import static com.athaydes.osgiaas.cli.CommandHelper.CommandBreakupOptions;
 import static com.athaydes.osgiaas.cli.CommandHelper.DOUBLE_QUOTE_CODE;
 import static com.athaydes.osgiaas.cli.CommandHelper.SINGLE_QUOTE_CODE;
 
-// TODO auto-complete custom classes as well
 public final class OsgiaasJavaAutocompleter implements JavaAutocompleter {
 
     private static final CommandBreakupOptions OPTIONS = CommandBreakupOptions.create()

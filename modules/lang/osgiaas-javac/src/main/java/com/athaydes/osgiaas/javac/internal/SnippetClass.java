@@ -40,7 +40,7 @@ public class SnippetClass {
         return new SnippetClass( className, importStatements +
                 "public class " + className + " implements Callable {\n" +
                 "public Object call() throws Exception {\n" +
-                "" + snippet.getExecutableCode() + "\n" +
+                "" + snippet.getExecutableCode() +
                 "}\n" +
                 "}" );
     }

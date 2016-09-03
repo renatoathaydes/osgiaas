@@ -199,15 +199,21 @@ public class JavaCommand implements Command, StreamingCommand {
                     classLoaderContext, className, codeToRun, err );
             javaClass.ifPresent( out::println );
         } else {
+            breakupJavaLines( codeToRun );
+
             boolean show = invocation.hasArg( SHOW_ARG );
 
             if ( show ) {
                 out.println( javacService.getJavaSnippetClass( code ) );
+                if ( !codeToRun.isEmpty() ) {
+                    // add new lines between the code and its result
+                    out.println();
+                }
             }
 
             // run the current code if some input was given, or in any case when no show option
             if ( !codeToRun.isEmpty() || !show ) {
-                runJava( codeToRun, out, err );
+                runJava( out, err );
             }
         }
 
@@ -238,8 +244,7 @@ public class JavaCommand implements Command, StreamingCommand {
         return null;
     }
 
-    private void runJava( String input, PrintStream out, PrintStream err ) {
-        breakupJavaLines( input );
+    private void runJava( PrintStream out, PrintStream err ) {
         Binding.out = out;
         Binding.err = err;
         Binding.ctx = bundle.getBundleContext();

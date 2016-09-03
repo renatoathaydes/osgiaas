@@ -120,7 +120,7 @@ class JavaCode implements JavaSnippet, JavaAutocompleteContext {
     }
 
     private String computeFinalLine() {
-        String defaultFinalLine = "return null;";
+        String defaultFinalLine = "return null;\n";
 
         if ( tempJavaLines.isEmpty() ) {
             return defaultFinalLine;
