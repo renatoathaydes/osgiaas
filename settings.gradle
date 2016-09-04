@@ -1,6 +1,6 @@
 rootProject.name = 'osgiaas'
 
-// infrastructur modules
+// infrastructure modules
 include 'modules:infra:osgiaas-api',
         'modules:infra:osgiaas-grab',
         'modules:infra:osgiaas-autoupdate',
@@ -17,4 +17,6 @@ include 'modules:cli:osgiaas-cli-api',
         'modules:cli:osgiaas-cli-grab',
         'modules:cli:osgiaas-cli-groovy',
         'modules:cli:osgiaas-cli-javac',
-        'modules:cli:osgiaas-cli-js'
+        'modules:cli:osgiaas-cli-js',
+        'modules:cli:osgiaas-cli-frege'
+
