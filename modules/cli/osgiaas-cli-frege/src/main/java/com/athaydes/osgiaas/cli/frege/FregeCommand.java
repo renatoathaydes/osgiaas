@@ -8,7 +8,6 @@ import javax.script.Bindings;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
 import java.io.PrintStream;
 
 public class FregeCommand implements Command {
@@ -57,7 +56,7 @@ public class FregeCommand implements Command {
                 if ( result != null ) {
                     out.println( result );
                 }
-            } catch ( ScriptException e ) {
+            } catch ( Throwable e ) {
                 err.println( e.toString() );
             }
         }
