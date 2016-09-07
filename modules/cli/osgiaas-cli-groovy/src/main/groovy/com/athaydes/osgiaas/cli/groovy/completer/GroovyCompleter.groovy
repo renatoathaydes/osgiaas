@@ -26,9 +26,8 @@ class GroovyCompleter implements CommandCompleter {
 
     final BaseCompleter argsMatcher = new BaseCompleter( nameMatcher( 'groovy',
             CompletionMatcher.alternativeMatchers(
-                    nameMatcher( GroovyCommand.SHOW_PRE_ARG ),
-                    nameMatcher( GroovyCommand.CLEAN_PRE_ARG ),
-                    nameMatcher( GroovyCommand.ADD_PRE_ARG ),
+                    nameMatcher( GroovyCommand.RESET_CODE_ARG ),
+                    nameMatcher( GroovyCommand.SHOW_ARG ),
                     nameMatcher( 'System' ),
                     nameMatcher( 'def' )
             ) ) )

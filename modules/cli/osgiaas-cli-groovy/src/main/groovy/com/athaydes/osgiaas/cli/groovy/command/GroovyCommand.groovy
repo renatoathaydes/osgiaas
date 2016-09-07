@@ -13,19 +13,23 @@ import java.util.function.Consumer
 @CompileStatic
 class GroovyCommand implements StreamingCommand {
 
-    static final String ADD_PRE_ARG = '--pre-add'
-    static final String SHOW_PRE_ARG = '--pre'
-    static final String CLEAN_PRE_ARG = '--pre-clean'
+    static final String RESET_CODE_ARG = "-r"
+    static final String SHOW_ARG = "-s"
+
+    static int charOf( String c ) { ( c as char ) as int }
 
     private final AtomicReference<BundleContext> contextRef = new AtomicReference<>()
+    private final CommandHelper.CommandBreakupOptions breakupOptions =
+            CommandHelper.CommandBreakupOptions.create()
+                    .quoteCodes( charOf( '"' ), charOf( "'" ) )
+                    .includeQuotes( true )
 
     final GroovyShell shell = new GroovyShell()
-    final List<String> pre = [ ]
 
+    final List<String> codeBuffer = [ ]
     final ArgsSpec argsSpec = ArgsSpec.builder()
-            .accepts( ADD_PRE_ARG )
-            .accepts( SHOW_PRE_ARG )
-            .accepts( CLEAN_PRE_ARG )
+            .accepts( RESET_CODE_ARG )
+            .accepts( SHOW_ARG )
             .build()
 
     GroovyCommand() {
@@ -46,12 +50,12 @@ class GroovyCommand implements StreamingCommand {
 
     @Override
     String getUsage() {
-        'groovy <script>'.stripMargin()
+        'groovy <option>|<script>'.stripMargin()
     }
 
     @Override
     String getShortDescription() {
-        '''
+        """
            Executes a Groovy script.
 
            If the script returns a non-null value, the value is printed.
@@ -71,13 +75,21 @@ class GroovyCommand implements StreamingCommand {
 
            >> some_command | groovy line -> println line
 
+           The following options are supported:
+
+             * $RESET_CODE_ARG: reset the current code statements buffer.
+             * $SHOW_ARG: show the current statements buffer.
+
+           The code statements buffer currently contains all entered import statements (so imports do not need to be
+           re-typed on every command).
+
            State is maintained between invocations:
 
            >> groovy x = 10
            10
            >> groovy x + 1
            11
-           '''.stripIndent()
+           """.stripIndent()
     }
 
     @Override
@@ -100,27 +112,31 @@ class GroovyCommand implements StreamingCommand {
 
     @Override
     void execute( String line, PrintStream out, PrintStream err ) {
-        def command = argsSpec.parse( line, CommandHelper.CommandBreakupOptions.create().includeQuotes( true ) )
-        if ( command.hasArg( ADD_PRE_ARG ) ) {
-            if ( command.unprocessedInput ) {
+        def command = argsSpec.parse( line, breakupOptions )
+        if ( command.hasArg( RESET_CODE_ARG ) ) {
+            codeBuffer.clear()
+        } else if ( command.hasArg( SHOW_ARG ) ) {
+            out.println codeBuffer.join( '\n' )
+        } else {
+            def code = command.unprocessedInput
+
+            if ( command.unprocessedInput.startsWith( 'import ' ) ) {
+                def importedClass = command.unprocessedInput.substring( 'import '.size() )
+                        .takeWhile { c -> c != ';' && c != '\n' }
+
+                // make sure the import statement compiles
                 try {
-                    shell.evaluate( command.unprocessedInput )
-                    pre << command.unprocessedInput
+                    def importStatement = 'import ' + importedClass
+                    shell.evaluate( importStatement )
+                    codeBuffer << importStatement
+                    code = code.substring( importStatement.size() )
                 } catch ( e ) {
                     err.println "Error: $e"
                 }
             }
-        } else if ( command.hasArg( CLEAN_PRE_ARG ) ) {
-            pre.clear()
-        } else if ( command.hasArg( SHOW_PRE_ARG ) ) {
-            for ( preItem in pre ) {
-                out.println( preItem )
-            }
-        } else {
-            if ( !command.unprocessedInput ) {
-                CommandHelper.printError( err, getUsage(), 'Wrong number of arguments provided.' )
-            } else {
-                def result = run( command.unprocessedInput, out, err )
+
+            if ( code.trim() ) {
+                def result = run( code, out, err )
                 if ( result != null ) out.println( result )
             }
         }
@@ -135,7 +151,7 @@ class GroovyCommand implements StreamingCommand {
     }
 
     def run( String script, PrintStream out, PrintStream err ) {
-        def fullScript = ( pre + [ script ] ).join( '\n' )
+        def fullScript = ( codeBuffer + [ script ] ).join( '\n' )
 
         try {
             shell.context.with {
