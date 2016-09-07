@@ -23,9 +23,9 @@ class JavaCodeSpec extends Specification {
 
         where:
         lines                           | expectedResult
-        [ ]                             | 'return null;'
-        [ 'a' ]                         | 'a;\nreturn null;'
-        [ 'a', 'b', 'c' ]               | 'a;\nb;\nc;\nreturn null;'
+        [ ]                             | 'return null;\n'
+        [ 'a' ]                         | 'a;\nreturn null;\n'
+        [ 'a', 'b', 'c' ]               | 'a;\nb;\nc;\nreturn null;\n'
         [ 'return i + 2' ]              | 'return i + 2;\n'
         [ 'int i = 0', 'return i + 2' ] | 'int i = 0;\nreturn i + 2;\n'
     }
