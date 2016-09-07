@@ -42,6 +42,9 @@ dependencies {
 
     // OSGi container
     osgiMain "org.apache.felix:org.apache.felix.main:5.4.0"
+
+    // Enable Frege as a system library for the Frege command
+    systemLib "org.frege-lang:frege-interpreter-core:1.2"
 }
 
 runOsgi {
