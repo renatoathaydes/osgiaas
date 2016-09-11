@@ -16,6 +16,12 @@ class Grabber {
         this.repositories = repositories
     }
 
+    /**
+     * Grabs an artifact from the one of the configured repositories.
+     * @param artifact to grab. Use the form "groupId:artifactId:version[:classifier]".
+     * @return the result of trying to grab the artifact, if successful.
+     * @throws GrabException if there was a problem grabbing the artifact
+     */
     GrabResult grab( String artifact ) {
         def parts = artifact.trim().split( ':' )
         if ( parts.size() == 3 || parts.size() == 4 ) {
