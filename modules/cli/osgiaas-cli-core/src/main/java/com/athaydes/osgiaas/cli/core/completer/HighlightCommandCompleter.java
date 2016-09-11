@@ -51,9 +51,10 @@ public class HighlightCommandCompleter extends BaseCompleter {
     }
 
     private static CompletionMatcher foreThenBack( Supplier<Stream<CompletionMatcher>> children ) {
-        return nameMatcher( FOREGROUND_ARG, colorsNodesWithChildren(
-                nameMatcher( BACKGROUND_ARG,
-                        ansiModifierNodesWithChildren( children ) )
+        return nameMatcher( FOREGROUND_ARG, ansiModifierNodesWithChildren(
+                () -> Stream.of( nameMatcher( BACKGROUND_ARG,
+                        () -> Stream.of( colorsNodesWithChildren(
+                                children.get().collect( Collectors.toList() ) ) ) ) )
         ) );
     }
 
