@@ -50,12 +50,12 @@ public class ListResourcesCommand implements Command {
 
     @Override
     public String getShortDescription() {
-        return "List resources in the bundle classpaths.\n" +
+        return "List JVM resources included in the installed bundles.\n" +
                 "\n" +
                 "The lr command supports the following options:\n" +
                 "\n" +
                 "  -r: recursively list resources under sub-paths.\n" +
-                "  -a: show all resources, including nested classes." +
+                "  -a: show all resources, including nested classes.\n" +
                 "  -p: pattern to search.\n" +
                 "\n" +
                 "For example, to list all class files available under the 'com' package:\n" +

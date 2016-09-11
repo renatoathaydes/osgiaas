@@ -3,71 +3,44 @@
 A Command Line Interface (CLI) based on on [JLine](http://jline.github.io/jline2/)
 and [Apache Felix Shell](http://felix.apache.org/documentation/subprojects/apache-felix-shell.html).
 
-![OSGiaaS Banner](images/banner.png)
+![OSGiaaS Banner](../images/banner.png)
 
-## Commands
+## Core Commands
 
 Besides the OSGi Commands exported by the Felix Shell bundle (which allows inspecting and
 monitoring the OSGi system itself), this bundle adds the following Commands:
 
-* `prompt` - changes the shell prompt (to use whitespaces, quote the prompt as in `" > "`).
-* `color` - set the default colors of the CLI.
 * `alias` - alias a command with a different name.
+* `clear` - clear the CLI contents.
+* `color` - set the default colors of the CLI.
 * `grep` - filter lines matching a regular expression.
 * `highlight` - color-highlight lines matching a regular expression.
+* `lr` - list JVM resources.
+* `prompt` - changes the shell prompt (to use whitespaces, quote the prompt as in `" > "`).
+* `run` - run OS native programs.
 
-The [`osgiaas-cli-groovy`](osgiaas-cli-groovy.md) bundle exports the following commands:
+## More Commands Modules
 
-* `groovy` - runs a Groovy script.
+> Check the [CLI modules directory](../../modules/cli) for a full list.
 
-To see help information about a command in the CLI, type `help <command>`.
+* [Frege](../../modules/cli/osgiaas-cli-frege) - Frege REPL
+* [Grab](../../modules/cli/osgiaas-cli-grab) - Grab Maven dependencies and add them to the running system
+* [Groovy](../../modules/cli/osgiaas-cli-groovy) - Groovy REPL
+* [Javac](../../modules/cli/osgiaas-cli-javac) - Java REPL
+* [JavaScript](../../modules/cli/osgiaas-cli-js) - JS REPL ([Nashorn](http://openjdk.java.net/projects/nashorn/))
+
+## Writing your own commands in Java and other JVM languages
+
+See [Writing custom commands](writing-custom-commands.md).
+
+## Core command details
 
 *Highlight command:*
 
-![Simple Highlight](images/simple-highlight.png)
+![Simple Highlight](../images/simple-highlight.png)
+
 
 ## Command details
-
-### prompt
-
-To change the prompt, simply type the prompt command followed by the new prompt.
-
-To add spaces after a prompt, you can quote the new prompt:
- 
-```
->> prompt "renato> "
-renato> |
-```
-
-### color
-
-The color command can change the color of:
-
-* the **prompt**
-* the commands' **text** output
-* the commands' **error** output
-
-For example, to change the prompt color to green, the text output to white, and the error output to yellow:
-
-```
-color green prompt
-color white text
-color yellow error
-```
-
-To change all of them at once, type just the color:
-
-```
-color cyan
-```
-
-For the color command to work, your shell must support ANSI formatting.
-
-Available ANSI colors:
-
-```
-black, red, green, yellow, blue, purple, cyan, white
-```
 
 ### alias
 
@@ -98,6 +71,42 @@ Notice that aliases can include arguments as well if you quote the command with 
 
 ```
 alias hl="highlight -f red -b yellow"
+```
+
+### clear
+
+Clears the CLI contents.
+
+It should work exactly the same as your shell's `clear` command.
+
+### color
+
+The color command can change the color of:
+
+* the **prompt**
+* the commands' **text** output
+* the commands' **error** output
+
+For example, to change the prompt color to green, the text output to white, and the error output to yellow:
+
+```
+color green prompt
+color white text
+color yellow error
+```
+
+To change all of them at once, type just the color:
+
+```
+color cyan
+```
+
+For the color command to work, your shell must support ANSI formatting.
+
+Available ANSI colors:
+
+```
+black, red, green, yellow, blue, purple, cyan, white
 ```
 
 ### grep
@@ -181,14 +190,48 @@ ps | highlight -b blue -f green+blink osgi
 headers 10 | highlight -b red -f yellow+hi+u "Bundle-SymbolicName"
 ```
 
-## Command modifier
+### lr
+
+Lists JVM resources.
+
+JVM resources are things included in jars and usually visible to Java code via the
+[getResource(String name)](https://docs.oracle.com/javase/7/docs/api/java/lang/ClassLoader.html#getResource(java.lang.String))
+method.
+
+The resource name is always assumed to be an absolute path with `forward-slash` as a path separator.
+
+The `lr` command supports the following options:
+
+  -r: recursively list resources under sub-paths.
+  -a: show all resources, including nested classes.
+  -p: pattern to search.
+
+For example, to list all class files available under the 'com' package:
+
+lr -r -p *.class com/
+
+### prompt
+
+To change the prompt, simply type the prompt command followed by the new prompt.
+
+To add spaces after a prompt, you can quote the new prompt:
+
+```
+>> prompt "renato> "
+renato> |
+```
+
+
+## Command modifiers
 
 Raw commands given by the user may be modified by OSGi services implementing the `CommandModifier` interface.
 
-The following command modifiers, or operators, are exported by this bundle:
+The following command modifiers, or operators, are exported by the core CLI bundle:
 
 * `&&` - breaks up a single line into several commands.
-* '|' - pipes the output of a command as the input of the next command.
+* `|` - pipes the output of a command as the input of the next command.
+* `alias` - the same as the alias Command (which is both a `Command` and a `CommandModifier`).
+* `use` - use some Command (ie. avoid re-typing a command every time you want to run it)
 
 Examples:
 
@@ -199,12 +242,35 @@ Examples:
 color blue && color red prompt
 ```
 
-### | operator
+### `|` operator
 
 ```
 # Grep all lines matching the `osgiaas.*api` regular expression from the output of the `ps` command:
 ps | grep "osgiaas.*api"
 ```
+
+### alias
+
+See the alias command documentation above.
+
+### use
+
+```
+# Use the `run` command (hence making the OSGiaaS CLI behave almost like a native shell)
+use run
+
+# Now, any command `cmd` you type will be turned into `run $cmd`
+
+# list directories in Linux
+ls
+
+# change the working directory to the `tools` directory
+cd tools
+
+# to run an OSGiaaS command, escape the name of the command by prefixing it with a underscore (`_`)
+_color green prompt
+```
+
 
 ## Command history
 
@@ -213,6 +279,7 @@ Command history is supported by JLine (see the JLine docs for configuring it).
 Persistent history is saved on the `<user.home>/.osgiaas_cli_history` file by default.
 To change the location of this file, set the `osgiaas.cli.history` System property
 (with a -D option) when starting the JVM.
+
 
 ## Init file
 
@@ -231,12 +298,20 @@ color yellow error
 alias exit=shutdown
 ```
 
-## Sample OSGi environment
 
-A Gradle script for setting up an OSGi environment quickly and easily with
-[osgi-run](https://github.com/renatoathaydes/osgiaas-run)
-can be found in the [samples directory](../samples/osgiaas-cli.gradle).
+## Multi-line commands
 
-You can just copy the contents of this file into a `build.gradle` file and create the
-OSGi environment with `gradle createOsgiRuntime`, then run with `bash build/osgi/run.sh` or
-`build/osgi/run.bat` in Windows.
+To enter multi-line commands, wrap them between a `:{` and a `:}` lines.
+
+Example:
+
+```
+>> :{
+java -c class Hello {
+  public static void sayHi() {
+    System.out.println("Hi there");
+  }
+}
+:}
+```
+

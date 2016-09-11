@@ -11,21 +11,16 @@
  *     build/osgi/run.bat
  */
 
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.5.1"
-    }
+plugins {
+    id "com.athaydes.osgi-run" version "1.5.1"
 }
-
-apply plugin: 'com.athaydes.osgi-run'
 
 repositories {
     mavenLocal()
     jcenter()
 }
+
+project.buildDir = 'build/buildosgiaas-cli'
 
 dependencies {
     // the osgiaas-cli core bundle
