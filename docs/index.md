@@ -31,9 +31,9 @@ Run the system by running the appropriate OS script generated in the (by default
 
 Modules are grouped together into the following broad categories:
 
-* [`cli`](../modules/cli): the OSGiaaS CLI (command-line interface) sub-project.
-* [`lang`](../modules/lang): language services, such as a Java compiler service.
-* [`infra`](../modules/infra): infrastructure modules providing functionality such as auto-update, logging etc.
+* [`cli`](cli): the OSGiaaS CLI (command-line interface) sub-project.
+* [`lang`](lang): language services, such as a Java compiler service.
+* [`infra`](infra): infrastructure modules providing functionality such as auto-update, logging etc.
 
 All modules can be found under the [modules](../modules) directory.
 
@@ -85,6 +85,7 @@ Infrastructure modules add support for a number of useful facilities for applica
 
 **List of modules**:
 
-* Auto-update (OSGi bundle auto-updater)
+* Auto-update (OSGi bundle auto-updater config and API)
 * Grab (Grab and wrap any jar dependency into an OSGi bundle)
+* Auto-update-Grabber (Auto-update implementation based on the Grab module)
 * SLF4J Implementation (allows using the SLF4J Logging API for logging within OSGi bundles)

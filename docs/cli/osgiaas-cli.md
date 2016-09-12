@@ -21,13 +21,13 @@ monitoring the OSGi system itself), this bundle adds the following Commands:
 
 ## More Commands Modules
 
-> Check the [CLI modules directory](../../modules/cli) for a full list.
+> Check the [CLI modules directory](../../modules/cli) for the full list.
 
-* [Frege](../../modules/cli/osgiaas-cli-frege) - Frege REPL
-* [Grab](../../modules/cli/osgiaas-cli-grab) - Grab Maven dependencies and add them to the running system
-* [Groovy](../../modules/cli/osgiaas-cli-groovy) - Groovy REPL
-* [Javac](../../modules/cli/osgiaas-cli-javac) - Java REPL
-* [JavaScript](../../modules/cli/osgiaas-cli-js) - JS REPL ([Nashorn](http://openjdk.java.net/projects/nashorn/))
+* [Frege](osgiaas-cli-frege.md) - Frege REPL
+* [Grab](osgiaas-cli-grab.md) - Grab Maven dependencies and add them to the running system
+* [Groovy](osgiaas-cli-groovy.md) - Groovy REPL
+* [Javac](osgiaas-cli-javac.md) - Java REPL
+* [JavaScript](osgiaas-cli-js.md) - JS REPL ([Nashorn](http://openjdk.java.net/projects/nashorn/))
 
 ## Writing your own commands in Java and other JVM languages
 
