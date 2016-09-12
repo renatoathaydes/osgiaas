@@ -1,3 +1,3 @@
 # OSGiaaS Autoupdate API Module
 
-TODO this module may be removed from the API module
+Documentation at [docs/infra/osgiaas-autoupdate.md](../../../docs/infra/osgiaas-autoupdate.md).

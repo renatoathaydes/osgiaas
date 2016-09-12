@@ -94,6 +94,7 @@ class GrabAutoUpdater implements AutoUpdater {
 
     @Override
     void subscribeAllBundles( AutoUpdateOptions options, String... exclusions ) {
+        // TODO use exclusions!
         DynamicServiceHelper.with( contextRef ) { ComponentContext context ->
             log( LogService.LOG_INFO, "Subscribing all bundles for auto-update" )
             def success = false
