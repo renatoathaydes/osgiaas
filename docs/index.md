@@ -15,9 +15,9 @@ The only requirements to get started is to have a (Java 8) JVM and
 
 ## Getting started
 
-### Download the modules
+### Downloading the modules
 
-Choose a Gradle script from one of the [`samples`] files, copy the file contents into a file called `build.script`,
+Choose a Gradle script from one of the [samples](../samples/) files, copy the file contents into a file called `build.script`,
 then run `gradle createOsgi`.
 
 > To enable a remote debugger to be attached to the process, run `gradle -Pdebug createOsgi`.
@@ -31,9 +31,9 @@ Run the system by running the appropriate OS script generated in the (by default
 
 Modules are grouped together into the following broad categories:
 
-* [`cli`](cli): the OSGiaaS CLI (command-line interface) sub-project.
-* [`lang`](lang): language services, such as a Java compiler service.
-* [`infra`](infra): infrastructure modules providing functionality such as auto-update, logging etc.
+* [cli](cli): the OSGiaaS CLI (command-line interface) sub-project.
+* [lang](lang): language services, such as a Java compiler service.
+* [infra](infra): infrastructure modules providing functionality such as auto-update, logging etc.
 
 All modules can be found under the [modules](../modules) directory.
 
