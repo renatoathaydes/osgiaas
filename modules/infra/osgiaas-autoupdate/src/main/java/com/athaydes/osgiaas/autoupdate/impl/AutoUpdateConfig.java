@@ -1,6 +1,6 @@
 package com.athaydes.osgiaas.autoupdate.impl;
 
-import com.athaydes.osgiaas.api.autoupdate.AutoUpdateOptions;
+import com.athaydes.osgiaas.autoupdate.AutoUpdateOptions;
 import com.athaydes.osgiaas.autoupdate.config.ConfigurationException;
 
 import javax.annotation.Nullable;

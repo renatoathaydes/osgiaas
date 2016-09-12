@@ -9,7 +9,7 @@ component( xmlns: SCR_NAMESPACE, name: 'autoUpdaterService', immediate: true ) {
     implementation( 'class': 'com.athaydes.osgiaas.autoupdate.impl.AutoUpdaterService' )
     property( name: 'service.description', value: 'OSGiaaS AutoUpdater bundle registerer service' )
     reference( name: 'autoUpdater',
-            'interface': 'com.athaydes.osgiaas.api.autoupdate.AutoUpdater',
+            'interface': 'com.athaydes.osgiaas.autoupdate.AutoUpdater',
             'cardinality': '0..1',
             'policy': 'dynamic',
             'bind': 'setAutoUpdater',

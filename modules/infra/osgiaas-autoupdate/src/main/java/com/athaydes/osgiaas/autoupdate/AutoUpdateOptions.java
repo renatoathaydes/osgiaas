@@ -1,4 +1,4 @@
-package com.athaydes.osgiaas.api.autoupdate;
+package com.athaydes.osgiaas.autoupdate;
 
 import java.net.URI;
 import java.time.Duration;

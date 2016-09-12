@@ -1,4 +1,4 @@
-package com.athaydes.osgiaas.api.autoupdate;
+package com.athaydes.osgiaas.autoupdate;
 
 /**
  * Update information provided to client code before an update is applied.

@@ -1,14 +1,15 @@
 package com.athaydes.osgiaas.grab.autoupdate
 
-import aQute.bnd.version.MavenVersion
-import com.athaydes.osgiaas.api.autoupdate.AutoUpdateOptions
-import com.athaydes.osgiaas.api.autoupdate.AutoUpdater
-import com.athaydes.osgiaas.api.autoupdate.UpdateInformation
 import com.athaydes.osgiaas.api.service.DynamicServiceHelper
+import com.athaydes.osgiaas.autoupdate.AutoUpdateOptions
+import com.athaydes.osgiaas.autoupdate.AutoUpdater
+import com.athaydes.osgiaas.autoupdate.UpdateInformation
 import com.athaydes.osgiaas.grab.GrabException
 import com.athaydes.osgiaas.grab.Grabber
+import com.athaydes.osgiaas.grab.MavenVersion
 import com.athaydes.osgiaas.grab.autoupdate.storage.AutoUpdaterStorage
 import com.athaydes.osgiaas.grab.autoupdate.storage.UserHomeFileAutoUpdaterStorage
+import groovy.transform.CompileStatic
 import groovy.transform.Immutable
 import org.osgi.framework.Bundle
 import org.osgi.framework.wiring.FrameworkWiring
@@ -28,13 +29,14 @@ class GrabUpdateInformation implements UpdateInformation {
 /**
  * AutoUpdater based on {@link com.athaydes.osgiaas.grab.Grabber}.
  */
+@CompileStatic
 class GrabAutoUpdater implements AutoUpdater {
 
     private final AtomicReference<ComponentContext> contextRef = new AtomicReference<>()
     private final AtomicReference<LogService> logServiceRef = new AtomicReference<>()
     private final AutoUpdaterStorage storage = new UserHomeFileAutoUpdaterStorage()
 
-    private final Set<Long> subscribedBundles = [ ].asSynchronized()
+    private final Set<Long> subscribedBundles = [ ].asSynchronized() as Set<Long>
 
     void setLogService( LogService logService ) {
         logServiceRef.set( logService )
@@ -159,8 +161,8 @@ class GrabAutoUpdater implements AutoUpdater {
         def bundleGrape = grabResult.grapeFile
 
         // canonicalize the versions
-        def currentVersion = MavenVersion.parseString( bundleVersion.toString() )
-        def newVersion = MavenVersion.parseString( grabResult.grapeVersion )
+        def currentVersion = MavenVersion.parseVersionString( bundleVersion.toString() )
+        def newVersion = MavenVersion.parseVersionString( grabResult.grapeVersion )
 
         log( LogService.LOG_DEBUG, "Bundle current version: $currentVersion. New version: $newVersion" )
 

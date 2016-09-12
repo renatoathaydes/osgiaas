@@ -1,6 +1,6 @@
 package com.athaydes.osgiaas.autoupdate.impl;
 
-import com.athaydes.osgiaas.api.autoupdate.AutoUpdater;
+import com.athaydes.osgiaas.autoupdate.AutoUpdater;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleListener;
 import org.osgi.service.component.ComponentContext;

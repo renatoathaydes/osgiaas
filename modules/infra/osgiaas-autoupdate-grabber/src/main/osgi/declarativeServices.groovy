@@ -9,7 +9,7 @@ component( xmlns: SCR_NAMESPACE, name: 'grabAutoUpdater', immediate: true ) {
     implementation( 'class': 'com.athaydes.osgiaas.grab.autoupdate.GrabAutoUpdater' )
     property( name: 'service.description', value: 'OSGiaaS GrabAutoUpdater' )
     service {
-        provide( 'interface': 'com.athaydes.osgiaas.api.autoupdate.AutoUpdater' )
+        provide( 'interface': 'com.athaydes.osgiaas.autoupdate.AutoUpdater' )
     }
     reference( name: 'logService',
             'interface': 'org.osgi.service.log.LogService',

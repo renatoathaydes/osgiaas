@@ -4,6 +4,7 @@ rootProject.name = 'osgiaas'
 include 'modules:infra:osgiaas-api',
         'modules:infra:osgiaas-grab',
         'modules:infra:osgiaas-autoupdate',
+        'modules:infra:osgiaas-autoupdate-grabber',
         'modules:infra:osgiaas-slf4j-impl'
 
 // language modules

@@ -1,7 +1,6 @@
 apply plugin: 'groovy'
 apply plugin: 'osgi'
 apply plugin: 'maven'
-apply plugin: 'com.athaydes.osgi-ds'
 
 repositories {
     maven {
@@ -21,17 +20,10 @@ dependencies {
 
     compile project( ':modules:infra:osgiaas-api' )
     compile 'org.codehaus.groovy:groovy-all:2.4.5'
-    compile 'org.osgi:osgi.core:6.0.0'
-    compile 'org.osgi:org.osgi.service.log:1.3.0'
-    compile 'org.osgi:org.osgi.service.component:1.3.0'
 
     // allows Groovy Grapes to work
     runtime 'org.apache.ivy:ivy:2.4.0'
 
     testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
     testRuntime 'org.slf4j:slf4j-simple:1.7.13'
-}
-
-declarativeServices {
-    declarations = project.file( 'src/main/osgi/declarativeServices.groovy' )
 }

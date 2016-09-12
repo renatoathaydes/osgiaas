@@ -11,7 +11,9 @@ repositories {
 
 jar {
     manifest {
-        instruction 'Export-Package', 'com.athaydes.osgiaas.autoupdate.config'
+        instruction 'Export-Package',
+                'com.athaydes.osgiaas.autoupdate',
+                'com.athaydes.osgiaas.autoupdate.config'
     }
 }
 
