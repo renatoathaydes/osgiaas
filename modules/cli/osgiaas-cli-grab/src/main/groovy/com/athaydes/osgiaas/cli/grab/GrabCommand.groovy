@@ -30,7 +30,7 @@ class GrabCommand implements Command {
     String getName() { "grab" }
 
     @Override
-    String getUsage() { "grab <options> <artifact-coordinates> | <command> <arg>" }
+    String getUsage() { "grab <options> <artifact-coordinates> | <sub-command> <arg>" }
 
     @Override
     String getShortDescription() {
@@ -46,10 +46,11 @@ class GrabCommand implements Command {
 
               * -v : verbose mode. Prints information about downloads.
 
-            Grab also supports the following commands:
+            Grab also supports the following sub-commands:
 
               * $ADD_REPO [<repo-id>] <repo> : adds a repository to grab artifacts from.
               * $REMOVE_REPO <repo-id> : removes a repository.
+              * $LIST_REPOS <repo-id> : lists existing repositories.
 
             If <repo-id> is not given, the repo address is also used as its ID.
 
