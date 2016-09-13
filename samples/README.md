@@ -12,6 +12,6 @@ gradle -b <name-of-build-file> <tasks>
 For example:
 
 ```
-gradle -b osgiaas-cli.gradle clean createOsgi
+gradle -b osgiaas-cli-minimal.gradle clean createOsgi
 ```
 

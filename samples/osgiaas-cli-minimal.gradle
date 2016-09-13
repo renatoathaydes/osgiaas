@@ -3,7 +3,7 @@
  * includes the osgiaas-cli bundle, amongst other bundles (see the dependencies section).
  *
  * Build with:
- *     gradle -b osgiaas-cli.gradle createOsgiRuntime
+ *     gradle -b osgiaas-cli-minimal.gradle createOsgiRuntime
  *
  * Then, run with:
  *     bash build/osgi/run.sh
@@ -20,15 +20,11 @@ repositories {
     jcenter()
 }
 
-project.buildDir = 'build/buildosgiaas-cli'
-
 dependencies {
     // the osgiaas-cli core bundle
-    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-core:1.0-SNAPSHOT', {
-        exclude group: 'org.osgi'
-    }
+    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-core:1.0-SNAPSHOT'
 
-    // OSGi Declarative Services implementation
+    // OSGi Service Component Runtime implementation
     osgiRuntime 'org.apache.felix:org.apache.felix.scr:2.0.2', {
         exclude group: '*'
     }
