@@ -37,7 +37,7 @@ the bundles (even wrapping the plain jars into OSGi bundles if necessary):
 
 The following options are supported:
 
-  * -v : verbose mode. Prints information about downloads.
+  * `-v` : verbose mode. Prints information about downloads.
 
 ## Sub-commands
 
@@ -45,7 +45,7 @@ Grab also supports the following sub-commands:
 
   * `--add-repo [<repo-id>] <repo>` : adds a repository to grab artifacts from.
   * `--rm-repo <repo-id>` : removes a repository.
-  * `--list-repos <repo-id>` : lists existing repositories.
+  * `--list-repos` : lists existing repositories.
 
 If <repo-id> is not given, the repo address is also used as its ID.
 
