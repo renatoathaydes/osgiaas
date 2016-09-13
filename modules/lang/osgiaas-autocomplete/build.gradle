@@ -1,6 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'groovy'
 apply plugin: 'osgi'
+apply plugin: 'maven'
 
 repositories {
     jcenter()
