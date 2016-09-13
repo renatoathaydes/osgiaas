@@ -3,7 +3,7 @@
 A Command Line Interface (CLI) based on on [JLine](http://jline.github.io/jline2/)
 and [Apache Felix Shell](http://felix.apache.org/documentation/subprojects/apache-felix-shell.html).
 
-![OSGiaaS Banner](../images/banner.png)
+![OSGiaaS CLI](../images/osgiaas-cli-minimal.png)
 
 ## Core Commands
 

@@ -22,10 +22,46 @@ then run `gradle createOsgi`.
 
 > To enable a remote debugger to be attached to the process, run `gradle -Pdebug createOsgi`.
 
+Here's the CLI minimal sample (installing only the minimum configuration of modules necessary to run the CLI):
+
+```groovy
+plugins {
+    id "com.athaydes.osgi-run" version "1.5.1"
+}
+
+repositories {
+    mavenLocal()
+    jcenter()
+}
+
+dependencies {
+    // the osgiaas-cli core bundle
+    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-core:1.0-SNAPSHOT'
+
+    // OSGi Service Component Runtime implementation
+    osgiRuntime 'org.apache.felix:org.apache.felix.scr:2.0.2', {
+        exclude group: '*'
+    }
+
+    // OSGi container
+    osgiMain "org.apache.felix:org.apache.felix.main:5.4.0"
+}
+
+runOsgi {
+    bundles = [ ] // all bundles added as osgiRuntime dependencies
+}
+```
+
 ### Run
 
 Run the system by running the appropriate OS script generated in the (by default) `build/osgi/` directory
-(eg. run.sh or run.bat).
+(eg. `run.sh` or `run.bat`).
+
+You can then type `ps` to show all bundles installed in the system.
+
+You should then see something similar to this:
+
+![OSGiaaS CLI](images/osgiaas-cli-minimal.png)
 
 ## Modules
 
