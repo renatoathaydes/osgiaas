@@ -42,9 +42,6 @@ dependencies {
     osgiRuntime 'org.apache.felix:org.apache.felix.scr:2.0.2', {
         exclude group: '*'
     }
-
-    // OSGi container
-    osgiMain "org.apache.felix:org.apache.felix.main:5.4.0"
 }
 
 runOsgi {
@@ -88,7 +85,7 @@ Most CLI functionality is built on top of the modules in the other categories.
 Native OS programs can also be run with the `run` command, making the OSGiaaS CLI a really great addition
 to your favourite shell.
 
-**List of modules**:
+**List of CLI modules**:
 
 * Core (CLI implementation as well as core commands)
 * Frege (Haskell/Frege interpreter)
@@ -106,7 +103,7 @@ Modules that help to write or **interpret** code at runtime.
 
 The `osgiaas-javac` module, for example, adds support for compiling and running arbitrary Java code.
 
-**List of modules**:
+**List of language modules**:
 
 * Autocomplete (a text auto-complete API and simple implementation)
 * Java-autocomplete (Java-specific auto-complete functionality)
@@ -119,7 +116,7 @@ respectively) so they don't need a OSGiaaS language module.
 
 Infrastructure modules add support for a number of useful facilities for applications.
 
-**List of modules**:
+**List of infrastructure modules**:
 
 * Auto-update (OSGi bundle auto-updater config and API)
 * Grab (Grab and wrap any jar dependency into an OSGi bundle)
