@@ -24,7 +24,7 @@ For example:
 installed as a system library, rather than a simple OSGi bundle.
 
 * It is also necessary to provide an implementation of the `slf4j-api` at runtime. The
-  [osgiaas-slf4j-impl](../infra/osgiaas-sfl4j-impl.md) module may be used for that.
+  [osgiaas-slf4j-impl](../infra/osgiaas-slf4j-impl.md) module may be used for that.
 
 With the `osgi-run` Gradle plugin, you can meet both requirements by adding the following dependencies in
 your Gradle file:
@@ -57,8 +57,8 @@ module Hello where
 greeting friend = "Hello, " ++ friend ++ "!"
 :}
 [using frege]
-osgiaas> import Hello
+>> import Hello
 [using frege]
-osgiaas> greeting "John"
+>> greeting "John"
 Hello, John!
 ```

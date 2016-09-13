@@ -39,7 +39,7 @@ dependencies {
 
     // Logging
     osgiRuntime 'org.apache.felix:org.apache.felix.log:1.0.1', {
-        exclude group: '*'
+        transitive = false
     }
     osgiRuntime 'com.athaydes.osgiaas:osgiaas-slf4j-impl:1.7.0'
 

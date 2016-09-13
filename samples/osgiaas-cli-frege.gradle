@@ -31,6 +31,11 @@ dependencies {
     // Logging
     osgiRuntime 'com.athaydes.osgiaas:osgiaas-slf4j-impl:1.7.0'
 
+    // Enable this to be able to read logs (using the log command, for example)
+//    osgiRuntime 'org.apache.felix:org.apache.felix.log:1.0.1', {
+//        transitive = false
+//    }
+
     // OSGi Service Component Runtime implementation
     osgiRuntime 'org.apache.felix:org.apache.felix.scr:2.0.2', {
         exclude group: '*'
