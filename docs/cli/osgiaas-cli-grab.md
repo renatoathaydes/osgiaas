@@ -43,9 +43,9 @@ The following options are supported:
 
 Grab also supports the following sub-commands:
 
-  * --add-repo [<repo-id>] <repo> : adds a repository to grab artifacts from.
-  * --rm-repo <repo-id> : removes a repository.
-  * --list-repos <repo-id> : lists existing repositories.
+  * `--add-repo [<repo-id>] <repo>` : adds a repository to grab artifacts from.
+  * `--rm-repo <repo-id>` : removes a repository.
+  * `--list-repos <repo-id>` : lists existing repositories.
 
 If <repo-id> is not given, the repo address is also used as its ID.
 
