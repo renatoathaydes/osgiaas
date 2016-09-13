@@ -2,9 +2,9 @@
 
 A module that implements a JavaScript REPL based on [Nashorn](http://openjdk.java.net/projects/nashorn/).
 
-## Usage:
+## Usage
 
-Simply type `js` following by any JavaScript code.
+Simply type `js` followed by any JavaScript code.
 
 For example:
 
@@ -15,7 +15,7 @@ function double(x) { return x * 2 }
 8
 ```
 
-## System requirements:
+## System requirements
 
 The OSGi framework may not export the `sun.reflect,jdk.nashorn.api.scripting` package, which is required by Nashorn.
 
