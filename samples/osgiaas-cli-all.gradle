@@ -1,0 +1,55 @@
+/**
+ * This Gradle build file uses the osgi-run plugin to create an OSGi environment that
+ * includes the osgiaas-cli bundle, amongst other bundles (see the dependencies section).
+ *
+ * Build with:
+ *     gradle -b osgiaas-cli-all.gradle createOsgiRuntime
+ *
+ * Then, run with:
+ *     bash build/osgi/run.sh
+ * or, in Windows:
+ *     build/osgi/run.bat
+ */
+
+plugins {
+    id "com.athaydes.osgi-run" version "1.5.1"
+}
+
+repositories {
+    mavenLocal()
+    jcenter()
+}
+
+dependencies {
+    // OSGiaaS Modules
+    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-core:1.0-SNAPSHOT'
+    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-frege:1.0-SNAPSHOT' // requires the Frege systemLib
+    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-grab:1.0-SNAPSHOT'
+    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-groovy:1.0-SNAPSHOT'
+    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-javac:1.0-SNAPSHOT'
+    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-js:1.0-SNAPSHOT'
+
+    // system libs
+    systemLib 'org.frege-lang:frege-interpreter-core:1.2'
+
+    // OSGi Service Component Runtime implementation
+    osgiRuntime 'org.apache.felix:org.apache.felix.scr:2.0.2', {
+        exclude group: '*'
+    }
+
+    // Logging
+    osgiRuntime 'org.apache.felix:org.apache.felix.log:1.0.1', {
+        exclude group: '*'
+    }
+    osgiRuntime 'com.athaydes.osgiaas:osgiaas-slf4j-impl:1.7.0'
+
+    // OSGi container
+    osgiMain "org.apache.felix:org.apache.felix.main:5.4.0"
+}
+
+runOsgi {
+    bundles = [ ] // all bundles added as osgiRuntime dependencies
+
+    // required to run JavaScript
+    config += [ 'org.osgi.framework.system.packages.extra': 'sun.reflect,jdk.nashorn.api.scripting' ]
+}

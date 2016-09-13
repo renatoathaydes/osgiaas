@@ -22,7 +22,8 @@ then run `gradle createOsgi`.
 
 > To enable a remote debugger to be attached to the process, run `gradle -Pdebug createOsgi`.
 
-Here's the CLI minimal sample (installing only the minimum configuration of modules necessary to run the CLI):
+Here's the [CLI minimal sample](../samples/osgiaas-cli-minimal.gradle)
+(installing only the minimum configuration of modules necessary to run the CLI):
 
 ```groovy
 plugins {
@@ -48,6 +49,8 @@ runOsgi {
     bundles = [ ] // all bundles added as osgiRuntime dependencies
 }
 ```
+
+To install all OSGiaaS commands, use the [osgiaas-cli-all.gradle](../samples/osgiaas-cli-all.gradle) file instead.
 
 ### Run
 
