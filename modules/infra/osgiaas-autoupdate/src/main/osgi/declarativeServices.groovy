@@ -14,10 +14,4 @@ component( xmlns: SCR_NAMESPACE, name: 'autoUpdaterService', immediate: true ) {
             'policy': 'dynamic',
             'bind': 'setAutoUpdater',
             'unbind': 'unsetAutoUpdater' )
-    reference( name: 'logService',
-            'interface': 'org.osgi.service.log.LogService',
-            'cardinality': '0..1',
-            'policy': 'dynamic',
-            'bind': 'setLogService',
-            'unbind': 'unsetLogService' )
 }

@@ -11,11 +11,4 @@ component( xmlns: SCR_NAMESPACE, name: 'grabAutoUpdater', immediate: true ) {
     service {
         provide( 'interface': 'com.athaydes.osgiaas.autoupdate.AutoUpdater' )
     }
-    reference( name: 'logService',
-            'interface': 'org.osgi.service.log.LogService',
-            'cardinality': '0..1',
-            'policy': 'dynamic',
-            'bind': 'setLogService',
-            'unbind': 'unsetLogService' )
-
 }

@@ -4,7 +4,8 @@ import com.athaydes.osgiaas.autoupdate.AutoUpdater;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleListener;
 import org.osgi.service.component.ComponentContext;
-import org.osgi.service.log.LogService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.Iterator;
@@ -18,27 +19,29 @@ import static com.athaydes.osgiaas.api.service.DynamicServiceHelper.with;
 
 public class AutoUpdaterService implements BundleListener {
 
+    private static final Logger log = LoggerFactory.getLogger( AutoUpdaterService.class );
+
     private final AtomicReference<AutoUpdater> autoUpdaterRef = new AtomicReference<>();
     private final AtomicReference<ComponentContext> contextRef = new AtomicReference<>();
-    private final AtomicReference<LogService> logServiceRef = new AtomicReference<>();
     private final Set<Long> pendingForRegistration = new ConcurrentSkipListSet<>();
 
     @Nullable
     private volatile AutoUpdateConfig config = AutoUpdateConfig.defaultConfig();
 
     public void activate( ComponentContext context, @Nullable Map<String, ?> properties ) {
-        log( LogService.LOG_DEBUG, getClass().getName() + " is active" );
+        log.debug( "Service is active" );
         contextRef.set( context );
 
         if ( properties == null ) {
-            log( LogService.LOG_INFO, "ConfigAdmin Service did not provide any configuration for the " +
-                    getClass().getName() + " service, using System properties and defaults instead." );
+            log.info( "ConfigAdmin Service did not provide any configuration, " +
+                    "using System properties and defaults instead." );
             config = AutoUpdateConfig.fromSystemProperties();
         } else {
-            log( LogService.LOG_INFO, "Using ConfigAdmin-provided configuration for the " +
-                    getClass().getName() + " service." );
+            log.info( "Using ConfigAdmin-provided configuration for the service." );
             config = AutoUpdateConfig.fromMap( properties );
         }
+
+        log.info( "Configuration received: {}", config );
 
         subscribeAllBundles();
     }
@@ -49,20 +52,12 @@ public class AutoUpdaterService implements BundleListener {
 
     public void setAutoUpdater( AutoUpdater autoUpdater ) {
         autoUpdaterRef.set( autoUpdater );
-        log( LogService.LOG_DEBUG, getClass().getName() + " service received AutoUpdater instance: " + autoUpdater );
+        log.debug( "Received AutoUpdater instance: {}", autoUpdater );
         subscribeAllBundles();
     }
 
     public void unsetAutoUpdater( AutoUpdater autoUpdater ) {
         autoUpdaterRef.set( null );
-    }
-
-    public void setLogService( LogService logService ) {
-        logServiceRef.set( logService );
-    }
-
-    public void unsetLogService( LogService logService ) {
-        logServiceRef.set( null );
     }
 
     @Override
@@ -84,15 +79,14 @@ public class AutoUpdaterService implements BundleListener {
         if ( currentConfig != null ) {
             usingServices(
                     ( context, autoUpdater ) -> {
-                        log( LogService.LOG_INFO, "All services ready, subscribing bundles for auto-update" );
+                        log.info( "All services ready, subscribing bundles for auto-update" );
                         autoUpdater.subscribeAllBundles( currentConfig,
                                 currentConfig.getBundleExcludes() );
                     },
-                    () -> log( LogService.LOG_DEBUG,
-                            "Unable to subscribe bundles for auto-update as " +
-                                    "not all required services are available" ) );
+                    () -> log.debug( "Unable to subscribe bundles for auto-update as " +
+                            "not all required services are available" ) );
         } else {
-            log( LogService.LOG_DEBUG, "Skipping subscription of all bundles, config is not available yet." );
+            log.debug( "Skipping subscription of all bundles, config is not available yet." );
         }
     }
 
@@ -109,15 +103,14 @@ public class AutoUpdaterService implements BundleListener {
                     autoUpdater.subscribeBundle( nextId, currentConfig );
                 }
             }, () -> {
-                log( LogService.LOG_INFO,
-                        "Unable to subscribe bundle [" + bundleId + "] for auto-update as " +
-                                "not all required services are available." +
-                                " Will attempt to register it later." );
+                log.info( "Unable to subscribe bundle [{}] for auto-update as " +
+                        "not all required services are available." +
+                        " Will attempt to register it later.", bundleId );
                 pendingForRegistration.add( bundleId );
             } );
         } else {
-            log( LogService.LOG_DEBUG, "Skipping subscription of bundle with ID " + bundleId +
-                    ", config is not available yet. Will attempt to register it later." );
+            log.debug( "Skipping subscription of bundle with ID {}" +
+                    ", config is not available yet. Will attempt to register it later.", bundleId );
             pendingForRegistration.add( bundleId );
         }
     }
@@ -130,10 +123,6 @@ public class AutoUpdaterService implements BundleListener {
                                     consumer.accept( context, updater ), onUnavailable ),
                     onUnavailable );
         } ).start();
-    }
-
-    private void log( int level, String message ) {
-        with( logServiceRef, log -> log.log( level, message ) );
     }
 
 }

@@ -6,6 +6,7 @@ import com.athaydes.osgiaas.autoupdate.config.ConfigurationException;
 import javax.annotation.Nullable;
 import java.net.URI;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -128,4 +129,12 @@ public class AutoUpdateConfig implements AutoUpdateOptions {
         }
     }
 
+    @Override
+    public String toString() {
+        return "AutoUpdateConfig{" +
+                "updateFrequency=" + updateFrequency +
+                ", repositories=" + repositories +
+                ", bundleExcludes=" + Arrays.toString( bundleExcludes ) +
+                '}';
+    }
 }
