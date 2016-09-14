@@ -35,6 +35,13 @@ class JavaCode implements JavaSnippet, JavaAutocompleteContext {
         resetImports();
     }
 
+    public JavaCode( JavaCode other ) {
+        this.classLoaderContextSupplier = other.classLoaderContextSupplier;
+        this.imports.addAll( other.imports );
+        this.javaLines.addAll( other.javaLines );
+        this.addBindingsToCode = other.addBindingsToCode;
+    }
+
     @Override
     public Optional<ClassLoaderContext> getClassLoaderContext() {
         return classLoaderContextSupplier.get();

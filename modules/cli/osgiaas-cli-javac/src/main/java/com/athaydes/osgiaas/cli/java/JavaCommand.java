@@ -152,10 +152,14 @@ public class JavaCommand implements Command, StreamingCommand {
             }
 
             String lineConsumerCode = "return (java.util.function.Function<String, ?>)" +
-                    "((" + lambdaArgIdentifier.trim() + ") -> " + lambdaBody + ");";
+                    "((" + lambdaArgIdentifier.trim() + ") -> " + lambdaBody + ")";
+
+            JavaCode functionCode = new JavaCode( code );
+            functionCode.addLine( lineConsumerCode );
 
             Optional<Callable<?>> callable = javacService
-                    .compileJavaSnippet( lineConsumerCode, classLoaderContext, err );
+                    .compileJavaSnippet( functionCode, classLoaderContext, err );
+
             if ( callable.isPresent() ) {
                 try {
                     Function<String, ?> callback = ( Function<String, ?> ) callable.get().call();
