@@ -1,3 +1,3 @@
 # OSGiaaS Autocomplete Module
 
-Documentation at [docs/infra/osgiaas-autocomplete.md](../../../docs/infra/osgiaas-autocomplete.md).
+Documentation at [docs/lang/osgiaas-autocomplete.md](../../../docs/lang/osgiaas-autocomplete.md).

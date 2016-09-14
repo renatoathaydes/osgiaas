@@ -1,3 +1,3 @@
 # OSGiaaS Java-Autocomplete Module
 
-Documentation at [docs/infra/osgiaas-java-autocomplete.md](../../../docs/infra/osgiaas-java-autocomplete.md).
+Documentation at [docs/lang/osgiaas-java-autocomplete.md](../../../docs/lang/osgiaas-java-autocomplete.md).
