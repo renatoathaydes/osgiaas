@@ -65,6 +65,7 @@ class JavaCode implements JavaSnippet, JavaAutocompleteContext {
             javaLines.add( "PrintStream out = Binding.out" );
             javaLines.add( "PrintStream err = Binding.err" );
             javaLines.add( "BundleContext ctx = Binding.ctx" );
+            javaLines.add( "Map<Object, Object> binding = Binding.binding" );
         }
     }
 
@@ -74,6 +75,7 @@ class JavaCode implements JavaSnippet, JavaAutocompleteContext {
         imports.add( "com.athaydes.osgiaas.cli.java.api.Binding" );
         imports.add( "java.io.PrintStream" );
         imports.add( "org.osgi.framework.BundleContext" );
+        imports.add( "java.util.Map" );
     }
 
     void resetAll() {
