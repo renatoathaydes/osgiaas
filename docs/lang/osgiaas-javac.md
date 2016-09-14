@@ -1,7 +1,12 @@
 # OSGiaaS Javac Module
 
-This module implements a Java compiler service based on the JVM's own
+This module implements a in-memory Java compiler service based on the JVM's own
 [JavaCompiler](https://docs.oracle.com/javase/7/docs/api/javax/tools/JavaCompiler.html).
+
+It never reads or writes to disk, so it is blazing fast.
+
+The [osgiaas-cli-javac](../cli/osgiaas-cli-javac.md) module, which lets you run Java code as in a REPL,
+is based on this compiler.
 
 ## System Requirements
 
