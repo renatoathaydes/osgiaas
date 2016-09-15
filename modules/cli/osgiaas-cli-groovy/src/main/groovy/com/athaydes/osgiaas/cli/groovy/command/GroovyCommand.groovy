@@ -5,6 +5,7 @@ import com.athaydes.osgiaas.cli.CommandHelper
 import com.athaydes.osgiaas.cli.StreamingCommand
 import com.athaydes.osgiaas.cli.args.ArgsSpec
 import groovy.transform.CompileStatic
+import org.codehaus.groovy.runtime.metaclass.MissingMethodExceptionNoStack
 import org.osgi.framework.BundleContext
 
 import java.util.concurrent.atomic.AtomicReference
@@ -60,53 +61,72 @@ class GroovyCommand implements StreamingCommand {
 
            If the script returns a non-null value, the value is printed.
 
-           Example:
-
-           >> groovy 2 + 2
-           4
-
-           When run through pipes, the script should return a Closure that takes each input line as an argument.
-
-           For example:
-
-           >> some_command | groovy { line -> println line }
-
-           The curly braces can be omitted:
-
-           >> some_command | groovy line -> println line
-
            The following options are supported:
 
              * $RESET_CODE_ARG: reset the current code statements buffer.
              * $SHOW_ARG: show the current statements buffer.
 
-           The code statements buffer currently contains all entered import statements (so imports do not need to be
+           The code statements buffer contains all entered import statements (so imports do not need to be
            re-typed on every command).
+
+           Simple Example:
+
+           >> groovy 2 + 2
+           < 4
+
+           Multi-line example to define a separate class:
+
+           >> :{
+           groovy
+           @groovy.transform.Canonical
+           class Person {
+             String name
+             int age
+           }
+           :}
+           < class Person
+           >> groovy new Person("Mary", 24)
+           < Person(Mary, 24)
+
+           When run through pipes, the Groovy code should be a Function<String, ?> that takes
+           each input line as an argument, returning something to be printed (or null).
+
+           For example:
+
+           >> some_command | groovy { line -> if (line.contains("text")) line }
+
+           The curly braces can be omitted:
+
+           >> some_command | groovy line -> if (line.contains("text")) line
 
            State is maintained between invocations:
 
            >> groovy x = 10
-           10
+           < 10
            >> groovy x + 1
-           11
+           < 11
            """.stripIndent()
     }
 
     @Override
-    OutputStream pipe( String line, PrintStream out, PrintStream err ) {
-        def command = ( line.trim() - 'groovy' ).trim()
+    OutputStream pipe( String command, PrintStream out, PrintStream err ) {
+        command = ( command.trim() - 'groovy' ).trim()
 
-        if ( !command.startsWith( "{" ) || !command.endsWith( "}" ) ) {
-            command = "{ " + command + " }"
-        }
+        if ( !command.startsWith( "{" ) ) command = "{ " + command
+        if ( !command.endsWith( "}" ) ) command = command + " }"
 
         def callback = run( command, out, err )
         if ( callback instanceof Closure ) {
-            new LineOutputStream( callback as Consumer<String>, out )
+            new LineOutputStream( { String line ->
+                def result = ( callback as Closure ).call( line )
+                if ( result != null ) {
+                    println result
+                }
+            } as Consumer<String>, out )
         } else {
             throw new RuntimeException( 'When used in a pipeline, the groovy script must return a ' +
                     'Closure callback that takes one text line of the input at a time.\n' +
-                    'Example: ... | groovy def count = 0; { line -> out.println "Line ${count++}: $line" }' )
+                    'Example: ... | groovy def count = 0; { line -> "Line ${count++}: $line" }' )
         }
     }
 
@@ -164,6 +184,9 @@ class GroovyCommand implements StreamingCommand {
             def result = shell.evaluate( fullScript )
 
             return result
+        } catch ( MissingMethodExceptionNoStack e ) {
+            // happens when a class is defined without a main method
+            return e.type
         } catch ( Exception e ) {
             err.println( e )
         }

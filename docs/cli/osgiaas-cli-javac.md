@@ -48,3 +48,7 @@ Example:
 ```
 > some_command | java line -> line.contains("text") ? line : null
 ```
+
+The above example uses the java command to filter out lines from the output of `some_command` which do not
+contain the word `text`.
+

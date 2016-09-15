@@ -98,8 +98,9 @@ public class JavaCommand implements Command, StreamingCommand {
     @Override
     public String getShortDescription() {
         return "Run Java code statements.\n" +
-                "\nAll statements entered earlier are executed each time a new statement is entered.\n" +
-                "The previous statements can be forgotten with the -r (reset) option." +
+                "\nAll statements entered previously, except return statements, are executed each time " +
+                "a new statement is entered.\n" +
+                "Previous statements can be forgotten with the -r (reset) option." +
                 "\n\n" +
                 "The java command accepts the following flags:\n" +
                 "  \n" +
@@ -109,10 +110,10 @@ public class JavaCommand implements Command, StreamingCommand {
                 "  * " + CLASS_ARG + ": define a class.\n" +
                 "\n" +
                 "Simple example:\n\n" +
-                "> java return 2 + 2\n" +
+                ">> java return 2 + 2\n" +
                 "< 4\n\n" +
                 "Multi-line example to define a separate class:\n\n" +
-                "> :{\n" +
+                ">> :{\n" +
                 "java -c class Person {\n" +
                 "  String name;\n" +
                 "  int age;\n" +
@@ -123,13 +124,13 @@ public class JavaCommand implements Command, StreamingCommand {
                 "  public String toString() { return \"Person(\" + name + \",\" + age + \")\"; }" +
                 "}\n" +
                 ":}\n" +
-                "<\n" +
-                "> java return new Person(\"Mary\", 24);\n" +
+                "< class Person\n" +
+                ">> java return new Person(\"Mary\", 24);\n" +
                 "< Person(Mary, 24)\n\n" +
                 "When run through pipes, the Java snippet should be a Function<String, ?> that takes " +
                 "each input line as an argument, returning something to be printed (or null).\n'n" +
                 "Example:\n" +
-                "> some_command | java line -> line.contains(\"text\") ? line : null";
+                ">> some_command | java line -> line.contains(\"text\") ? line : null";
     }
 
     JavaCode getAutocompleContext() {
