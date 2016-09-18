@@ -37,6 +37,11 @@ dependencies {
         exclude group: '*'
     }
 
+    // OBR CLI commands
+    osgiRuntime 'org.apache.felix:org.apache.felix.bundlerepository:2.0.6', {
+        exclude group: '*'
+    }
+
     // Logging
     osgiRuntime 'org.apache.felix:org.apache.felix.log:1.0.1', {
         transitive = false
@@ -50,6 +55,6 @@ dependencies {
 runOsgi {
     bundles = [ ] // all bundles added as osgiRuntime dependencies
 
-    // required to run JavaScript
+    // required to run JavaScript and Groovy
     config += [ 'org.osgi.framework.system.packages.extra': 'sun.reflect,jdk.nashorn.api.scripting' ]
 }
