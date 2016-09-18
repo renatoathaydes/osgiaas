@@ -1,0 +1,46 @@
+/**
+ * This Gradle build file uses the osgi-run plugin to create an OSGi environment that
+ * includes the osgiaas-cli bundle with the OBR command.
+ *
+ * Build with:
+ *     gradle -b osgiaas-cli-obr.gradle createOsgiRuntime
+ *
+ * Then, run with:
+ *     bash build/osgi/run.sh
+ * or, in Windows:
+ *     build/osgi/run.bat
+ */
+
+plugins {
+    id "com.athaydes.osgi-run" version "1.5.1"
+}
+
+repositories {
+    mavenLocal()
+    jcenter()
+}
+
+dependencies {
+    // the osgiaas-cli core bundle
+    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-core:1.0-SNAPSHOT'
+
+    // OBR CLI commands
+    osgiRuntime 'org.apache.felix:org.apache.felix.bundlerepository:2.0.8', {
+        exclude group: '*'
+    }
+
+    // OSGi Service Component Runtime implementation
+    osgiRuntime 'org.apache.felix:org.apache.felix.scr:2.0.2', {
+        exclude group: '*'
+    }
+
+    // Logging
+    osgiRuntime 'org.apache.felix:org.apache.felix.log:1.0.1', {
+        transitive = false
+    }
+    osgiRuntime 'com.athaydes.osgiaas:osgiaas-slf4j-impl:1.7.0'
+}
+
+runOsgi {
+    bundles = [ ] // all bundles added as osgiRuntime dependencies
+}
