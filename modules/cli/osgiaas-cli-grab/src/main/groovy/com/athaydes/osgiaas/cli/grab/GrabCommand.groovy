@@ -65,7 +65,9 @@ class GrabCommand implements Command {
             def argMap = invocation.arguments
             def rest = invocation.unprocessedInput
 
-            if ( !rest && !argMap ) {
+            if ( ( !rest && !argMap ) ||
+                    // there is unprocessed input with sub-commands that do not allow it
+                    ( rest && [ ADD_REPO, LIST_REPOS, REMOVE_REPO ].any { argMap.keySet().contains( it ) } ) ) {
                 CommandHelper.printError( err, getUsage(), "Wrong number of arguments" )
             } else {
                 def reposToAdd = argMap[ ADD_REPO ]
@@ -108,6 +110,10 @@ class GrabCommand implements Command {
 
     private void removeRepo( List<List<String>> repoArg, PrintStream out, PrintStream err ) {
         for ( String repo in repoArg.flatten() ) {
+            if ( repo == 'default' ) {
+                err.println "Cannot delete the default repository"
+                continue
+            }
             def removed = repositories.remove( repo )
             if ( !removed ) {
                 err.println "Repository not found: $repo"
