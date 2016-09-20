@@ -22,9 +22,9 @@ public class GrepCommand implements StreamingCommand {
     public static final String CASE_INSENSITIVE_ARG = "-i";
 
     private final ArgsSpec argsSpec = ArgsSpec.builder()
-            .accepts( BEFORE_ARG, false, true )
-            .accepts( AFTER_ARG, false, true )
-            .accepts( CASE_INSENSITIVE_ARG )
+            .accepts( BEFORE_ARG ).withArgCount( 1 ).end()
+            .accepts( AFTER_ARG ).withArgCount( 1 ).end()
+            .accepts( CASE_INSENSITIVE_ARG ).end()
             .build();
 
     @Override

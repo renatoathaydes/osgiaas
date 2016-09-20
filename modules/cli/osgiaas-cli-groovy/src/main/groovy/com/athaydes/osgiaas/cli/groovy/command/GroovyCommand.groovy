@@ -29,8 +29,8 @@ class GroovyCommand implements StreamingCommand {
 
     final List<String> codeBuffer = [ ]
     final ArgsSpec argsSpec = ArgsSpec.builder()
-            .accepts( RESET_CODE_ARG )
-            .accepts( SHOW_ARG )
+            .accepts( RESET_CODE_ARG ).end()
+            .accepts( SHOW_ARG ).end()
             .build()
 
     GroovyCommand() {

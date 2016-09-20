@@ -22,9 +22,9 @@ public class ListResourcesCommand implements Command {
     private final AtomicReference<BundleContext> contextRef = new AtomicReference<>();
 
     public static final ArgsSpec argsSpec = ArgsSpec.builder()
-            .accepts( RECURSIVE_OPTION )
-            .accepts( SHOW_ALL_OPTION )
-            .accepts( PATTERN_OPTION, false, true )
+            .accepts( RECURSIVE_OPTION ).end()
+            .accepts( SHOW_ALL_OPTION ).end()
+            .accepts( PATTERN_OPTION ).withArgCount( 1 ).end()
             .build();
 
     public static Function<String, String> searchTransform = ( search ) ->

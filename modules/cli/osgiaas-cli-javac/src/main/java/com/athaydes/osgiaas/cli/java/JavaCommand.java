@@ -56,10 +56,10 @@ public class JavaCommand implements Command, StreamingCommand {
     private ClassLoaderCapabilities classLoaderContext;
 
     private final ArgsSpec javaArgs = ArgsSpec.builder()
-            .accepts( RESET_CODE_ARG )
-            .accepts( RESET_ALL_ARG )
-            .accepts( SHOW_ARG )
-            .accepts( CLASS_ARG )
+            .accepts( RESET_CODE_ARG ).end()
+            .accepts( RESET_ALL_ARG ).end()
+            .accepts( SHOW_ARG ).end()
+            .accepts( CLASS_ARG ).end()
             .build();
 
     private static final Callable<?> ERROR = () -> null;

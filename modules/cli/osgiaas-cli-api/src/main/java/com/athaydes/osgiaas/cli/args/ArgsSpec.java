@@ -5,11 +5,13 @@ import com.athaydes.osgiaas.cli.CommandHelper.CommandBreakupOptions;
 import com.athaydes.osgiaas.cli.CommandInvocation;
 
 import javax.annotation.Nullable;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -39,25 +41,63 @@ public class ArgsSpec {
                 Function.identity() ) );
     }
 
+    /**
+     * Parse the given command, returning a {@link CommandInvocation} instance.
+     *
+     * @param command to parse
+     * @return invocation object used to interpret the command
+     * @throws IllegalArgumentException if the command fails to meet this arguments specification.
+     */
     public CommandInvocation parse( String command ) throws IllegalArgumentException {
         return parse( command, CommandBreakupOptions.create() );
     }
 
+    /**
+     * Parse the given command using the provided options to break it up into tokens,
+     * returning a {@link CommandInvocation} instance.
+     *
+     * @param command to parse
+     * @param options to break up the command into tokens
+     * @return invocation object used to interpret the command
+     * @throws IllegalArgumentException if the command fails to meet this arguments specification.
+     */
     public CommandInvocation parse( String command,
                                     CommandBreakupOptions options )
             throws IllegalArgumentException {
         command = removeFirstPartOf( command );
 
         AtomicReference<String> abortedParameterRef = new AtomicReference<>();
-        AtomicReference<String> currentParameterRef = new AtomicReference<>();
-        Map<String, List<String>> result = new LinkedHashMap<>();
+        AtomicReference<Entry<Arg, List<String>>> currentArgRef = new AtomicReference<>();
+        Map<String, List<List<String>>> result = new LinkedHashMap<>();
 
         String unprocessedInput = CommandHelper.breakupArguments( command, param -> {
-            @Nullable String currentParameter = currentParameterRef.getAndSet( null );
-            if ( currentParameter != null ) {
-                result.get( currentParameter ).add( param );
+            @Nullable Entry<Arg, List<String>> previousArgEntry = currentArgRef.get();
+            boolean isArgument = previousArgEntry != null;
+            if ( isArgument ) {
+                // if the maximum number of arguments were already taken, stop taking arguments
+                int argumentsTaken = previousArgEntry.getValue().size();
+                int maxArgs = previousArgEntry.getKey().maxArgs;
+
+                if ( argumentsTaken >= maxArgs ) {
+                    isArgument = false;
+                } else {
+                    // if enough arguments were taken, we may start parsing another argument
+                    int minRequiredArgs = previousArgEntry.getKey().minArgs;
+                    if ( argumentsTaken >= minRequiredArgs ) {
+                        isArgument = !argMap.containsKey( param );
+                    }
+                }
+            }
+
+            if ( isArgument ) {
+                previousArgEntry.getValue().add( param );
                 return true; // continue parsing
             } else {
+                currentArgRef.set( null );
+                // before starting to parse a new option, check if the previous option got enough arguments
+                if ( previousArgEntry != null ) {
+                    throwIfNotEnoughArgumentsTaken( previousArgEntry );
+                }
                 @Nullable Arg arg = argMap.get( param );
                 if ( arg == null ) {
                     // cannot understand this parameter, stop parsing
@@ -66,22 +106,28 @@ public class ArgsSpec {
                 } else if ( !arg.allowMultiple && result.containsKey( arg.key ) ) {
                     throw new IllegalArgumentException( "Duplicate argument not allowed: " + arg.key );
                 } else {
-                    @Nullable List<String> parameters = result.get( param );
-                    if ( parameters == null ) {
-                        parameters = new ArrayList<>( arg.allowMultiple ? 5 : 1 );
-                        result.put( arg.key, parameters );
+                    // start parsing an option
+                    List<String> optionArguments = new ArrayList<>( arg.maxArgs );
+                    @Nullable List<List<String>> allArguments = result.get( arg.key );
+                    if ( allArguments == null ) {
+                        allArguments = new ArrayList<>( arg.allowMultiple ? 4 : 1 );
+                        result.put( arg.key, allArguments );
                     }
-                    if ( arg.takesArgument ) {
-                        currentParameterRef.set( param );
+
+                    allArguments.add( optionArguments );
+
+                    if ( arg.minArgs > 0 ) {
+                        currentArgRef.set( new SimpleEntry<>( arg, optionArguments ) );
                     }
                     return true; // continue parsing
                 }
             }
         }, options );
 
-        @Nullable String currentParameter = currentParameterRef.get();
-        if ( currentParameter != null ) {
-            throw new IllegalArgumentException( "Missing argument for parameter " + currentParameter );
+        // check if enough arguments were taken for the last parameter entry
+        @Nullable Entry<Arg, List<String>> currentParameterEntry = currentArgRef.get();
+        if ( currentParameterEntry != null ) {
+            throwIfNotEnoughArgumentsTaken( currentParameterEntry );
         }
 
         Set<String> nonProvidedMandatoryArgs = new HashSet<>( mandatoryArgs );
@@ -99,7 +145,17 @@ public class ArgsSpec {
         return new CommandInvocation( result, unprocessedInput );
     }
 
-    private String putBackAbortedParameter( String unprocessedInput, String abortedParameter ) {
+    private static void throwIfNotEnoughArgumentsTaken( Entry<Arg, List<String>> previousArgEntry ) {
+        int argumentsTaken = previousArgEntry.getValue().size();
+        int minRequiredArgs = previousArgEntry.getKey().minArgs;
+        if ( argumentsTaken < minRequiredArgs ) {
+            throw new IllegalArgumentException( String.format( "Missing argument for option %s. " +
+                            "Minimum arguments: %d, got %d",
+                    previousArgEntry.getKey().key, minRequiredArgs, argumentsTaken ) );
+        }
+    }
+
+    private static String putBackAbortedParameter( String unprocessedInput, String abortedParameter ) {
         StringBuilder unprocessedInputBuilder = new StringBuilder(
                 abortedParameter.length() + unprocessedInput.length() + 1 );
 
@@ -121,6 +177,11 @@ public class ArgsSpec {
         }
     }
 
+    /**
+     * Create a builder of {@link ArgsSpec} instances.
+     *
+     * @return a builder.
+     */
     public static ArgsSpecBuilder builder() {
         return new ArgsSpecBuilder();
     }
@@ -128,18 +189,27 @@ public class ArgsSpec {
     private static class Arg {
         private final String key;
         private final boolean mandatory;
-        private final boolean takesArgument;
+        private final int minArgs;
+        private final int maxArgs;
         private final boolean allowMultiple;
 
-        public Arg( String key, boolean mandatory,
-                    boolean takesArgument, boolean allowMultiple ) {
+        private Arg( String key, boolean mandatory,
+                     int minArgs, int maxArgs, boolean allowMultiple ) {
+            if ( minArgs < 0 || maxArgs < 0 ) {
+                throw new IllegalArgumentException( "Invalid argument count range. " +
+                        "Must not contain negative limits: " + minArgs + ", " + maxArgs );
+            }
             this.key = key;
             this.mandatory = mandatory;
-            this.takesArgument = takesArgument;
+            this.minArgs = minArgs;
+            this.maxArgs = maxArgs;
             this.allowMultiple = allowMultiple;
         }
     }
 
+    /**
+     * Builder of {@link ArgsSpec} instances.
+     */
     public static class ArgsSpecBuilder {
 
         private final List<Arg> arguments = new ArrayList<>();
@@ -148,27 +218,109 @@ public class ArgsSpec {
             // use builder factory method
         }
 
-        public ArgsSpecBuilder accepts( String argument ) {
-            return accepts( argument, false, false, false );
+        /**
+         * Argument a command might accept.
+         * <p>
+         * Call {@code end()} once all options have been set to retrieve the {@link ArgsSpecBuilder}.
+         *
+         * @param argument of the command being specified
+         * @return this builder
+         */
+        public ArgBuilder accepts( String argument ) {
+            return new ArgBuilder( argument );
         }
 
-        public ArgsSpecBuilder accepts( String argument, boolean mandatory ) {
-            return accepts( argument, mandatory, false, false );
-        }
-
-        public ArgsSpecBuilder accepts( String argument, boolean mandatory,
-                                        boolean takesArgument ) {
-            return accepts( argument, mandatory, takesArgument, false );
-        }
-
-        public ArgsSpecBuilder accepts( String argument, boolean mandatory,
-                                        boolean takesArgument, boolean allowMultiple ) {
-            arguments.add( new Arg( argument, mandatory, takesArgument, allowMultiple ) );
-            return this;
-        }
-
+        /**
+         * @return the argument specification
+         */
         public ArgsSpec build() {
             return new ArgsSpec( arguments );
+        }
+
+        /**
+         * Builder of single arguments for a command.
+         */
+        public class ArgBuilder {
+
+            private final String name;
+            private boolean mandatory = false;
+            private int minArgs = 0;
+            private int maxArgs = 0;
+            private boolean allowMultiple = false;
+
+            private ArgBuilder( String name ) {
+                this.name = name;
+            }
+
+            /**
+             * Make this argument mandatory.
+             *
+             * @return this builder
+             */
+            public ArgBuilder mandatory() {
+                mandatory = true;
+                return this;
+            }
+
+            /**
+             * Set the exact number of arguments the command must take.
+             * <p>
+             * If the number of arguments the command might take is in a range of values,
+             * use the {@link #withArgCount(int, int)} method.
+             *
+             * @param args exact number of arguments
+             * @return this builder
+             */
+            public ArgBuilder withArgCount( int args ) {
+                return withArgCount( args, args );
+            }
+
+            /**
+             * Set a range of the number of arguments the command must take.
+             * <p>
+             * If the number of arguments the command might take is exact,
+             * use the {@link #withArgCount(int)} method.
+             *
+             * @param minArgs minimum number of arguments
+             * @param maxArgs maximum number of arguments
+             * @return this builder
+             */
+            public ArgBuilder withArgCount( int minArgs, int maxArgs ) {
+                if ( minArgs > maxArgs ) {
+                    throw new IllegalArgumentException( "minArgs > maxArgs" );
+                }
+                if ( minArgs < 0 || maxArgs < 0 ) {
+                    throw new IllegalArgumentException( "minArgs or maxArgs < 0" );
+                }
+                this.minArgs = minArgs;
+                this.maxArgs = maxArgs;
+                return this;
+            }
+
+            /**
+             * Allow this argument to be specified multiple times.
+             * <p>
+             * If not set, passing an argument more than once is considered an error.
+             *
+             * @return this builder
+             */
+            public ArgBuilder allowMultiple() {
+                allowMultiple = true;
+                return this;
+            }
+
+            /**
+             * End the specification of this argument.
+             * <p>
+             * To finalize the arguments specification, call {@link ArgsSpecBuilder#build()}.
+             *
+             * @return the {@link ArgsSpecBuilder} currently being used to specify a command arguments.
+             */
+            public ArgsSpecBuilder end() {
+                arguments.add( new Arg( name, mandatory, minArgs, maxArgs, allowMultiple ) );
+                return ArgsSpecBuilder.this;
+            }
+
         }
 
     }

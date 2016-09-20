@@ -18,10 +18,10 @@ class GrabCommand implements Command {
     static final String VERBOSE = '-v'
 
     final ArgsSpec argsSpec = ArgsSpec.builder()
-            .accepts( ADD_REPO, false, true, true )
-            .accepts( REMOVE_REPO, false, true, true )
-            .accepts( LIST_REPOS )
-            .accepts( VERBOSE )
+            .accepts( ADD_REPO ).allowMultiple().withArgCount( 1, 2 ).end()
+            .accepts( REMOVE_REPO ).allowMultiple().withArgCount( 1 ).end()
+            .accepts( LIST_REPOS ).end()
+            .accepts( VERBOSE ).end()
             .build()
 
     private final Map<String, String> repositories = [ : ]
@@ -91,12 +91,11 @@ class GrabCommand implements Command {
         }
     }
 
-    private void addRepo( List<String> repos, PrintStream out, PrintStream err ) {
-        for ( repo in repos ) {
-            def parts = repo.split( '=' )
-            def repoId = parts[ 0 ]
-            def repoUri = parts[ parts.size() > 1 ? 1 : 0 ]
-
+    private void addRepo( List<List<String>> repoArg, PrintStream out, PrintStream err ) {
+        for ( List<String> repoToAdd in repoArg ) {
+            // each list of arguments has size 1 or 2
+            def repoId = repoToAdd.first()
+            def repoUri = repoToAdd.last()
             try {
                 repositories.put( repoId, new URI( repoUri ).toString() )
             } catch ( URISyntaxException e ) {
@@ -107,8 +106,8 @@ class GrabCommand implements Command {
         showRepos out
     }
 
-    private void removeRepo( List<String> repos, PrintStream out, PrintStream err ) {
-        for ( repo in repos ) {
+    private void removeRepo( List<List<String>> repoArg, PrintStream out, PrintStream err ) {
+        for ( String repo in repoArg.flatten() ) {
             def removed = repositories.remove( repo )
             if ( !removed ) {
                 err.println "Repository not found: $repo"
