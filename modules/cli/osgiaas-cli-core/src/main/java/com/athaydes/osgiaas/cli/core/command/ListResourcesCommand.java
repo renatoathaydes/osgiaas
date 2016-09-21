@@ -8,22 +8,32 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.wiring.BundleWiring;
 
+import javax.annotation.Nullable;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.net.URL;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Stream;
+
+import static com.athaydes.osgiaas.api.text.TextUtils.padLeft;
+import static com.athaydes.osgiaas.api.text.TextUtils.padRight;
 
 public class ListResourcesCommand implements Command {
 
     public static final String RECURSIVE_OPTION = "-r";
     public static final String SHOW_ALL_OPTION = "-a";
     public static final String PATTERN_OPTION = "-p";
+    public static final String LONG_FORM_OPTION = "-l";
+
+    public static final int SYM_NAME_COL_WIDTH = 30;
 
     private final AtomicReference<BundleContext> contextRef = new AtomicReference<>();
 
     public static final ArgsSpec argsSpec = ArgsSpec.builder()
             .accepts( RECURSIVE_OPTION ).end()
             .accepts( SHOW_ALL_OPTION ).end()
+            .accepts( LONG_FORM_OPTION ).end()
             .accepts( PATTERN_OPTION ).withArgCount( 1 ).end()
             .build();
 
@@ -57,6 +67,7 @@ public class ListResourcesCommand implements Command {
                 "  -r: recursively list resources under sub-paths.\n" +
                 "  -a: show all resources, including nested classes.\n" +
                 "  -p: pattern to search.\n" +
+                "  -l: show resources using the long form (with details about each entry).\n" +
                 "\n" +
                 "For example, to list all class files available under the 'com' package:\n" +
                 "\n" +
@@ -68,7 +79,7 @@ public class ListResourcesCommand implements Command {
         DynamicServiceHelper.with( contextRef, context -> {
             CommandInvocation invocation = argsSpec.parse( line );
 
-            listResources( invocation, context, searchTransform )
+            listResources( invocation, context, searchTransform, out )
                     .forEach( out::println );
         }, () -> err.println( "BundleContext is unavailable" ) );
     }
@@ -80,7 +91,13 @@ public class ListResourcesCommand implements Command {
     public static Stream<String> listResources( CommandInvocation invocation,
                                                 BundleContext bundleContext,
                                                 Function<String, String> searchTransform ) {
+        return listResources( invocation, bundleContext, searchTransform, null );
+    }
 
+    public static Stream<String> listResources( CommandInvocation invocation,
+                                                BundleContext bundleContext,
+                                                Function<String, String> searchTransform,
+                                                @Nullable PrintStream out ) {
         int lrOption = invocation.hasArg( RECURSIVE_OPTION ) ?
                 BundleWiring.LISTRESOURCES_RECURSE :
                 BundleWiring.LISTRESOURCES_LOCAL;
@@ -93,11 +110,42 @@ public class ListResourcesCommand implements Command {
 
         String searchWord = searchTransform.apply( invocation.getUnprocessedInput() );
 
+        boolean longForm = invocation.hasArg( LONG_FORM_OPTION );
+
+        if ( longForm && out != null ) {
+            out.println( " ID   " + padRight( "Bundle Symbolic Name", SYM_NAME_COL_WIDTH ) + " Resource" );
+        }
+
         return wiringsOf( Stream.of( bundleContext.getBundles() ) )
                 .filter( wiring -> wiring != null )
-                .flatMap( wiring -> wiring.listResources( searchWord, pattern, lrOption ).stream() )
+                .flatMap( wiring -> wiring.listResources( searchWord, pattern, lrOption )
+                        .stream()
+                        .map( showResource( wiring, longForm ) ) )
                 .filter( resource -> showAll || !resource.contains( "$" ) )
                 .distinct();
+    }
+
+    private static Function<String, String> showResource( BundleWiring wiring, boolean longForm ) {
+        if ( longForm ) {
+            return resource -> {
+                URL resourceURL = wiring.getBundle().getEntry( "/" + resource );
+
+                long size = -1;
+                try {
+                    size = resourceURL.openConnection().getContentLengthLong();
+                } catch ( IOException e ) {
+                    e.printStackTrace();
+                }
+
+                return "[" + padLeft( "" + wiring.getBundle().getBundleId(), 3 ) + "] " +
+                        padRight( wiring.getBundle().getSymbolicName(), SYM_NAME_COL_WIDTH ) + " " +
+                        resource +
+                        ( size == -1 || resource.endsWith( "/" ) ? "" : " (" + size + " bytes)" );
+            };
+        } else {
+            return Function.identity();
+        }
+
     }
 
 }
