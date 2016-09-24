@@ -1,0 +1,60 @@
+/**
+ * This Gradle build file uses the osgi-run plugin to create an OSGi environment that
+ * includes the osgiaas-cli bundle, amongst other bundles (see the dependencies section).
+ *
+ * Build with:
+ *     gradle -b osgiaas-cli-minimal.gradle createOsgiRuntime
+ *
+ * Then, run with:
+ *     bash build/osgi/run.sh
+ * or, in Windows:
+ *     build/osgi/run.bat
+ */
+
+// Uncomment this once osgi-run 1.5.2 is released
+//plugins {
+//    id "com.athaydes.osgi-run" version "1.5.2"
+//}
+
+// Use osgi-run 1.5.2-SNAPSHOT until 1.5.2 gets released
+buildscript {
+    repositories {
+        mavenLocal()
+        jcenter()
+    }
+    dependencies {
+        classpath group: 'com.athaydes.gradle.osgi', name: 'osgi-run-core', version: '1.5.2-SNAPSHOT'
+    }
+}
+////////////////////////////////////////////////////////
+
+apply plugin: 'com.athaydes.osgi-run'
+
+repositories {
+    mavenLocal()
+    jcenter()
+}
+
+dependencies {
+    // the osgiaas-cli core bundle
+    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-core:1.0-SNAPSHOT'
+
+    osgiRuntime 'org.springframework.ws:spring-ws-core:2.1.1.RELEASE'
+    osgiRuntime 'org.apache.felix:org.apache.felix.http.servlet-api:1.1.2'
+
+    // OSGi Service Component Runtime implementation
+    osgiRuntime 'org.apache.felix:org.apache.felix.scr:2.0.2', {
+        exclude group: '*'
+    }
+}
+
+runOsgi {
+    bundles = [ ] // all bundles added as osgiRuntime dependencies
+
+    wrapInstructions {
+//        printManifests = true
+        manifest( /commons-logging.*/ ) {
+            instruction 'Import-Package', '!javax.servlet,!org.apache.*,*'
+        }
+    }
+}
