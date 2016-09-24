@@ -47,14 +47,14 @@ Grab also supports the following sub-commands:
   * `--rm-repo <repo-id>` : removes a repository.
   * `--list-repos` : lists existing repositories.
 
-If <repo-id> is not given, the repo address is also used as its ID.
+> If <repo-id> is not given, the repo address is also used as its ID.
 
 Example:
 
 ```
 >> grab --add-repo spring http://repo.spring.io/release
 List of repositories:
-  * spring: spring
+  * spring: http://repo.spring.io/release
   * default: https://jcenter.bintray.com/
 ```
 
