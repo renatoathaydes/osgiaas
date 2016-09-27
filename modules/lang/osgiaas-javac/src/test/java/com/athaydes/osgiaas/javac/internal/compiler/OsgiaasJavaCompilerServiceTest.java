@@ -142,7 +142,6 @@ public class OsgiaasJavaCompilerServiceTest {
     }
 
     @Test
-//    @Ignore( "Waiting for fix of bug: https://github.com/OpenHFT/Java-Runtime-Compiler/issues/12" )
     public void canDefineClassAfterCompilerError() throws Exception {
         String errorDef = "clazz Bad{ public String get() {return \"bad\";}}";
         String classDef = "class Good{ public String get() {return \"good\";}}";
