@@ -122,6 +122,26 @@ public class OsgiaasJavaCompilerServiceTest {
     }
 
     @Test
+    public void canDefineNestedClass() throws Exception {
+        String classDef = "public class A{ public static class B { public static String get() {return \"hello\";}}}";
+
+        javacService.compileJavaClass( DefaultClassLoaderContext.INSTANCE,
+                "A", classDef )
+                .orElseThrow( () -> new AssertionError( "Failed to compile class" ) );
+
+        ClassLoader augmentedClassLoader = javacService.getAugmentedClassLoaderContext(
+                DefaultClassLoaderContext.INSTANCE ).getClassLoader();
+
+        Class<?> abClass = augmentedClassLoader.loadClass( "A$B" );
+
+        Object instance = abClass.newInstance();
+        Method getMethod = abClass.getMethod( "get" );
+        Object result = getMethod.invoke( instance );
+
+        assertEquals( "hello", result );
+    }
+
+    @Test
 //    @Ignore( "Waiting for fix of bug: https://github.com/OpenHFT/Java-Runtime-Compiler/issues/12" )
     public void canDefineClassAfterCompilerError() throws Exception {
         String errorDef = "clazz Bad{ public String get() {return \"bad\";}}";
