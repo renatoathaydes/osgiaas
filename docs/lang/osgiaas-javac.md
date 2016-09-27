@@ -45,8 +45,9 @@ Object result = getMethod.invoke( instance );
 assertEquals( "hello", result );
 ```
 
-If the class you compile implements a known interface, such as `IntSupplier`, you can cast the Object returned by calling
-`newInstance()` on the class and then use it type-safely, as in the following example:
+If the class you're compiling implements a known interface, such as `IntSupplier`,
+you can cast the Object returned by calling
+`newInstance()` on the compiled class, and then use it type-safely as in the following example:
 
 > This example shows that you can even declare a package name for your class!
 
