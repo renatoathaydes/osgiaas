@@ -16,6 +16,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.function.IntSupplier;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -119,6 +120,25 @@ public class OsgiaasJavaCompilerServiceTest {
         result = getMethod.invoke( instance );
 
         assertEquals( "hellohey", result );
+    }
+
+    @Test
+    public void canCastClassToKnownInterfaceAndUsePackageName() throws Exception {
+        String classDef = "package com.acme.util;" +
+                "import java.util.function.IntSupplier;" +
+                "public class ZeroSupplier implements IntSupplier {" +
+                "public int getAsInt() { return 0; }" +
+                "}";
+
+        Class<?> cls = javacService.compileJavaClass( DefaultClassLoaderContext.INSTANCE,
+                "com.acme.util.ZeroSupplier", classDef )
+                .orElseThrow( () -> new AssertionError( "Failed to compile class" ) );
+
+        IntSupplier instance = ( IntSupplier ) cls.newInstance();
+
+        int zero = instance.getAsInt();
+
+        assertEquals( 0, zero );
     }
 
     @Test

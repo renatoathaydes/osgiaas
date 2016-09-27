@@ -29,6 +29,45 @@ Optional<Callable<?>> result = javac.compileJavaSnippet( "return 2 + 2;" );
 
 Running the result `Callable<?>` above should return `4`.
 
+To compile a full class is almost as easy:
+
+```java
+String classDef = "public class Hello{ public static String get() {return \"hello\";}}";
+
+Class<?> cls = javacService.compileJavaClass( DefaultClassLoaderContext.INSTANCE,
+        "Hello", classDef )
+        .orElseThrow( () -> new AssertionError( "Failed to compile class" ) );
+
+Object instance = cls.newInstance();
+Method getMethod = cls.getMethod( "get" );
+Object result = getMethod.invoke( instance );
+
+assertEquals( "hello", result );
+```
+
+If the class you compile implements a known interface, such as `IntSupplier`, you can cast the Object returned by calling
+`newInstance()` on the class and then use it type-safely, as in the following example:
+
+> This example shows that you can even declare a package name for your class!
+
+```java
+String classDef = "package com.acme.util;" +
+        "import java.util.function.IntSupplier;" +
+        "public class ZeroSupplier implements IntSupplier {" +
+        "public int getAsInt() { return 0; }" +
+        "}";
+
+Class<?> cls = javacService.compileJavaClass( DefaultClassLoaderContext.INSTANCE,
+        "com.acme.util.ZeroSupplier", classDef )
+        .orElseThrow( () -> new AssertionError( "Failed to compile class" ) );
+
+IntSupplier instance = ( IntSupplier ) cls.newInstance();
+
+int zero = instance.getAsInt();
+
+assertEquals( 0, zero );
+```
+
 # Advanced usage
 
 TBD
