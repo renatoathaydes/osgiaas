@@ -29,7 +29,7 @@ dependencies {
     systemLib 'org.frege-lang:frege-interpreter-core:1.2'
 
     // Logging
-    osgiRuntime 'com.athaydes.osgiaas:osgiaas-slf4j-impl:1.7.0'
+    osgiRuntime 'com.athaydes.osgiaas:slf4j-to-osgi-log:1.7.0'
 
     // Enable this to be able to read logs (using the log command, for example)
 //    osgiRuntime 'org.apache.felix:org.apache.felix.log:1.0.1', {

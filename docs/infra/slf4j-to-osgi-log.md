@@ -1,4 +1,4 @@
-# OSGiaaS SLF4J-Impl Module
+# OSGiaaS slf4j-to-osgi-log Module
 
 Implementation of [SLF4J API](http://www.slf4j.org/) that forwards logs to the
 [OSGi LogService](https://osgi.org/javadoc/r6/cmpn/index.html).

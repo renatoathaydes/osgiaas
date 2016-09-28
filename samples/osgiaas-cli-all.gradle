@@ -46,7 +46,7 @@ dependencies {
     osgiRuntime 'org.apache.felix:org.apache.felix.log:1.0.1', {
         transitive = false
     }
-    osgiRuntime 'com.athaydes.osgiaas:osgiaas-slf4j-impl:1.7.0'
+    osgiRuntime 'com.athaydes.osgiaas:slf4j-to-osgi-log:1.7.0'
 
     // OSGi container
     osgiMain "org.apache.felix:org.apache.felix.main:5.4.0"

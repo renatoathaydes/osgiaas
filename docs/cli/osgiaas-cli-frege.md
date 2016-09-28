@@ -24,7 +24,7 @@ For example:
 installed as a system library, rather than a simple OSGi bundle.
 
 * It is also necessary to provide an implementation of the `slf4j-api` at runtime. The
-  [osgiaas-slf4j-impl](../infra/osgiaas-slf4j-impl.md) module may be used for that.
+  [slf4j-to-osgi-log](../infra/slf4j-to-osgi-log.md) module may be used for that.
 
 With the `osgi-run` Gradle plugin, you can meet both requirements by adding the following dependencies in
 your Gradle file:
@@ -35,7 +35,7 @@ dependencies {
     osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-frege:1.0-SNAPSHOT'
     systemLib 'org.frege-lang:frege-interpreter-core:1.2'
 
-    osgiRuntime 'com.athaydes.osgiaas:osgiaas-slf4j-impl:1.7.0'
+    osgiRuntime 'com.athaydes.osgiaas:slf4j-to-osgi-log:1.7.0'
 }
 ```
 
