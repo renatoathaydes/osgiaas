@@ -2,6 +2,7 @@ package com.athaydes.osgiaas.cli.groovy.completer
 
 import com.athaydes.osgiaas.api.service.DynamicServiceHelper
 import com.athaydes.osgiaas.api.stream.NoOpPrintStream
+import com.athaydes.osgiaas.autocomplete.Autocompleter
 import com.athaydes.osgiaas.cli.CommandCompleter
 import com.athaydes.osgiaas.cli.CommandHelper
 import com.athaydes.osgiaas.cli.completer.BaseCompleter
@@ -95,6 +96,8 @@ class PropertiesCompleter implements CommandCompleter {
             ( long )   : Long
     ].collectEntries { k, v -> [ ( k ): ResultType.create( v ) ] }.asImmutable() as Map<Class, ResultType>
 
+    final Autocompleter autocompleter = Autocompleter.getDefaultAutocompleter()
+
     Function<String, Object> groovyRunner
 
     @Override
@@ -184,7 +187,9 @@ class PropertiesCompleter implements CommandCompleter {
         if ( varType ) {
             varType = boxedTypeByPrimitive[ varType.type ] ?: varType
 
-            def fields = varType.type.fields.collect { Field f -> f.name } as List<String>
+            def fields = varType.type.fields
+                    .collect { Field f -> f.name }
+                    .sort() as List<String>
 
             // for class instances, include only static methods, for others, include all
             def methodFilter = varType.isStatic ? this.&isStatic : { true }
@@ -200,10 +205,9 @@ class PropertiesCompleter implements CommandCompleter {
                 } as List<Method>
             }
 
-            def completions = ( ( methods.sort { it.name } + extraMethods.sort { it.name } )
-                    .collectMany( this.&toCompletion ) + fields ).findAll {
-                ( it as String ).startsWith( toComplete )
-            }.unique()
+            def completions = autocompleter.completionsFor( toComplete,
+                    ( ( methods.sort { it.name } + extraMethods.sort { it.name } )
+                            .collectMany( this.&toCompletion ) + fields ).unique() )
 
             if ( completions ) {
                 candidates.addAll( completions )
