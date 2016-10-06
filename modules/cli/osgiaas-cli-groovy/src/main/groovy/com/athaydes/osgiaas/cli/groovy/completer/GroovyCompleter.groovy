@@ -8,6 +8,7 @@ import com.athaydes.osgiaas.cli.completer.BaseCompleter
 import com.athaydes.osgiaas.cli.completer.CompletionMatcher
 import com.athaydes.osgiaas.cli.groovy.command.GroovyCommand
 import groovy.transform.CompileStatic
+import groovy.transform.Immutable
 import org.codehaus.groovy.runtime.DefaultGroovyMethods
 
 import javax.annotation.Nullable
@@ -83,7 +84,7 @@ class DynamicCompleter extends BaseCompleter {
 @CompileStatic
 class PropertiesCompleter implements CommandCompleter {
 
-    private static final Map<Class, Class> boxedTypeByPrimitive = [
+    private static final Map<Class, ResultType> boxedTypeByPrimitive = [
             ( boolean ): Boolean,
             ( byte )   : Byte,
             ( short )  : Short,
@@ -92,7 +93,7 @@ class PropertiesCompleter implements CommandCompleter {
             ( float )  : Float,
             ( double ) : Double,
             ( long )   : Long
-    ].asImmutable() as Map<Class, Class>
+    ].collectEntries { k, v -> [ ( k ): ResultType.create( v ) ] }.asImmutable() as Map<Class, ResultType>
 
     Function<String, Object> groovyRunner
 
@@ -126,8 +127,7 @@ class PropertiesCompleter implements CommandCompleter {
 
         mergeDigitsIn tokens
 
-        Class varType = Object
-        boolean isClassInstance = false
+        ResultType varType = ResultType.VOID
         final toComplete = tokens.removeLast()
         final tokensIterator = tokens.iterator()
 
@@ -140,14 +140,12 @@ class PropertiesCompleter implements CommandCompleter {
 
                 if ( result != null ) {
                     if ( result instanceof Class ) {
-                        varType = result
-                        isClassInstance = true
+                        varType = new ResultType( result, true )
                     } else {
-                        varType = result.class
+                        varType = new ResultType( result.class, false )
                     }
                 }
             } catch ( ignore ) {
-                varType = Object
             }
         }
 
@@ -163,10 +161,10 @@ class PropertiesCompleter implements CommandCompleter {
                     continue // got it
                 }
             } else { // is property?
-                def field = varType.fields.find { it.name == token } as Field
+                def field = varType.type.fields.find { it.name == token } as Field
 
                 if ( field ) {
-                    varType == field.type
+                    varType = ResultType.create( field.type )
                     continue // got it
                 } else { // try getter
                     def methodName = 'get' + token.capitalize()
@@ -180,37 +178,35 @@ class PropertiesCompleter implements CommandCompleter {
             }
 
             // got here if nothing worked, varType unknown
-            varType = Object
+            varType = ResultType.VOID
         }
 
         if ( varType ) {
-            varType = boxedTypeByPrimitive[ varType ] ?: varType
+            varType = boxedTypeByPrimitive[ varType.type ] ?: varType
 
-            if ( !isClassInstance ) {
-                isClassInstance = ( varType == Class )
-            }
+            def fields = varType.type.fields.collect { Field f -> f.name } as List<String>
 
-            def methods = varType.methods.findAll(
-                    // for class instances, include only static methods, for others, include all
-                    isClassInstance ? this.&isStatic : { true }
-            ) as List<Method>
+            // for class instances, include only static methods, for others, include all
+            def methodFilter = varType.isStatic ? this.&isStatic : { true }
+            def methods = varType.type.methods.findAll( methodFilter ) as List<Method>
 
             List<Method> extraMethods
 
-            if ( isClassInstance ) {
+            if ( varType.isStatic ) {
                 extraMethods = Class.getMethods() as List<Method>
             } else {
                 extraMethods = DefaultGroovyMethods.methods.findAll {
-                    it.parameterCount > 0 && it.parameterTypes.first().isAssignableFrom( varType )
+                    it.parameterCount > 0 && it.parameterTypes.first().isAssignableFrom( varType.type )
                 } as List<Method>
             }
 
-            candidates.addAll( ( methods.sort { it.name } + extraMethods.sort { it.name } )
-                    .collectMany( this.&toCompletion ).findAll {
+            def completions = ( ( methods.sort { it.name } + extraMethods.sort { it.name } )
+                    .collectMany( this.&toCompletion ) + fields ).findAll {
                 ( it as String ).startsWith( toComplete )
-            }.unique() )
+            }.unique()
 
-            if ( candidates ) {
+            if ( completions ) {
+                candidates.addAll( completions )
                 return input.findLastIndexOf { it == '.' } + 1
             }
         }
@@ -226,7 +222,7 @@ class PropertiesCompleter implements CommandCompleter {
         if ( method.name.startsWith( 'get' ) &&
                 method.name != 'get' &&
                 parameterCount == 0 ) {
-            return [ method.name + '()', uncapitalizeAscii( method.name - 'get' ) ]
+            return [ uncapitalizeAscii( method.name - 'get' ) ]
         } else if ( parameterCount > 0 ) {
             return [ method.name + '(' ]
         } else {
@@ -256,14 +252,31 @@ class PropertiesCompleter implements CommandCompleter {
     }
 
     @Nullable
-    private static Class returnTypeOf( String method, Class type ) {
-        def methods = type.methods.findAll { it.name == method }
+    private static ResultType returnTypeOf( String method, ResultType resultType ) {
+        def type = resultType.type
+        def keepMethod = { Method m -> resultType.isStatic ? isStatic( m ) : !isStatic( m ) }
+
+        def methods = type.methods.findAll { keepMethod( it ) && it.name == method }
+
         if ( methods ) {
             // simply choose the first matching method, later we can try to choose the right option
-            return methods.first().returnType
+            def methodType = methods.first().returnType
+            def isStatic = methodType == Class
+            return new ResultType( methodType, isStatic )
         } else {
             return null
         }
     }
 
+}
+
+@Immutable
+class ResultType {
+    static final ResultType VOID = new ResultType( Void.TYPE, false )
+    final Class<?> type
+    final boolean isStatic
+
+    static ResultType create( Class<?> type ) {
+        new ResultType( type, type == Class )
+    }
 }
