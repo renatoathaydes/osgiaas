@@ -13,10 +13,10 @@ The main implementation service is provided by the `com.athaydes.osgiaas.grab.Gr
 The following snippet illustrates how Java code can be used to grab a Maven dependency from Maven Central:
 
 ```java
-Map<String, String> respositories = new HashMap<>( 1 );
-respositories.put( "Maven Central", "https://repo1.maven.org/maven2" );
+Map<String, String> repositories = new HashMap<>( 1 );
+repositories.put( "Maven Central", "https://repo1.maven.org/maven2" );
 
-Grabber grabber = new Grabber( respositories );
+Grabber grabber = new Grabber( repositories );
 
 try {
     GrabResult result = grabber.grab( artifact );

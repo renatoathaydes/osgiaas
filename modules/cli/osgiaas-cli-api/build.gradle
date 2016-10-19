@@ -7,7 +7,7 @@ repositories {
 }
 
 dependencies {
-    compile project( ':modules:infra:osgiaas-api' )
+    compile project( ':modules:infra:osgiaas-common' )
     compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
     compile 'org.apache.felix:org.apache.felix.shell:1.4.3', {
         exclude group: 'org.osgi', module: 'org.osgi.core' // felix.shell uses an older one

@@ -12,7 +12,7 @@ jar {
 dependencies {
     compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
 
-    compile project( ':modules:infra:osgiaas-api' )
+    compile project( ':modules:infra:osgiaas-common' )
     compile project( ':modules:infra:osgiaas-autoupdate' )
     compile project( ':modules:infra:osgiaas-grab' )
     compile 'org.codehaus.groovy:groovy-all:2.4.5'

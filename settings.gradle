@@ -1,7 +1,7 @@
 rootProject.name = 'osgiaas'
 
 // infrastructure modules
-include 'modules:infra:osgiaas-api',
+include 'modules:infra:osgiaas-common',
         'modules:infra:osgiaas-grab',
         'modules:infra:osgiaas-autoupdate',
         'modules:infra:osgiaas-autoupdate-grabber',
