@@ -127,8 +127,8 @@ public class JavaCommand implements Command, StreamingCommand {
                 "< class Person\n" +
                 ">> java return new Person(\"Mary\", 24);\n" +
                 "< Person(Mary, 24)\n\n" +
-                "When run through pipes, the Java snippet should be a Function<String, ?> that takes " +
-                "each input line as an argument, returning something to be printed (or null).\n'n" +
+                "When run through pipes, the Java snippet should be a Function<String, ?> that takes \n" +
+                "each input line as an argument, returning something to be printed (or null).\n" +
                 "Example:\n" +
                 ">> some_command | java line -> line.contains(\"text\") ? line : null";
     }
