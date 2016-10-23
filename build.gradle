@@ -3,7 +3,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.5.1"
+        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.5.2"
         classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6"
     }
 }

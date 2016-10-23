@@ -14,7 +14,7 @@
  */
 
 //plugins {
-//    id "com.athaydes.osgi-run" version "1.5.1"
+//    id "com.athaydes.osgi-run" version "1.5.2"
 //}
 
 buildscript {
@@ -23,7 +23,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath group: 'com.athaydes.gradle.osgi', name: 'osgi-run-core', version: '1.5.2-SNAPSHOT'
+        classpath group: 'com.athaydes.gradle.osgi', name: 'osgi-run-core', version: '1.5.2'
     }
 }
 
