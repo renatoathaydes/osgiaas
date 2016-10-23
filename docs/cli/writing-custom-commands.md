@@ -35,7 +35,8 @@ For your command to get auto-completion support, you need to:
 To create a very basic command, the only compile-time dependency needed is on the
 [Felix Shell](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22org.apache.felix.shell%22).
 
-To use the shell pipeline and auto-completion interfaces, also add a dependency on the osgiaas-cli-api module.
+To use the shell pipeline and auto-completion interfaces, also add a dependency on the osgiaas-cli-api module
+and follow the instructions given in the previous sections.
 
 ## Tutorial
 

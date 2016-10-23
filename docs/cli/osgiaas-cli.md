@@ -19,7 +19,10 @@ monitoring the OSGi system itself), this bundle adds the following Commands:
 * `prompt` - changes the shell prompt (to use whitespaces, quote the prompt as in `" > "`).
 * `run` - run OS native programs.
 
-## More Commands Modules
+> Besides the core commands, the Felix Shell Bundle itself exports a number of commands to manage the
+  OSGi environment, such as `help`, `headers`, `install`, `refresh` etc.
+
+## OSGiaaS extra command modules
 
 > Check the [CLI modules directory](../../modules/cli) for the full list.
 
@@ -140,7 +143,7 @@ The following flags are supported:
 Which can be used like this, for example:
 
 ```
-ps | grep -B 4 -A 2 "\\[Active.*\\(1\\.11\\)"
+>> ps | grep -B 4 -A 2 "\\[Active.*\\(1\\.11\\)"
 ```
 
 ### highlight
@@ -154,7 +157,7 @@ ANSI formatting is used to color-highlight text in shells that support it.
 For example, to highlight all lines matching a regular expression `\\[Active.*\\(1\\.11\\)`:
 
 ```
-ps | highlight "\\[Active.*\\(1\\.11\\)" 
+>> ps | highlight "\\[Active.*\\(1\\.11\\)"
 ```
 
 The following flags are accepted:
@@ -179,15 +182,15 @@ Examples of valid invocations of the highlight command:
 
 ```
 # show all available commands, highlighting all containing a 's'
-help | highlight s
+>> help | highlight s
 
 # show all installed bundles, highlighting those containing the 'osgi' word
 # with a blue background and green, blinking text 
-ps | highlight -b blue -f green+blink osgi
+>> ps | highlight -b blue -f green+blink osgi
 
 # show the headers of bundle with ID 10, highlighting the `Bundle-SymbolicName` entry
 # with a red background and yellow, high-intensity, underlined text 
-headers 10 | highlight -b red -f yellow+hi+u "Bundle-SymbolicName"
+>> headers 10 | highlight -b red -f yellow+hi+u "Bundle-SymbolicName"
 ```
 
 ### lr
@@ -218,9 +221,42 @@ To add spaces after a prompt, you can quote the new prompt:
 
 ```
 >> prompt "renato> "
-renato> |
+< renato> |
 ```
 
+### run
+
+Run a native OS command, such as `ls` (list directory contents) or `cat` (print file) in Linux.
+
+The `run` command simply forwards its argument to the OS and prints the output of the OS process.
+
+For example, to list the contents of the current directory:
+
+```
+>> run ls
+```
+
+> Notice that OSGiaaS-CLI supports changing directory in the OS with `run cd <dir>`!
+
+The following shows how you can use the `use` and `run` commands to access some OS functionality easily:
+
+```
+>> use run
+< Using 'run'. Type _use to stop using it
+>> ls
+< dir1
+  scripts
+  file1.txt
+>> cd scripts
+< /Users/me/scripts
+>> ls
+< script1.py
+  script2.groovy
+>> cat script2.groovy
+< println 'Hello World'
+>> _use run
+< Stopped using 'run'
+```
 
 ## Command modifiers
 
@@ -239,14 +275,14 @@ Examples:
 
 ```
 # Run the `color blue` command, then run the `color red prompt` command:
-color blue && color red prompt
+>> color blue && color red prompt
 ```
 
 ### `|` operator
 
 ```
 # Grep all lines matching the `osgiaas.*api` regular expression from the output of the `ps` command:
-ps | grep "osgiaas.*api"
+>> ps | grep "osgiaas.*api"
 ```
 
 ### alias
@@ -257,18 +293,18 @@ See the alias command documentation above.
 
 ```
 # Use the `run` command (hence making the OSGiaaS CLI behave almost like a native shell)
-use run
+>> use run
 
 # Now, any command `cmd` you type will be turned into `run $cmd`
 
 # list directories in Linux
-ls
+>> ls
 
 # change the working directory to the `tools` directory
-cd tools
+>> cd tools
 
 # to run an OSGiaaS command, escape the name of the command by prefixing it with a underscore (`_`)
-_color green prompt
+>> _color green prompt
 ```
 
 
