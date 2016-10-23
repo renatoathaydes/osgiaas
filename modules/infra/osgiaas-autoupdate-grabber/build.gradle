@@ -9,6 +9,8 @@ jar {
     }
 }
 
+description = 'OSGiaaS Bundle Auto-update Implementation based on osgiaas-grab'
+
 dependencies {
     compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
 

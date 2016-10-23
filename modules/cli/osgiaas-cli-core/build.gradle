@@ -8,6 +8,8 @@ repositories {
     jcenter()
 }
 
+description = 'OSGiaaS CLI Core'
+
 dependencies {
     compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
     compile project( ':modules:cli:osgiaas-cli-api' )

@@ -216,7 +216,7 @@ public class CommandHelper {
     /**
      * Find the index of the last command separator character.
      * <p>
-     * A separator character is either a ' ', '|' or a '&'.
+     * A separator character is either a {@code ' ', '|' or a '&'}.
      *
      * @param line command line
      * @return index of the last command separator character, or -1 if not found.

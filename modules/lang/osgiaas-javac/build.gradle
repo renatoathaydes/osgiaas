@@ -11,6 +11,8 @@ repositories {
     mavenLocal()
 }
 
+description = 'OSGiaaS Javac Runtime Compiler'
+
 jar {
     manifest {
         instruction 'Export-Package', 'com.athaydes.osgiaas.javac'

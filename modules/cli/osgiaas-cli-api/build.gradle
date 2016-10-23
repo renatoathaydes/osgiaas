@@ -6,6 +6,8 @@ repositories {
     jcenter()
 }
 
+description = 'OSGiaaS CLI API'
+
 dependencies {
     compile project( ':modules:infra:osgiaas-common' )
     compileOnly 'com.google.code.findbugs:jsr305:3.0.1'

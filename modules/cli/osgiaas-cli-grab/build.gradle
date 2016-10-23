@@ -9,6 +9,8 @@ repositories {
     }
 }
 
+description = 'OSGiaaS CLI Grab Command - grabs dependencies from Maven repositories'
+
 jar {
     manifest {
         instruction 'Export-Package', ''

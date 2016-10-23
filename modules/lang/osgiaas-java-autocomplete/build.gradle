@@ -7,6 +7,8 @@ repositories {
     jcenter()
 }
 
+description = 'OSGiaaS Java language Auto-complete implementation'
+
 jar {
     manifest {
         instruction 'Export-Package', 'com.athaydes.osgiaas.autocomplete.java'

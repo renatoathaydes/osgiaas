@@ -7,6 +7,8 @@ repositories {
     jcenter()
 }
 
+description = 'OSGiaaS CLI JS Command (JavaScript REPL)'
+
 dependencies {
     compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
     compile project( ':modules:cli:osgiaas-cli-api' )

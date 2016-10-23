@@ -4,10 +4,13 @@ version '1.0-SNAPSHOT'
 apply plugin: 'java'
 apply plugin: 'osgi'
 apply plugin: 'com.athaydes.osgi-ds'
+apply plugin: 'maven'
 
 repositories {
     mavenCentral()
 }
+
+description = 'OSGiaaS Bundle Auto-update API'
 
 jar {
     manifest {

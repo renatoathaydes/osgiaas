@@ -18,6 +18,8 @@ repositories {
     jcenter()
 }
 
+description = 'OSGiaaS SLF4J Implementation that delegates logging to the OSGi LogService'
+
 dependencies {
     compile 'org.slf4j:slf4j-api:1.7.21'
     compileOnly 'org.osgi:osgi.core:6.0.0'

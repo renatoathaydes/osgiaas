@@ -31,6 +31,7 @@ public interface JavaAutocompleter {
     }
 
     /**
+     * @param autocompleter the basic auto-completer to use
      * @return the default {@link JavaAutocompleter} implementation,
      * based on the provided autocompleter and an empty context.
      */
@@ -39,6 +40,8 @@ public interface JavaAutocompleter {
     }
 
     /**
+     * @param autocompleter the basic auto-completer to use
+     *                      @param context the context for auto-completion
      * @return the default {@link JavaAutocompleter} implementation,
      * based on the provided autocompleter and context.
      */
