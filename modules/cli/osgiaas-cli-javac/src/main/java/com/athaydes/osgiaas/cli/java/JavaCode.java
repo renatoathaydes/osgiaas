@@ -157,7 +157,7 @@ class JavaCode implements JavaSnippet, JavaAutocompleteContext {
             }
         }
 
-        return String.join( "\n", declarations ) + "\n";
+        return declarations.isEmpty() ? "" : String.join( "\n", declarations ) + "\n";
     }
 
     private String variableDeclaration( String name, Object value ) {

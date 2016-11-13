@@ -45,9 +45,9 @@ class PropertiesCompleterSpec extends Specification {
         buffer           | cursor | expectedCompletions | expectedReturnValue
         ''               | 0      | [ ]                 | -1
         'groovy a'       | 8      | [ ]                 | -1
-        'groovy a.getH'  | 13     | [ 'getHello()', ]   | 'groovy a.'.size()
+        'groovy a.he'    | 11     | [ 'hello', ]        | 'groovy a.'.size()
         'groovy a.setH'  | 13     | [ 'setHello(', ]    | 'groovy a.'.size()
-        'groovy a.getIn' | 14     | [ 'getInteger()', ] | 'groovy a.'.size()
+        'groovy a.int'   | 12     | [ 'integer', ]      | 'groovy a.'.size()
         'groovy b.noRe'  | 13     | [ 'noReturn()', ]   | 'groovy a.'.size()
         'groovy b.yesOr' | 14     | [ 'yesOrNo()', ]    | 'groovy a.'.size()
         'groovy x.xx'    | 11     | [ ]                 | -1
@@ -73,6 +73,11 @@ class PropertiesCompleterSpec extends Specification {
 
         then: 'all expected completions contain at least one candidate in completions that starts with it'
         expectedCompletions.each { expectedCompletion ->
+            // getters are converted to property
+            if ( expectedCompletion.startsWith( 'get' ) ) {
+                expectedCompletion = expectedCompletion.substring( 3 )
+                expectedCompletion = expectedCompletion[ 0 ].toLowerCase() + expectedCompletion[ 1..-1 ]
+            }
             assert expectedCompletion && candidates.any { it.startsWith( expectedCompletion ) }
         }
 
@@ -80,9 +85,9 @@ class PropertiesCompleterSpec extends Specification {
         returnValue == expectedReturnValue
 
         where:
-        buffer      | cursor | expectedCompletions                                                 | expectedReturnValue
-        'groovy a.' | 9      | [ 'getHello()', 'setHello(', 'getInteger()' ] + Empty.methods*.name | 'groovy a.'.size()
-        'groovy b.' | 9      | [ 'noReturn()', 'yesOrNo()' ] + Empty.methods*.name                 | 'groovy a.'.size()
+        buffer      | cursor | expectedCompletions                                       | expectedReturnValue
+        'groovy a.' | 9      | [ 'hello', 'setHello(', 'integer' ] + Empty.methods*.name | 'groovy a.'.size()
+        'groovy b.' | 9      | [ 'noReturn()', 'yesOrNo()' ] + Empty.methods*.name       | 'groovy a.'.size()
     }
 
 }
