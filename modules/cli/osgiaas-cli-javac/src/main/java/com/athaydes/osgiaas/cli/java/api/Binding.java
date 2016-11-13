@@ -3,7 +3,7 @@ package com.athaydes.osgiaas.cli.java.api;
 import org.osgi.framework.BundleContext;
 
 import java.io.PrintStream;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -15,6 +15,6 @@ public class Binding {
     public static PrintStream out;
     public static PrintStream err;
     public static BundleContext ctx;
-    public static final Map<Object, Object> binding = new HashMap<>();
+    public static final Map<Object, Object> binding = new LinkedHashMap<>();
 
 }

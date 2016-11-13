@@ -2,11 +2,17 @@ package com.athaydes.osgiaas.cli.java;
 
 import com.athaydes.osgiaas.api.env.ClassLoaderContext;
 import com.athaydes.osgiaas.autocomplete.java.JavaAutocompleteContext;
+import com.athaydes.osgiaas.cli.java.api.Binding;
 import com.athaydes.osgiaas.javac.JavaSnippet;
+import com.github.javaparser.ast.type.PrimitiveType;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -17,6 +23,17 @@ import java.util.stream.Stream;
  * Keeps state about the Java code to be executed in the shell.
  */
 class JavaCode implements JavaSnippet, JavaAutocompleteContext {
+
+    private static final Map<String, String> primitiveTypeByBoxedName;
+
+    static {
+        primitiveTypeByBoxedName = new HashMap<>( PrimitiveType.Primitive.values().length );
+
+        for (PrimitiveType.Primitive primitive : PrimitiveType.Primitive.values()) {
+            primitiveTypeByBoxedName.put( primitive.toBoxedType().getName(), primitive.name().toLowerCase() );
+        }
+    }
+
     private final LinkedList<String> javaLines = new LinkedList<>();
     private final LinkedList<String> tempJavaLines = new LinkedList<>();
 
@@ -92,10 +109,12 @@ class JavaCode implements JavaSnippet, JavaAutocompleteContext {
 
     @Override
     public String getExecutableCode() {
+        String bindingDeclarations = computeBindingDeclarations();
         String finalLine = computeFinalLine();
         return Stream.concat( javaLines.stream(), tempJavaLines.stream() )
                 .map( it -> it + ";\n" )
-                .reduce( "", ( a, b ) -> a + b ) + finalLine;
+                .reduce( "", ( a, b ) -> a + b ) +
+                bindingDeclarations + finalLine;
     }
 
     @Override
@@ -126,6 +145,38 @@ class JavaCode implements JavaSnippet, JavaAutocompleteContext {
     void abort() {
         tempJavaLines.clear();
         tempImports.clear();
+    }
+
+    private String computeBindingDeclarations() {
+        List<String> declarations = new ArrayList<>( Binding.binding.size() );
+        for (Map.Entry<Object, Object> entry : Binding.binding.entrySet()) {
+            Object name = entry.getKey();
+            if ( name instanceof String ) {
+                Object value = entry.getValue();
+                declarations.add( variableDeclaration( ( String ) name, value ) );
+            }
+        }
+
+        return String.join( "\n", declarations ) + "\n";
+    }
+
+    private String variableDeclaration( String name, Object value ) {
+        String type = value.getClass().getName();
+
+        if ( type.startsWith( "java.lang." ) ) {
+            type = type.substring( "java.lang.".length() );
+
+            if ( primitiveTypeByBoxedName.containsKey( type ) ) {
+                type = primitiveTypeByBoxedName.get( type );
+                return type + " " + name + " = " + value + ";";
+            }
+
+            if ( type.equals( "String" ) ) {
+                return type + " " + name + " = \"" + value + "\";";
+            }
+        }
+
+        return type + " " + name + " = binding.get(\"" + name + "\");";
     }
 
     private String computeFinalLine() {
