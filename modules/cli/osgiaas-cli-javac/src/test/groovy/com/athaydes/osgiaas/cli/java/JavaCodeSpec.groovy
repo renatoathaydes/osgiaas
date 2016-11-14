@@ -48,15 +48,15 @@ class JavaCodeSpec extends Specification {
         def result = code.executableCode
 
         then: 'the result is as expected'
-        result == '''|PrintStream out = Binding.out;
-        |PrintStream err = Binding.err;
-        |BundleContext ctx = Binding.ctx;
-        |Map<Object, Object> binding = Binding.binding;
-        |int one = 1;
+        result == '''|int one = 1;
         |String hello = "Hello World";
         |boolean bool = true;
         |Object obj = binding.get("obj");
         |java.util.ArrayList list = binding.get("list");
+        |PrintStream out = Binding.out;
+        |PrintStream err = Binding.err;
+        |BundleContext ctx = Binding.ctx;
+        |Map<Object, Object> binding = Binding.binding;
         |return null;
         |'''.stripMargin()
     }

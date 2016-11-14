@@ -109,17 +109,16 @@ class JavaCode implements JavaSnippet, JavaAutocompleteContext {
 
     @Override
     public String getExecutableCode() {
-        String bindingDeclarations = computeBindingDeclarations();
-        String finalLine = computeFinalLine();
-        return Stream.concat( javaLines.stream(), tempJavaLines.stream() )
-                .map( it -> it + ";\n" )
-                .reduce( "", ( a, b ) -> a + b ) +
-                bindingDeclarations + finalLine;
+        return getMethodBody( computeFinalLine() );
     }
 
     @Override
     public String getMethodBody( String codeSnippet ) {
-        return Stream.concat( javaLines.stream(), tempJavaLines.stream() )
+        List<String> executableLines = new LinkedList<>( computeBindingDeclarations() );
+        executableLines.addAll( javaLines );
+        executableLines.addAll( tempJavaLines );
+
+        return executableLines.stream()
                 .map( it -> it + ";\n" )
                 .reduce( "", ( a, b ) -> a + b ) + codeSnippet;
     }
@@ -147,7 +146,7 @@ class JavaCode implements JavaSnippet, JavaAutocompleteContext {
         tempImports.clear();
     }
 
-    private String computeBindingDeclarations() {
+    private List<String> computeBindingDeclarations() {
         List<String> declarations = new ArrayList<>( Binding.binding.size() );
         for (Map.Entry<Object, Object> entry : Binding.binding.entrySet()) {
             Object name = entry.getKey();
@@ -156,8 +155,7 @@ class JavaCode implements JavaSnippet, JavaAutocompleteContext {
                 declarations.add( variableDeclaration( ( String ) name, value ) );
             }
         }
-
-        return declarations.isEmpty() ? "" : String.join( "\n", declarations ) + "\n";
+        return declarations;
     }
 
     private String variableDeclaration( String name, Object value ) {
@@ -168,15 +166,15 @@ class JavaCode implements JavaSnippet, JavaAutocompleteContext {
 
             if ( primitiveTypeByBoxedName.containsKey( type ) ) {
                 type = primitiveTypeByBoxedName.get( type );
-                return type + " " + name + " = " + value + ";";
+                return type + " " + name + " = " + value;
             }
 
             if ( type.equals( "String" ) ) {
-                return type + " " + name + " = \"" + value + "\";";
+                return type + " " + name + " = \"" + value + "\"";
             }
         }
 
-        return type + " " + name + " = binding.get(\"" + name + "\");";
+        return type + " " + name + " = binding.get(\"" + name + "\")";
     }
 
     private String computeFinalLine() {
