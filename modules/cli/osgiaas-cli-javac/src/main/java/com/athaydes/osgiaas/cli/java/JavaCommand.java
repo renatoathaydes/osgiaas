@@ -100,7 +100,9 @@ public class JavaCommand implements Command, StreamingCommand {
         return "Run Java code statements.\n" +
                 "\nAll statements entered previously, except return statements, are executed each time " +
                 "a new statement is entered.\n" +
-                "Previous statements can be forgotten with the -r (reset) option." +
+                "Previous statements can be forgotten with the -r (reset) option.\n" +
+                "Permanent variables can be created by adding them to the 'binding' Map, whose contents\n" +
+                "get expanded into local variables on execution." +
                 "\n\n" +
                 "The java command accepts the following flags:\n" +
                 "  \n" +
@@ -112,6 +114,10 @@ public class JavaCommand implements Command, StreamingCommand {
                 "Simple example:\n\n" +
                 ">> java return 2 + 2\n" +
                 "< 4\n\n" +
+                "Binding example:\n\n" +
+                ">> java binding.put(\"var\", 10);\n" +
+                ">> java -r return var + 10; // var is still present even after using the -r option\n" +
+                "< 20\n\n" +
                 "Multi-line example to define a separate class:\n\n" +
                 ">> :{\n" +
                 "java -c class Person {\n" +

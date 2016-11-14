@@ -4,6 +4,7 @@ import com.athaydes.osgiaas.autocomplete.java.JavaAutocompleteContext;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 
 public final class EmptyContext implements JavaAutocompleteContext {
 
@@ -20,6 +21,11 @@ public final class EmptyContext implements JavaAutocompleteContext {
     @Override
     public Collection<String> getImports() {
         return Collections.emptyList();
+    }
+
+    @Override
+    public Map<String, Object> getVariables() {
+        return Collections.emptyMap();
     }
 
     @Override

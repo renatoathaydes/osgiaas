@@ -4,6 +4,7 @@ import com.athaydes.osgiaas.api.env.ClassLoaderContext;
 import com.athaydes.osgiaas.autocomplete.java.impl.EmptyContext;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -20,6 +21,8 @@ public interface JavaAutocompleteContext {
     }
 
     Collection<String> getImports();
+
+    Map<String, Object> getVariables();
 
     String getMethodBody( String codeSnippet );
 

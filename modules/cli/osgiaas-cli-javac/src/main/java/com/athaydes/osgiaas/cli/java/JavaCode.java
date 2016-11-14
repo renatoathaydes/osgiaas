@@ -108,6 +108,19 @@ class JavaCode implements JavaSnippet, JavaAutocompleteContext {
     }
 
     @Override
+    public Map<String, Object> getVariables() {
+        Map<String, Object> result = new HashMap<>( Binding.binding.size() );
+
+        Binding.binding.forEach( ( k, v ) -> {
+            if ( k instanceof String ) {
+                result.put( ( String ) k, v );
+            }
+        } );
+
+        return result;
+    }
+
+    @Override
     public String getExecutableCode() {
         return getMethodBody( computeFinalLine() );
     }

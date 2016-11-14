@@ -10,7 +10,7 @@ import com.athaydes.osgiaas.cli.completer.BaseCompleter;
 import com.athaydes.osgiaas.cli.completer.CompletionMatcher;
 
 import java.text.ParseException;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -51,21 +51,24 @@ public class JavaCompleter implements CommandCompleter {
 
         int argCompleterIndex = argsMatcher.complete( buffer, cursor, candidates );
 
-        Map<String, ResultType> bindings = Collections.emptyMap();
+        JavaCode context = getContext();
+
+        Map<String, ResultType> bindings = getVariableBindings( context );
+
         try {
-            bindings = JavaStatementParser.getDefaultParser()
-                    .parseStatements( getContext().getJavaLines().stream()
+            bindings.putAll( JavaStatementParser.getDefaultParser()
+                    .parseStatements( context.getJavaLines().stream()
                                     .map( it -> it + ";" )
                                     .collect( Collectors.toList() ),
-                            getContext().getImports(),
-                            getContext().getClassLoaderContext().orElse( null ) );
+                            context.getImports(),
+                            context.getClassLoaderContext().orElse( null ) ) );
         } catch ( ParseException e ) {
             e.printStackTrace();
         }
 
         JavaAutocompleter autocompleter = JavaAutocompleter.getAutocompleter(
                 Autocompleter.getDefaultAutocompleter(),
-                getContext() );
+                context );
 
         JavaAutocompleterResult completionResult = autocompleter.completionsFor(
                 buffer.substring( startIndex, cursor ), bindings );
@@ -77,6 +80,14 @@ public class JavaCompleter implements CommandCompleter {
         return completionIndex >= 0 ?
                 completionIndex + startIndex :
                 argCompleterIndex;
+    }
+
+    private static Map<String, ResultType> getVariableBindings( JavaCode context ) {
+        return new HashMap<>( context.getVariables()
+                .entrySet().stream()
+                .collect( Collectors.toMap(
+                        Map.Entry::getKey,
+                        it -> new ResultType( it.getValue().getClass(), false ) ) ) );
     }
 
     private JavaCode getContext() {
