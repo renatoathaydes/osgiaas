@@ -286,7 +286,7 @@ public class JavaCommand implements Command, StreamingCommand {
     private void breakupJavaLines( String input ) {
         CommandHelper.breakupArguments( input, ( javaLine ) -> {
             javaLine = javaLine.trim();
-            if ( !javaLine.isEmpty() ) {
+            if ( !javaLine.isEmpty() && !javaLine.startsWith( "//" ) ) {
                 code.addLine( javaLine );
             }
             return true;
