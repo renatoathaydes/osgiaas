@@ -1,6 +1,6 @@
 language: java
 
-install: false
+install: true
 script: ./gradlew check
 
 jdk:
