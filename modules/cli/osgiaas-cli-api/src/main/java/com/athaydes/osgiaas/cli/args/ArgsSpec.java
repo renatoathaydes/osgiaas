@@ -7,6 +7,8 @@ import com.athaydes.osgiaas.cli.CommandInvocation;
 import javax.annotation.Nullable;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -14,8 +16,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * Command arguments specification.
@@ -25,20 +25,26 @@ import java.util.stream.Collectors;
 public class ArgsSpec {
 
     private final Map<String, Arg> argMap;
-    private final Set<String> mandatoryArgs;
+    private final Set<String> mandatoryArgKeys;
 
     private ArgsSpec( List<Arg> arguments ) {
-        this.mandatoryArgs = new HashSet<>();
-        Function<Arg, String> addIfMandatoryAndGetKey = ( arg ) -> {
-            if ( arg.mandatory ) {
-                mandatoryArgs.add( arg.key );
-            }
-            return arg.key;
-        };
+        Set<String> tempMandatoryArgs = new HashSet<>();
+        Map<String, Arg> tempArgMap = new HashMap<>();
 
-        this.argMap = arguments.stream().collect( Collectors.toMap(
-                addIfMandatoryAndGetKey,
-                Function.identity() ) );
+        for (Arg arg : arguments) {
+            if ( arg.mandatory ) {
+                tempMandatoryArgs.add( arg.key );
+            }
+
+            tempArgMap.put( arg.key, arg );
+
+            if ( arg.longKey != null ) {
+                tempArgMap.put( arg.longKey, arg );
+            }
+        }
+
+        this.argMap = Collections.unmodifiableMap( tempArgMap );
+        this.mandatoryArgKeys = Collections.unmodifiableSet( tempMandatoryArgs );
     }
 
     /**
@@ -130,7 +136,7 @@ public class ArgsSpec {
             throwIfNotEnoughArgumentsTaken( currentParameterEntry );
         }
 
-        Set<String> nonProvidedMandatoryArgs = new HashSet<>( mandatoryArgs );
+        Set<String> nonProvidedMandatoryArgs = new HashSet<>( mandatoryArgKeys );
         nonProvidedMandatoryArgs.removeAll( result.keySet() );
         if ( !nonProvidedMandatoryArgs.isEmpty() ) {
             throw new IllegalArgumentException( "Mandatory arguments not provided: " +
@@ -188,18 +194,21 @@ public class ArgsSpec {
 
     private static class Arg {
         private final String key;
+        @Nullable
+        private final String longKey;
         private final boolean mandatory;
         private final int minArgs;
         private final int maxArgs;
         private final boolean allowMultiple;
 
-        private Arg( String key, boolean mandatory,
+        private Arg( String key, @Nullable String longKey, boolean mandatory,
                      int minArgs, int maxArgs, boolean allowMultiple ) {
             if ( minArgs < 0 || maxArgs < 0 ) {
                 throw new IllegalArgumentException( "Invalid argument count range. " +
                         "Must not contain negative limits: " + minArgs + ", " + maxArgs );
             }
             this.key = key;
+            this.longKey = longKey;
             this.mandatory = mandatory;
             this.minArgs = minArgs;
             this.maxArgs = maxArgs;
@@ -231,6 +240,19 @@ public class ArgsSpec {
         }
 
         /**
+         * Argument a command might accept (in short and long form).
+         * <p>
+         * Call {@code end()} once all options have been set to retrieve the {@link ArgsSpecBuilder}.
+         *
+         * @param argument     of the command being specified
+         * @param longArgument long form of the command being specified
+         * @return this builder
+         */
+        public ArgBuilder accepts( String argument, String longArgument ) {
+            return new ArgBuilder( argument );
+        }
+
+        /**
          * @return the argument specification
          */
         public ArgsSpec build() {
@@ -243,13 +265,20 @@ public class ArgsSpec {
         public class ArgBuilder {
 
             private final String name;
+            @Nullable
+            private final String longName;
             private boolean mandatory = false;
             private int minArgs = 0;
             private int maxArgs = 0;
             private boolean allowMultiple = false;
 
             private ArgBuilder( String name ) {
+                this( name, null );
+            }
+
+            private ArgBuilder( String name, @Nullable String longName ) {
                 this.name = name;
+                this.longName = longName;
             }
 
             /**
@@ -317,7 +346,7 @@ public class ArgsSpec {
              * @return the {@link ArgsSpecBuilder} currently being used to specify a command arguments.
              */
             public ArgsSpecBuilder end() {
-                arguments.add( new Arg( name, mandatory, minArgs, maxArgs, allowMultiple ) );
+                arguments.add( new Arg( name, longName, mandatory, minArgs, maxArgs, allowMultiple ) );
                 return ArgsSpecBuilder.this;
             }
 
