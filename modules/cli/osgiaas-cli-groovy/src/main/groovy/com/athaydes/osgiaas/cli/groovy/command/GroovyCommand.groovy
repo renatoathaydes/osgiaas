@@ -15,7 +15,9 @@ import java.util.regex.Pattern
 class GroovyCommand implements StreamingCommand {
 
     static final String RESET_CODE_ARG = "-r"
+    static final String RESET_CODE_LONG_ARG = "--reset"
     static final String SHOW_ARG = "-s"
+    static final String SHOW_LONG_ARG = "--show"
 
     static int charOf( String c ) { ( c as char ) as int }
 
@@ -31,8 +33,8 @@ class GroovyCommand implements StreamingCommand {
 
     final List<String> codeBuffer = [ ]
     final ArgsSpec argsSpec = ArgsSpec.builder()
-            .accepts( RESET_CODE_ARG ).end()
-            .accepts( SHOW_ARG ).end()
+            .accepts( RESET_CODE_ARG, RESET_CODE_LONG_ARG ).end()
+            .accepts( SHOW_ARG, SHOW_LONG_ARG ).end()
             .build()
 
     GroovyCommand() {
@@ -65,8 +67,10 @@ class GroovyCommand implements StreamingCommand {
 
            The following options are supported:
 
-             * $RESET_CODE_ARG: reset the current code statements buffer (see below).
-             * $SHOW_ARG: show the current statements buffer.
+             * $RESET_CODE_ARG, $RESET_CODE_LONG_ARG: 
+               reset the current code statements buffer (see below).
+             * $SHOW_ARG, $SHOW_LONG_ARG:
+               show the current statements buffer.
 
            The code statements buffer contains all entered import statements (so imports do not need to be
            re-typed on every command).
