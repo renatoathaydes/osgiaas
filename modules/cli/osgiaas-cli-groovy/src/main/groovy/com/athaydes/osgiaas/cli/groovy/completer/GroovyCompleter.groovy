@@ -21,7 +21,7 @@ import java.util.function.Function
 
 import static CompletionMatcher.nameMatcher
 
-@CompileStatic
+//@CompileStatic
 class GroovyCompleter implements CommandCompleter {
 
     final AtomicReference<GroovyCommand> groovyRef = new AtomicReference<>()

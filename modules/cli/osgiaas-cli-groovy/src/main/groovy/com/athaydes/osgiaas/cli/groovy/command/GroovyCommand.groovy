@@ -4,14 +4,14 @@ import com.athaydes.osgiaas.api.stream.LineOutputStream
 import com.athaydes.osgiaas.cli.CommandHelper
 import com.athaydes.osgiaas.cli.StreamingCommand
 import com.athaydes.osgiaas.cli.args.ArgsSpec
-import groovy.transform.CompileStatic
 import org.codehaus.groovy.runtime.metaclass.MissingMethodExceptionNoStack
 import org.osgi.framework.BundleContext
 
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Consumer
+import java.util.regex.Pattern
 
-@CompileStatic
+//@CompileStatic
 class GroovyCommand implements StreamingCommand {
 
     static final String RESET_CODE_ARG = "-r"
@@ -24,6 +24,8 @@ class GroovyCommand implements StreamingCommand {
             CommandHelper.CommandBreakupOptions.create()
                     .quoteCodes( charOf( '"' ), charOf( "'" ) )
                     .includeQuotes( true )
+
+    private final Pattern closureWithArgPattern = Pattern.compile( ".*\\s+->\\s+.*" )
 
     final GroovyShell shell = new GroovyShell()
 
@@ -63,7 +65,7 @@ class GroovyCommand implements StreamingCommand {
 
            The following options are supported:
 
-             * $RESET_CODE_ARG: reset the current code statements buffer.
+             * $RESET_CODE_ARG: reset the current code statements buffer (see below).
              * $SHOW_ARG: show the current statements buffer.
 
            The code statements buffer contains all entered import statements (so imports do not need to be
@@ -91,15 +93,19 @@ class GroovyCommand implements StreamingCommand {
            When run through pipes, the Groovy code should be a Function<String, ?> that takes
            each input line as an argument, returning something to be printed (or null).
 
-           For example:
+           For example, to only print the lines containing the word 'text' from the output of some_command:
 
            >> some_command | groovy { line -> if (line.contains("text")) line }
 
            The curly braces can be omitted:
 
            >> some_command | groovy line -> if (line.contains("text")) line
+           
+           Even the closure argument can be omitted (use 'it' to access it), this is Groovy after all:
+           
+           >> some_command | groovy if (it.contains("text")) it
 
-           State is maintained between invocations:
+           State is maintained between invocations (unless 'def' is used to define a variable):
 
            >> groovy x = 10
            < 10
@@ -112,8 +118,13 @@ class GroovyCommand implements StreamingCommand {
     OutputStream pipe( String command, PrintStream out, PrintStream err ) {
         command = ( command.trim() - 'groovy' ).trim()
 
-        if ( !command.startsWith( "{" ) ) command = "{ " + command
-        if ( !command.endsWith( "}" ) ) command = command + " }"
+        if ( !command.startsWith( "{" ) && !command.endsWith( "}" ) ) {
+            if ( command.matches( closureWithArgPattern ) ) {
+                command = "{ $command }"
+            } else {
+                command = "{ it -> $command }"
+            }
+        }
 
         def callback = run( command, out, err )
         if ( callback instanceof Closure ) {

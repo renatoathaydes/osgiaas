@@ -1,11 +1,10 @@
 package com.athaydes.osgiaas.cli.grab
 
 import com.athaydes.osgiaas.cli.completer.BaseCompleter
-import groovy.transform.CompileStatic
 
 import static com.athaydes.osgiaas.cli.completer.CompletionMatcher.nameMatcher
 
-@CompileStatic
+//@CompileStatic
 class GrabCompleter extends BaseCompleter {
 
     GrabCompleter() {

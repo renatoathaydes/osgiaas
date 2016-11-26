@@ -137,8 +137,8 @@ All regular expressions are wrapped into two `.*`, so the above regular expressi
 
 The following flags are supported:
 
-* -B <lines> number of lines to print before each match.
-* -A <lines> number of lines to print after each match.
+* -B (--before-context) <lines> number of lines to print before each match.
+* -A (--after-context) <lines> number of lines to print after each match.
 
 Which can be used like this, for example:
 

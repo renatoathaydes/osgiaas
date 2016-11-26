@@ -28,6 +28,31 @@ class ArgsSpecSpecification extends Specification {
         'x --no-fuss -f a and stuff' | [ '-f': [ [ 'a' ] ], '--no-fuss': [ [ ] ] ]   | 'and stuff'
     }
 
+    def "It should be easy to specify long form command arguments"() {
+        given: 'An ArgsSpec is built with a few simple options and long options'
+        def spec = ArgsSpec.builder()
+                .accepts( '-f', '--fuss' ).mandatory().withArgCount( 1 ).end()
+                .accepts( '-n', '--no-fuss' ).end()
+                .build()
+
+        when: 'some example command invocations are parsed'
+        def result = spec.parse( command )
+
+        then: 'the result args Map contains the options specified by the command invocation'
+        result?.arguments == expectedArgs
+        result.unprocessedInput == expectedUnprocessedInput
+
+        where:
+        command                          | expectedArgs                           | expectedUnprocessedInput
+        'x -f a'                         | [ '-f': [ [ 'a' ] ] ]                  | ''
+        'x --fuss a'                     | [ '-f': [ [ 'a' ] ] ]                  | ''
+        'x -f abc --no-fuss'             | [ '-f': [ [ 'abc' ] ], '-n': [ [ ] ] ] | ''
+        'x -f abc -n'                    | [ '-f': [ [ 'abc' ] ], '-n': [ [ ] ] ] | ''
+        'x -f abc something'             | [ '-f': [ [ 'abc' ] ] ]                | 'something'
+        'x --fuss abc something'         | [ '-f': [ [ 'abc' ] ] ]                | 'something'
+        'x --no-fuss --fuss a and stuff' | [ '-f': [ [ 'a' ] ], '-n': [ [ ] ] ]   | 'and stuff'
+    }
+
     def "Command options may take multiple arguments"() {
         given: 'An ArgsSpec is built with options that take multiple arguments'
         def spec = ArgsSpec.builder()
@@ -59,7 +84,7 @@ class ArgsSpecSpecification extends Specification {
         def spec = ArgsSpec.builder()
                 .accepts( '-f' ).mandatory().withArgCount( 1, 3 ).end()
                 .accepts( 'a' ).mandatory().end()
-                .accepts( '--no-fuss' ).end()
+                .accepts( '-n', '--no-fuss' ).end()
                 .build()
 
         when: 'some example command invocations are parsed'
@@ -75,8 +100,10 @@ class ArgsSpecSpecification extends Specification {
         'cmd'                | [ 'a', '-f' ]
         'cmd a'              | [ '-f' ]
         'cmd --no-fuss'      | [ 'a', '-f' ]
+        'cmd -n'             | [ 'a', '-f' ]
         'cmd -f a'           | [ 'a' ]
         'cmd -f b --no-fuss' | [ 'a' ]
+        'cmd -f b -n'        | [ 'a' ]
         'cmd -f b c'         | [ 'a' ]
     }
 
@@ -84,7 +111,7 @@ class ArgsSpecSpecification extends Specification {
         given: 'An ArgsSpec is built with a few options, including mandatory argument options'
         def spec = ArgsSpec.builder()
                 .accepts( '-f' ).mandatory().withArgCount( 1, 3 ).end()
-                .accepts( 'a' ).withArgCount( 1 ).end()
+                .accepts( '-a', '--aaa' ).withArgCount( 1 ).end()
                 .accepts( '--no-fuss' ).end()
                 .build()
 
@@ -97,10 +124,11 @@ class ArgsSpecSpecification extends Specification {
         error.message.contains( expectedError )
 
         where:
-        command                | expectedError
-        'cmd -f'               | '-f'
-        'cmd -f 1 a'           | 'a'
-        'cmd -f 1 --no-fuss a' | 'a'
+        command                 | expectedError
+        'cmd -f'                | '-f'
+        'cmd -f 1 -a'           | '-a'
+        'cmd -f 1 --aaa'        | '-a'
+        'cmd -f 1 --no-fuss -a' | '-a'
     }
 
     def "Command itself must always be removed from the results"() {

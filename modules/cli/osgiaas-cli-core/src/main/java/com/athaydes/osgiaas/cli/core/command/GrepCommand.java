@@ -18,8 +18,11 @@ import java.util.regex.PatternSyntaxException;
 public class GrepCommand implements StreamingCommand {
 
     public static final String BEFORE_ARG = "-B";
+    public static final String BEFORE_LONG_ARG = "--before-context  ";
     public static final String AFTER_ARG = "-A";
+    public static final String AFTER_LONG_ARG = "--after-context";
     public static final String CASE_INSENSITIVE_ARG = "-i";
+    public static final String CASE_INSENSITIVE_LONG_ARG = "--ignore-case";
 
     private final ArgsSpec argsSpec = ArgsSpec.builder()
             .accepts( BEFORE_ARG ).withArgCount( 1 ).end()
@@ -44,10 +47,13 @@ public class GrepCommand implements StreamingCommand {
                 "output from other commands via the '|' (pipe) operator (see example).\n\n" +
                 "The grep command accepts the following flags:\n" +
                 "  \n" +
-                "  * -i: case insensitive regex.\n" +
-                "  * -B <num>: num is the number of lines to print before each match.\n" +
-                "  * -A <num>: num is the number of lines to print after each match.\n\n" +
-                "Example usage:\n\n" +
+                "  * " + CASE_INSENSITIVE_ARG + ", " + CASE_INSENSITIVE_LONG_ARG + ":\n" +
+                "    case insensitive regex.\n" +
+                "  * " + BEFORE_ARG + " num, " + BEFORE_LONG_ARG + " num:\n" +
+                "    num is the number of lines to print before each match.\n" +
+                "  * " + AFTER_ARG + " num, " + AFTER_LONG_ARG + " num:\n" +
+                "    num is the number of lines to print after each match.\n\n" +
+                "Example usage (find all lines printed by the 'ps' command containing 'cli'):\n\n" +
                 "> ps | grep cli\n";
     }
 
@@ -67,6 +73,7 @@ public class GrepCommand implements StreamingCommand {
         grepAndConsume( line, out, err );
     }
 
+    @Nullable
     Consumer<String> grepAndConsume( String line, PrintStream out, PrintStream err ) {
         @Nullable GrepCall grepCall = grepCall( line, err );
 

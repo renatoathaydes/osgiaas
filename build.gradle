@@ -23,6 +23,10 @@ allprojects {
 
 Set parentModules = [ 'modules', 'cli', 'lang', 'infra' ]
 
+def projectProperty = { String name, defaultValue = '' ->
+    project.hasProperty( name ) ? project.property( name ) : defaultValue
+}
+
 configure( subprojects ) {
     if ( project.name in parentModules ) {
         return // no publishing config for parent modules
@@ -85,8 +89,8 @@ configure( subprojects ) {
         apply plugin: 'com.jfrog.bintray'
 
         bintray {
-            user = project.hasProperty( "bintrayUserName" ) ? bintrayUserName : null
-            key = project.hasProperty( "bintrayApiKey" ) ? bintrayApiKey : null
+            user = projectProperty( "bintrayUserName" )
+            key = projectProperty( "bintrayApiKey" )
             configurations = [ 'archives' ]
             publish = true
             pkg {
@@ -109,8 +113,8 @@ configure( subprojects ) {
                     }
                     mavenCentralSync {
                         sync = true
-                        user = ossrhUsername
-                        password = ossrhPassword
+                        user = projectProperty( 'ossrhUsername' )
+                        password = projectProperty( 'ossrhPassword' )
                         close = '1' // '0' to NOT close
                     }
                 }
