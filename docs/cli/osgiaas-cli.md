@@ -209,7 +209,8 @@ The `lr` command supports the following options:
 
 * -r (--recurse): recursively list resources under sub-paths.
 * -a (--all): show all resources, including nested classes.
-* -p (--pattern) <regex>: pattern to search.
+* -p (--pattern) <file-pattern>: file pattern to search.
+* -v (--verbose): show verbose output, including bundle information for each resource.
 
 For example, to list all class files available under the 'com' package:
 

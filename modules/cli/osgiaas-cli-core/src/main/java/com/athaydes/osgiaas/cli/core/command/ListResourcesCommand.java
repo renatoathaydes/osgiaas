@@ -9,9 +9,12 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.wiring.BundleWiring;
 
 import javax.annotation.Nullable;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URL;
+import java.net.URLConnection;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -73,9 +76,9 @@ public class ListResourcesCommand implements Command {
                 "  * " + SHOW_ALL_OPTION + ", " + SHOW_ALL_LONG_OPTION + ":\n" +
                 "    show all resources, including nested classes.\n" +
                 "  * " + PATTERN_OPTION + " pattern, " + PATTERN_LONG_OPTION + " pattern:\n" +
-                "    pattern to search.\n" +
+                "    file pattern to search.\n" +
                 "  * " + VERBOSE_OPTION + ", " + VERBOSE_LONG_OPTION + ":\n" +
-                "    show resources using the long form (with details about each entry).\n" +
+                "    show verbose output, including bundle information for each resource.\n" +
                 "\n" +
                 "For example, to list all class files available under the 'com' package:\n" +
                 "\n" +
@@ -125,35 +128,51 @@ public class ListResourcesCommand implements Command {
         }
 
         return wiringsOf( Stream.of( bundleContext.getBundles() ) )
-                .filter( wiring -> wiring != null )
-                .flatMap( wiring -> wiring.listResources( searchWord, pattern, lrOption )
+                .filter( Objects::nonNull )
+                .flatMap( wiring -> wiring.findEntries( searchWord, pattern, lrOption )
                         .stream()
-                        .map( showResource( wiring, longForm ) ) )
-                .filter( resource -> showAll || !resource.contains( "$" ) )
+                        .filter( resource -> showAll || !resource.getPath().contains( "$" ) )
+                        .map( url -> showResource( wiring, url, longForm ) ) )
                 .distinct();
     }
 
-    private static Function<String, String> showResource( BundleWiring wiring, boolean longForm ) {
-        if ( longForm ) {
-            return resource -> {
-                URL resourceURL = wiring.getBundle().getEntry( "/" + resource );
-
-                long size = -1;
-                try {
-                    size = resourceURL.openConnection().getContentLengthLong();
-                } catch ( IOException e ) {
-                    e.printStackTrace();
-                }
-
-                return "[" + padLeft( "" + wiring.getBundle().getBundleId(), 3 ) + "] " +
-                        padRight( wiring.getBundle().getSymbolicName(), SYM_NAME_COL_WIDTH ) + " " +
-                        resource +
-                        ( size == -1 || resource.endsWith( "/" ) ? "" : " (" + size + " bytes)" );
-            };
-        } else {
-            return Function.identity();
+    private static String showResource( BundleWiring wiring, URL resourceURL, boolean longForm ) {
+        String resource = resourceURL.getPath();
+        if ( resource.startsWith( "/" ) ) {
+            resource = resource.substring( 1 );
         }
 
+        if ( longForm ) {
+            long size = -1;
+            boolean isDirectory = resource.endsWith( "/" );
+
+            if ( !isDirectory ) {
+                @Nullable URLConnection connection = null;
+
+                try {
+                    connection = resourceURL.openConnection();
+                    size = connection.getContentLengthLong();
+                } catch ( IOException e ) {
+                    e.printStackTrace();
+                } finally {
+                    if ( connection instanceof Closeable ) {
+                        try {
+                            ( ( Closeable ) connection ).close();
+                        } catch ( IOException e ) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+
+            return "[" + padLeft( "" + wiring.getBundle().getBundleId(), 3 ) + "] " +
+                    padRight( wiring.getBundle().getSymbolicName(), SYM_NAME_COL_WIDTH ) + " " +
+                    resource +
+                    ( size == -1 ? "" : " (" + size + " bytes)" );
+
+        } else {
+            return resource;
+        }
     }
 
 }
