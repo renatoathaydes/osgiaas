@@ -90,7 +90,7 @@ class GroovyCommand implements StreamingCommand {
            >> groovy new Person("Mary", 24)
            < Person(Mary, 24)
 
-           When run through pipes, the Groovy code should be a Function<String, ?> that takes
+           When run through pipes, the Groovy code should return a Function<String, ?> that takes
            each input line as an argument, returning something to be printed (or null).
 
            For example, to only print the lines containing the word 'text' from the output of some_command:

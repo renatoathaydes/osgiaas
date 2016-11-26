@@ -10,9 +10,18 @@ For example:
 
 ```
 >> js function double(x) { return x * 2 };
-function double(x) { return x * 2 }
+< function double(x) { return x * 2 }
 >> js double(4)
-8
+< 8
+```
+
+When run through pipes, the JS code should return a function that takes each input line as an argument, 
+returning something to be printed (nothing is printed when the function does not return anything or returns null).
+
+For example, to only print the lines containing the word 'text' from the output of some_command:
+
+```
+>> some_command | js function(line) { if (line.contains("text")) line; }
 ```
 
 ## System requirements

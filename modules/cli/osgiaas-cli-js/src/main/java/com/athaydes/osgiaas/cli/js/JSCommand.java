@@ -58,7 +58,14 @@ public class JSCommand implements StreamingCommand {
 
     @Override
     public String getShortDescription() {
-        return "The js command runs JavaScript (Nashorn) scripts.";
+        return "The js command runs JavaScript (Nashorn) scripts.\n\n" +
+                "For example:\n\n" +
+                ">> js 2 + 2\n" +
+                "< 4\n\n" +
+                "When run through pipes, the JS code should return a function that takes " +
+                "each input line as an argument, returning something to be printed (or null).\n\n" +
+                "For example, to only print the lines containing the word 'text' from the output of some_command:\n\n" +
+                ">> some_command | js function(line) { if (line.contains(\"text\")) line; }";
     }
 
     @Override
@@ -85,23 +92,34 @@ public class JSCommand implements StreamingCommand {
 
     @Override
     public OutputStream pipe( String line, PrintStream out, PrintStream err ) {
-        String command = line.substring( "js ".length() );
+        @Nullable ScriptEngine engine = getEngine();
+
+        if ( engine == null ) {
+            throw new RuntimeException( "JavaScript engine is not available." );
+        }
+
+        String command = line.substring( "js".length() );
 
         try {
-            Object result = runScript( out, err, getEngine(), command );
+            Object result = runScript( out, err, engine, command );
             if ( result instanceof ScriptObjectMirror ) {
                 ScriptObjectMirror mirror = ( ScriptObjectMirror ) result;
                 if ( mirror.isFunction() ) {
 
                     //noinspection CollectionAddedToSelf
                     return new LineOutputStream( l ->
-                            mirror.call( mirror, l ), out );
+                    {
+                        @Nullable Object returnedValue = mirror.call( result, l );
+
+                        if ( returnedValue != null && !ScriptObjectMirror.isUndefined( returnedValue ) ) {
+                            out.println( returnedValue );
+                        }
+                    }, out );
                 }
             }
 
             throw new RuntimeException( "When used in a pipeline, the JS script must return a " +
-                    "function callback that takes one text line of the input at a time.\n" +
-                    "Example: ... | js function(line) { out.println(\"Line: \" + line); }" );
+                    "function callback to run for each input line." );
         } catch ( ScriptException e ) {
             throw new RuntimeException( e );
         }
@@ -111,6 +129,7 @@ public class JSCommand implements StreamingCommand {
     private Object runScript( PrintStream out, PrintStream err,
                               ScriptEngine engine, String script )
             throws ScriptException {
+
         Bindings bindings = engine.getBindings( ScriptContext.GLOBAL_SCOPE );
         bindings.put( "out", out );
         bindings.put( "err", err );
