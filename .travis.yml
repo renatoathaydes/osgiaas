@@ -1,7 +1,4 @@
 language: java
 
-install: true
-script: ./gradlew check
-
 jdk:
   - oraclejdk8
