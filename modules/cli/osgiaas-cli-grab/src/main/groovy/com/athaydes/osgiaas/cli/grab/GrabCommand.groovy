@@ -4,12 +4,11 @@ import com.athaydes.osgiaas.cli.CommandHelper
 import com.athaydes.osgiaas.cli.args.ArgsSpec
 import com.athaydes.osgiaas.grab.GrabException
 import com.athaydes.osgiaas.grab.Grabber
-import groovy.transform.CompileStatic
 import org.apache.felix.shell.Command
 
 import java.util.stream.Stream
 
-@CompileStatic
+//@CompileStatic
 class GrabCommand implements Command {
 
     static final String ADD_REPO = '--add-repo'
