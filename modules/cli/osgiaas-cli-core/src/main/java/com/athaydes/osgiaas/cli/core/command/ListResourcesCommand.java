@@ -22,19 +22,23 @@ import static com.athaydes.osgiaas.api.text.TextUtils.padRight;
 public class ListResourcesCommand implements Command {
 
     public static final String RECURSIVE_OPTION = "-r";
+    public static final String RECURSIVE_LONG_OPTION = "--recurse";
     public static final String SHOW_ALL_OPTION = "-a";
+    public static final String SHOW_ALL_LONG_OPTION = "--all";
     public static final String PATTERN_OPTION = "-p";
-    public static final String LONG_FORM_OPTION = "-l";
+    public static final String PATTERN_LONG_OPTION = "--pattern";
+    public static final String VERBOSE_OPTION = "-v";
+    public static final String VERBOSE_LONG_OPTION = "--verbose";
 
     public static final int SYM_NAME_COL_WIDTH = 30;
 
     private final AtomicReference<BundleContext> contextRef = new AtomicReference<>();
 
     public static final ArgsSpec argsSpec = ArgsSpec.builder()
-            .accepts( RECURSIVE_OPTION ).end()
-            .accepts( SHOW_ALL_OPTION ).end()
-            .accepts( LONG_FORM_OPTION ).end()
-            .accepts( PATTERN_OPTION ).withArgCount( 1 ).end()
+            .accepts( RECURSIVE_OPTION, RECURSIVE_LONG_OPTION ).end()
+            .accepts( SHOW_ALL_OPTION, SHOW_ALL_LONG_OPTION ).end()
+            .accepts( VERBOSE_OPTION, VERBOSE_LONG_OPTION ).end()
+            .accepts( PATTERN_OPTION, PATTERN_LONG_OPTION ).withArgCount( 1 ).end()
             .build();
 
     public static Function<String, String> searchTransform = ( search ) ->
@@ -64,10 +68,14 @@ public class ListResourcesCommand implements Command {
                 "\n" +
                 "The lr command supports the following options:\n" +
                 "\n" +
-                "  -r: recursively list resources under sub-paths.\n" +
-                "  -a: show all resources, including nested classes.\n" +
-                "  -p: pattern to search.\n" +
-                "  -l: show resources using the long form (with details about each entry).\n" +
+                "  * " + RECURSIVE_OPTION + ", " + RECURSIVE_LONG_OPTION + ":\n" +
+                "    recursively list resources under sub-paths.\n" +
+                "  * " + SHOW_ALL_OPTION + ", " + SHOW_ALL_LONG_OPTION + ":\n" +
+                "    show all resources, including nested classes.\n" +
+                "  * " + PATTERN_OPTION + " pattern, " + PATTERN_LONG_OPTION + " pattern:\n" +
+                "    pattern to search.\n" +
+                "  * " + VERBOSE_OPTION + ", " + VERBOSE_LONG_OPTION + ":\n" +
+                "    show resources using the long form (with details about each entry).\n" +
                 "\n" +
                 "For example, to list all class files available under the 'com' package:\n" +
                 "\n" +
@@ -110,7 +118,7 @@ public class ListResourcesCommand implements Command {
 
         String searchWord = searchTransform.apply( invocation.getUnprocessedInput() );
 
-        boolean longForm = invocation.hasArg( LONG_FORM_OPTION );
+        boolean longForm = invocation.hasArg( VERBOSE_OPTION );
 
         if ( longForm && out != null ) {
             out.println( " ID   " + padRight( "Bundle Symbolic Name", SYM_NAME_COL_WIDTH ) + " Resource" );

@@ -139,8 +139,8 @@ All regular expressions are wrapped into two `.*`, so the above regular expressi
 
 The following flags are supported:
 
-* -B (--before-context) <lines> number of lines to print before each match.
-* -A (--after-context) <lines> number of lines to print after each match.
+* -B (--before-context) <lines>: number of lines to print before each match.
+* -A (--after-context) <lines>: number of lines to print after each match.
 
 Which can be used like this, for example:
 
@@ -164,8 +164,8 @@ For example, to highlight all lines matching a regular expression `\\[Active.*\\
 
 The following flags are accepted:
 
-* -b <color> background color (yellow, by default)
-* -f <color[+format]*> text color and format
+* -b (--background-color) <color>: background color (yellow, by default)
+* -f (--foreground-color) <color[+format]*>: text color and format
 
 The accepted colors are the same as for the `color` command.
 
@@ -199,7 +199,7 @@ Examples of valid invocations of the highlight command:
 
 Lists JVM resources.
 
-JVM resources are things included in jars and usually visible to Java code via the
+JVM resources are the resources included in the installed bundles and usually visible to Java code via the
 [getResource(String name)](https://docs.oracle.com/javase/7/docs/api/java/lang/ClassLoader.html#getResource(java.lang.String))
 method.
 
@@ -207,13 +207,15 @@ The resource name is always assumed to be an absolute path with `forward-slash` 
 
 The `lr` command supports the following options:
 
-  -r: recursively list resources under sub-paths.
-  -a: show all resources, including nested classes.
-  -p: pattern to search.
+* -r (--recurse): recursively list resources under sub-paths.
+* -a (--all): show all resources, including nested classes.
+* -p (--pattern) <regex>: pattern to search.
 
 For example, to list all class files available under the 'com' package:
 
-lr -r -p *.class com/
+```
+>> lr -r -p *.class com/
+```
 
 ### prompt
 
@@ -223,7 +225,7 @@ To add spaces after a prompt, you can quote the new prompt:
 
 ```
 >> prompt "renato> "
-< renato> |
+renato> |
 ```
 
 ### run
