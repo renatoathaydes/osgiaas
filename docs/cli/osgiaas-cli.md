@@ -40,8 +40,10 @@ See [Writing custom commands](writing-custom-commands.md).
 
 *Highlight command:*
 
-![Simple Highlight](../images/simple-highlight.png)
+The highlight command highlights the input lines that match a given regular expression.
+This command is often used to highlight output from other commands via the '|' (pipe) operator.
 
+![Simple Highlight](../images/simple-highlight.png)
 
 ## Command details
 
@@ -49,7 +51,7 @@ See [Writing custom commands](writing-custom-commands.md).
 
 The alias command lets you alias existing commands.
 
-For example, if you thing the `highlight` command is too long to type, you can alias it with `hl` as follows:
+For example, if you think the `highlight` command is too long to type, you can alias it with `hl` as follows:
 
 ```
 alias hl=highlight

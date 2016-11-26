@@ -59,13 +59,16 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
     }
 
     public static final String FOREGROUND_ARG = "-f";
+    public static final String FOREGROUND_LONG_ARG = "--foreground-color";
     public static final String BACKGROUND_ARG = "-b";
+    public static final String BACKGROUND_LONG_ARG = "--background-color";
     public static final String CASE_INSENSITIVE_ARG = "-i";
+    public static final String CASE_INSENSITIVE_LONG_ARG = "--ignore-case";
 
     private final ArgsSpec argsSpec = ArgsSpec.builder()
-            .accepts( FOREGROUND_ARG ).withArgCount( 1 ).end()
-            .accepts( BACKGROUND_ARG ).withArgCount( 1 ).end()
-            .accepts( CASE_INSENSITIVE_ARG ).end()
+            .accepts( FOREGROUND_ARG, FOREGROUND_LONG_ARG ).withArgCount( 1 ).end()
+            .accepts( BACKGROUND_ARG, BACKGROUND_LONG_ARG ).withArgCount( 1 ).end()
+            .accepts( CASE_INSENSITIVE_ARG, CASE_INSENSITIVE_LONG_ARG ).end()
             .build();
 
     @Override
@@ -80,14 +83,17 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
 
     @Override
     public String getShortDescription() {
-        return "Shows the lines of the given input that match a regular expression highlighted.\n" +
-                "Because it is not possible to enter multiple lines manually, this command is often used to highlight " +
+        return "Highlight the input lines that match a given regular expression.\n" +
+                "This command is often used to highlight " +
                 "output from other commands via the '|' (pipe) operator.\n" +
                 "The highlight command accepts the following flags:\n" +
                 "  \n" +
-                "  * -i: case insensitive regex.\n" +
-                "  * -b <color>: highlighted text background color.\n" +
-                "  * -f <color+modifier>: highlighted text foreground color and modifier(s).\n" +
+                "  * " + CASE_INSENSITIVE_ARG + ", " + CASE_INSENSITIVE_LONG_ARG + ":\n" +
+                "    case insensitive regex.\n" +
+                "  * " + BACKGROUND_ARG + " color, " + BACKGROUND_LONG_ARG + " color:\n" +
+                "    highlighted text background color.\n" +
+                "  * " + FOREGROUND_ARG + " color[+modifier], " + FOREGROUND_LONG_ARG + " color[+modifier]:\n" +
+                "    highlighted text foreground color and modifier(s).\n" +
                 " \n" +
                 "Example: ps | highlight -b red -f yellow+high_intensity";
     }
