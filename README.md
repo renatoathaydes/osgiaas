@@ -2,6 +2,8 @@
 
 > OSGi as a Service
 
+[![Build Status](https://travis-ci.org/renatoathaydes/osgiaas.svg?branch=master)](https://travis-ci.org/renatoathaydes/osgiaas)
+
 The **OSGiaaS** Project aims to provide JVM modules and a CLI to make the development
 of truly modular, dynamic applications easier.
 
