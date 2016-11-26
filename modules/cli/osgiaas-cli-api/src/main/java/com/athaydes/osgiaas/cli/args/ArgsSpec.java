@@ -115,6 +115,8 @@ public class ArgsSpec {
                     // start parsing an option
                     List<String> optionArguments = new ArrayList<>( arg.maxArgs );
                     @Nullable List<List<String>> allArguments = result.get( arg.key );
+
+                    //noinspection Java8ReplaceMapGet
                     if ( allArguments == null ) {
                         allArguments = new ArrayList<>( arg.allowMultiple ? 4 : 1 );
                         result.put( arg.key, allArguments );
@@ -249,7 +251,7 @@ public class ArgsSpec {
          * @return this builder
          */
         public ArgBuilder accepts( String argument, String longArgument ) {
-            return new ArgBuilder( argument );
+            return new ArgBuilder( argument, longArgument );
         }
 
         /**
