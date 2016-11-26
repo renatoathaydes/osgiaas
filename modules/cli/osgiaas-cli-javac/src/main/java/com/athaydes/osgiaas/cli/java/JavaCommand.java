@@ -36,10 +36,13 @@ public class JavaCommand implements Command, StreamingCommand {
     private static final String JAVA_ID_REGEX = "([a-zA-Z_$][a-zA-Z\\d_$]*\\.)*[a-zA-Z_$][a-zA-Z\\d_$]*";
 
     static final String RESET_CODE_ARG = "-r";
-    static final String RESET_ALL_ARG = "-ra";
+    static final String RESET_CODE_LONG_ARG = "--reset";
+    static final String RESET_ALL_ARG = "-t";
+    static final String RESET_ALL_LONG_ARG = "--reset-all";
     static final String SHOW_ARG = "-s";
-
+    static final String SHOW_LONG_ARG = "--show";
     static final String CLASS_ARG = "-c";
+    static final String CLASS_LONG_ARG = "--class-define";
 
     private static final CommandHelper.CommandBreakupOptions JAVA_OPTIONS =
             CommandHelper.CommandBreakupOptions.create()
@@ -56,12 +59,13 @@ public class JavaCommand implements Command, StreamingCommand {
     private ClassLoaderCapabilities classLoaderContext;
 
     private final ArgsSpec javaArgs = ArgsSpec.builder()
-            .accepts( RESET_CODE_ARG ).end()
-            .accepts( RESET_ALL_ARG ).end()
-            .accepts( SHOW_ARG ).end()
-            .accepts( CLASS_ARG ).end()
+            .accepts( RESET_CODE_ARG, RESET_CODE_LONG_ARG ).end()
+            .accepts( RESET_ALL_ARG, RESET_ALL_LONG_ARG ).end()
+            .accepts( SHOW_ARG, SHOW_LONG_ARG ).end()
+            .accepts( CLASS_ARG, CLASS_LONG_ARG ).end()
             .build();
 
+    @SuppressWarnings( "ConstantConditions" )
     private static final Callable<?> ERROR = () -> null;
 
     public JavaCommand() {
@@ -91,7 +95,7 @@ public class JavaCommand implements Command, StreamingCommand {
 
     @Override
     public String getUsage() {
-        return "java [-r | -s | <java snippet>] | " +
+        return "java [-r | -s | -t | <java snippet>] | " +
                 "[-c <class definition>]";
     }
 
@@ -106,10 +110,14 @@ public class JavaCommand implements Command, StreamingCommand {
                 "\n\n" +
                 "The java command accepts the following flags:\n" +
                 "  \n" +
-                "  * " + RESET_CODE_ARG + ": reset the current code statement buffer.\n" +
-                "  * " + RESET_ALL_ARG + ": reset the current code statement buffer and imports.\n" +
-                "  * " + SHOW_ARG + ": show the current statement buffer.\n" +
-                "  * " + CLASS_ARG + ": define a class.\n" +
+                "  * " + RESET_CODE_ARG + ", " + RESET_CODE_LONG_ARG + ":\n" +
+                "    reset the current code statement buffer.\n" +
+                "  * " + RESET_ALL_ARG + ", " + RESET_ALL_LONG_ARG + ":\n" +
+                "    reset the current code statement buffer and imports.\n" +
+                "  * " + SHOW_ARG + ", " + SHOW_LONG_ARG + ":\n" +
+                "    show the current statement buffer.\n" +
+                "  * " + CLASS_ARG + ", " + CLASS_LONG_ARG + ":\n" +
+                "    define a Java class.\n" +
                 "\n" +
                 "Simple example:\n\n" +
                 ">> java return 2 + 2\n" +

@@ -13,10 +13,10 @@ whose contents get expanded into local variables on execution.
 
 The java command accepts the following flags:
 
-  * -r: reset the current code statement buffer.
-  * -ra: reset the current code statement buffer and imports.
-  * -s: show the current statement buffer.
-  * -c: define a class.
+  * -r (--reset): reset the current code statement buffer.
+  * -t (--reset-all): reset the current code statement buffer and imports.
+  * -s (--show): show the current statement buffer.
+  * -c (--class-define): define a class.
 
 Simple example:
 
