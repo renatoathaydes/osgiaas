@@ -11,6 +11,7 @@ Besides the OSGi Commands exported by the Felix Shell bundle (which allows inspe
 monitoring the OSGi system itself), this bundle adds the following Commands:
 
 * `alias` - alias a command with a different name.
+* `ci` - command introspection.
 * `clear` - clear the CLI contents.
 * `color` - set the default colors of the CLI.
 * `grep` - filter lines matching a regular expression.
