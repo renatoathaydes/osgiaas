@@ -78,6 +78,32 @@ Notice that aliases can include arguments as well if you quote the command with 
 alias hl="highlight -f red -b yellow"
 ```
 
+### ci
+
+Command Introspect.
+
+This command can be used to introspect any command. It is similar to `help`, but can display more information,
+including which services the command implementation provides, the name of the implementator class, and the bundle
+which provides the service.
+
+The `ci` command accepts the following options:
+
+* -v (--verbose): show verbose output.
+
+You can limit the commands to be introspected by providing a pattern as an argument.
+
+For example, to see verbose information about the `ps` command, type:
+
+```
+>> ci -v ps
+```
+
+Or to see information about all commands starting with the letter `g`:
+
+```
+>> ci g.*
+```
+
 ### clear
 
 Clears the CLI contents.

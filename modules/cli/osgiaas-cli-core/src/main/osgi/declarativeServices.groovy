@@ -248,3 +248,18 @@ component( name: 'lrCommandCompleter', xmlns: SCR_NAMESPACE ) {
         provide( 'interface': 'com.athaydes.osgiaas.cli.CommandCompleter' )
     }
 }
+
+component( name: 'ciCommand', xmlns: SCR_NAMESPACE ) {
+    commonProperties()
+    implementation( 'class': 'com.athaydes.osgiaas.cli.core.command.CommandIntrospecterCommand' )
+    property( name: 'service.description', value: 'OsgiAAS Cli CommandInstrospecter Command' )
+    service {
+        provide( 'interface': 'org.apache.felix.shell.Command' )
+    }
+    reference( name: 'commands',
+            'interface': 'org.apache.felix.shell.Command',
+            'cardinality': '0..n',
+            'policy': 'dynamic',
+            'bind': 'addCommand',
+            'unbind': 'removeCommand' )
+}
