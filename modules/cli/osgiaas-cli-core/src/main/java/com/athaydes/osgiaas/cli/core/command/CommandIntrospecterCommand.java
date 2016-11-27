@@ -21,8 +21,8 @@ import java.util.stream.Stream;
  */
 public class CommandIntrospecterCommand implements Command {
 
-    private static String VERBOSE_ARG = "-v";
-    private static String VERBOSE_LONG_ARG = "--verbose";
+    public static String VERBOSE_ARG = "-v";
+    public static String VERBOSE_LONG_ARG = "--verbose";
 
     private final Map<String, CommandEntry> serviceReferenceByCommand = new ConcurrentHashMap<>();
 

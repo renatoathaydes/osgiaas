@@ -263,3 +263,13 @@ component( name: 'ciCommand', xmlns: SCR_NAMESPACE ) {
             'bind': 'addCommand',
             'unbind': 'removeCommand' )
 }
+
+component( name: 'ciCommandCompleter', xmlns: SCR_NAMESPACE ) {
+    commonProperties()
+    implementation( 'class': 'com.athaydes.osgiaas.cli.core.completer.CommandIntrospecterCommandCompleter' )
+    property( name: 'service.description', value: 'Command Instrospecter Command Completer' )
+    service {
+        provide( 'interface': 'com.athaydes.osgiaas.cli.CommandCompleter' )
+    }
+    cliPropertiesReference()
+}

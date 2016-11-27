@@ -16,7 +16,14 @@ public abstract class AbstractTakesCommandsAsArgsCompleter extends UsesCliProper
     private final Completer completer;
 
     public AbstractTakesCommandsAsArgsCompleter() {
-        this.completer = new Completer( commandName(), this::availableCommands );
+        String command = commandName();
+        this.completer = new Completer( command, this::matchers );
+    }
+
+    protected Stream<CompletionMatcher> matchers() {
+        return Stream.of( availableCommands() )
+                .filter( c -> !c.equals( commandName() ) )
+                .map( c -> CompletionMatcher.nameMatcher( c ) );
     }
 
     private String[] availableCommands() {
@@ -38,11 +45,8 @@ public abstract class AbstractTakesCommandsAsArgsCompleter extends UsesCliProper
 
     private static class Completer extends BaseCompleter {
 
-        Completer( String command, Supplier<String[]> availableCommandsGetter ) {
-            super( CompletionMatcher.nameMatcher( command,
-                    () -> Stream.of( availableCommandsGetter.get() )
-                            .filter( c -> !c.equals( command ) )
-                            .map( c -> CompletionMatcher.nameMatcher( c ) ) ) );
+        Completer( String command, Supplier<Stream<CompletionMatcher>> childrenSupplier ) {
+            super( CompletionMatcher.nameMatcher( command, childrenSupplier ) );
         }
     }
 
