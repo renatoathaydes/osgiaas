@@ -202,25 +202,25 @@ public class JavaCommand implements Command, StreamingCommand {
         CommandInvocation invocation = javaArgs.parse( line,
                 JAVA_OPTIONS.separatorCode( ' ' ) );
 
-        if ( invocation.hasArg( RESET_CODE_ARG ) ) {
+        if ( invocation.hasOption( RESET_CODE_ARG ) ) {
             code.resetCode();
         }
 
-        if ( invocation.hasArg( RESET_ALL_ARG ) ) {
+        if ( invocation.hasOption( RESET_ALL_ARG ) ) {
             code.resetAll();
         }
 
         String codeToRun = invocation.getUnprocessedInput();
         @Nullable String className;
 
-        if ( invocation.hasArg( CLASS_ARG ) && ( className = extractClassName( codeToRun, err ) ) != null ) {
+        if ( invocation.hasOption( CLASS_ARG ) && ( className = extractClassName( codeToRun, err ) ) != null ) {
             Optional<Class<Object>> javaClass = javacService.compileJavaClass(
                     classLoaderContext, className, codeToRun, err );
             javaClass.ifPresent( out::println );
         } else {
             breakupJavaLines( codeToRun );
 
-            boolean show = invocation.hasArg( SHOW_ARG );
+            boolean show = invocation.hasOption( SHOW_ARG );
 
             if ( show ) {
                 out.println( javacService.getJavaSnippetClass( code ) );

@@ -1,5 +1,12 @@
 package com.athaydes.osgiaas.api.ansi;
 
+/**
+ * Enumerator containing ANSI modifiers.
+ * <p>
+ * ANSI modifiers can be applied together with {@link AnsiColor}.
+ *
+ * @see Ansi#applyAnsi(java.lang.String, com.athaydes.osgiaas.api.ansi.AnsiColor[], com.athaydes.osgiaas.api.ansi.AnsiModifier...)
+ */
 public enum AnsiModifier {
 
     RESET( 0 ),

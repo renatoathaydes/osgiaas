@@ -8,7 +8,7 @@ import java.io.PrintStream;
 /**
  * OSGiaaS streaming-capable Command.
  * <p>
- * Extends FelixShell Command to add support for streaming, which allows for efficient pipes.
+ * Extends the FelixShell Command to add support for streaming, which allows for efficient pipes.
  * <p>
  * If a Command implements this interface, then its pipe() method will be used during piping
  * operations, instead of {@link Command}'s execute().
@@ -23,6 +23,7 @@ public interface StreamingCommand extends Command {
      * @param out     output stream
      * @param err     error stream
      * @return stream that can be used to write to this command.
+     * @see com.athaydes.osgiaas.api.stream.LineOutputStream
      */
     OutputStream pipe( String command, PrintStream out, PrintStream err );
 

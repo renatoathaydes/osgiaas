@@ -147,9 +147,9 @@ public class GrepCommand implements StreamingCommand {
             return null;
         }
 
-        boolean caseInsensitive = invocation.hasArg( CASE_INSENSITIVE_ARG );
-        @Nullable String after = invocation.getArgValue( AFTER_ARG );
-        @Nullable String before = invocation.getArgValue( BEFORE_ARG );
+        boolean caseInsensitive = invocation.hasOption( CASE_INSENSITIVE_ARG );
+        @Nullable String after = invocation.getOptionFirstArgument( AFTER_ARG );
+        @Nullable String before = invocation.getOptionFirstArgument( BEFORE_ARG );
 
         List<String> rest = CommandHelper.breakupArguments( invocation.getUnprocessedInput(), 2 );
 

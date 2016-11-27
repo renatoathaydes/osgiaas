@@ -17,7 +17,7 @@ class ArgsSpecSpecification extends Specification {
         def result = spec.parse( command )
 
         then: 'the result args Map contains the options specified by the command invocation'
-        result?.arguments == expectedArgs
+        result?.options == expectedArgs
         result.unprocessedInput == expectedUnprocessedInput
 
         where:
@@ -39,7 +39,7 @@ class ArgsSpecSpecification extends Specification {
         def result = spec.parse( command )
 
         then: 'the result args Map contains the options specified by the command invocation'
-        result?.arguments == expectedArgs
+        result?.options == expectedArgs
         result.unprocessedInput == expectedUnprocessedInput
 
         where:
@@ -54,7 +54,7 @@ class ArgsSpecSpecification extends Specification {
     }
 
     def "Command options may take multiple arguments"() {
-        given: 'An ArgsSpec is built with options that take multiple arguments'
+        given: 'An ArgsSpec is built with options that take multiple options'
         def spec = ArgsSpec.builder()
                 .accepts( '-f' ).allowMultiple().withArgCount( 1, 3 ).end()
                 .accepts( '--no-fuss' ).end()
@@ -64,7 +64,7 @@ class ArgsSpecSpecification extends Specification {
         def result = spec.parse( command )
 
         then: 'the result args Map contains the options specified by the command invocation'
-        result?.arguments == expectedArgs
+        result?.options == expectedArgs
         result.unprocessedInput == expectedUnprocessedInput
 
         where:
@@ -142,7 +142,7 @@ class ArgsSpecSpecification extends Specification {
 
         then: 'the results never include the command itself'
         result.unprocessedInput == expectedUnprocessedInput
-        result.arguments == expectedArgs
+        result.options == expectedArgs
 
         where:
         command            | expectedArgs          | expectedUnprocessedInput

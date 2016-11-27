@@ -162,9 +162,9 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
         if ( invocation == null ) {
             return null;
         } else {
-            boolean caseInsensitive = invocation.hasArg( CASE_INSENSITIVE_ARG );
-            @Nullable String foreground = invocation.getArgValue( FOREGROUND_ARG );
-            @Nullable String background = invocation.getArgValue( BACKGROUND_ARG );
+            boolean caseInsensitive = invocation.hasOption( CASE_INSENSITIVE_ARG );
+            @Nullable String foreground = invocation.getOptionFirstArgument( FOREGROUND_ARG );
+            @Nullable String background = invocation.getOptionFirstArgument( BACKGROUND_ARG );
             List<String> rest = CommandHelper.breakupArguments(
                     invocation.getUnprocessedInput(), 2 );
 

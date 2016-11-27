@@ -109,19 +109,19 @@ public class ListResourcesCommand implements Command {
                                                 BundleContext bundleContext,
                                                 Function<String, String> searchTransform,
                                                 @Nullable PrintStream out ) {
-        int lrOption = invocation.hasArg( RECURSIVE_OPTION ) ?
+        int lrOption = invocation.hasOption( RECURSIVE_OPTION ) ?
                 BundleWiring.LISTRESOURCES_RECURSE :
                 BundleWiring.LISTRESOURCES_LOCAL;
 
-        boolean showAll = invocation.hasArg( SHOW_ALL_OPTION );
+        boolean showAll = invocation.hasOption( SHOW_ALL_OPTION );
 
-        String pattern = invocation.hasArg( PATTERN_OPTION ) ?
-                invocation.getArgValue( PATTERN_OPTION ) :
+        String pattern = invocation.hasOption( PATTERN_OPTION ) ?
+                invocation.getOptionFirstArgument( PATTERN_OPTION ) :
                 "*";
 
         String searchWord = searchTransform.apply( invocation.getUnprocessedInput() );
 
-        boolean longForm = invocation.hasArg( VERBOSE_OPTION );
+        boolean longForm = invocation.hasOption( VERBOSE_OPTION );
 
         if ( longForm && out != null ) {
             out.println( " ID   " + padRight( "Bundle Symbolic Name", SYM_NAME_COL_WIDTH ) + " Resource" );

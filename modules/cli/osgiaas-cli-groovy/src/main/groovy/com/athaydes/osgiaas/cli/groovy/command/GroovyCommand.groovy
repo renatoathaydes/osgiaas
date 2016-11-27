@@ -148,9 +148,9 @@ class GroovyCommand implements StreamingCommand {
     @Override
     void execute( String line, PrintStream out, PrintStream err ) {
         def command = argsSpec.parse( line, breakupOptions )
-        if ( command.hasArg( RESET_CODE_ARG ) ) {
+        if ( command.hasOption( RESET_CODE_ARG ) ) {
             codeBuffer.clear()
-        } else if ( command.hasArg( SHOW_ARG ) ) {
+        } else if ( command.hasOption( SHOW_ARG ) ) {
             out.println codeBuffer.join( '\n' )
         } else {
             def code = command.unprocessedInput

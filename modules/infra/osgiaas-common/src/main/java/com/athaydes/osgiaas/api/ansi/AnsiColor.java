@@ -1,5 +1,10 @@
 package com.athaydes.osgiaas.api.ansi;
 
+/**
+ * Enumerator containing simple ANSI Colors.
+ *
+ * @see AnsiModifier
+ */
 public enum AnsiColor {
 
     // neutral

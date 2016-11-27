@@ -61,7 +61,7 @@ class GrabCommand implements Command {
     void execute( String line, PrintStream out, PrintStream err ) {
         try {
             def invocation = argsSpec.parse( line )
-            def argMap = invocation.arguments
+            def argMap = invocation.options
             def rest = invocation.unprocessedInput
 
             if ( ( !rest && !argMap ) ||

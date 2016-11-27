@@ -6,6 +6,8 @@ import java.util.function.Consumer;
 
 /**
  * OutputStream that can be used to receive a line of text at a time from a writer.
+ * <p>
+ * This class is very useful to implement {@code StreamingCommand}.
  */
 public final class LineOutputStream extends OutputStream {
 
@@ -15,6 +17,12 @@ public final class LineOutputStream extends OutputStream {
     private StringBuilder builder;
     private final AutoCloseable closeWhenDone;
 
+    /**
+     * Create an instance of {@link LineOutputStream}.
+     *
+     * @param onLine        callback to run on each line of text received.
+     * @param closeWhenDone callback to run when this stream gets closed.
+     */
     public LineOutputStream( Consumer<String> onLine, AutoCloseable closeWhenDone ) {
         this.onLine = onLine;
         this.builder = new StringBuilder( BUFFER_CAPACITY );

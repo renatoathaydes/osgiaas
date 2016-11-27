@@ -11,22 +11,42 @@ import java.util.Map;
  */
 public class CommandInvocation {
 
-    private final Map<String, List<List<String>>> arguments;
+    private final Map<String, List<List<String>>> options;
     private final String unprocessedInput;
 
-    public CommandInvocation( Map<String, List<List<String>>> arguments,
+    public CommandInvocation( Map<String, List<List<String>>> options,
                               String unprocessedInput ) {
-        this.arguments = arguments;
+        this.options = options;
         this.unprocessedInput = unprocessedInput;
     }
 
-    public Map<String, List<List<String>>> getArguments() {
-        return arguments;
+    /**
+     * Get a Map of the options and their arguments provided during the command invocation.
+     * <p>
+     * Each entry of the map consists of the option (key) provided, mapped to the option's arguments, if any.
+     * <p>
+     * For example, if a command accepts a '-f' option which accepts one argument, and the user enters
+     * 'command -f hello', the options Map will contain {@code {'-f' -> ['hello']}}.
+     * <p>
+     * Anything that does not match any argument can be retrieved with the {@link #getUnprocessedInput()} method.
+     *
+     * @return Map of command options (option args by option).
+     */
+    public Map<String, List<List<String>>> getOptions() {
+        return options;
     }
 
+    /**
+     * Get the first argument provided for the given option.
+     * <p>
+     * If no argument was given, this method returns null.
+     *
+     * @param option option
+     * @return first argument for option, or null if none was provided.
+     */
     @Nullable
-    public String getArgValue( String argument ) {
-        List<String> values = getAllArgValues( argument );
+    public String getOptionFirstArgument( String option ) {
+        List<String> values = getAllArgumentsFor( option );
         if ( values.isEmpty() ) {
             return null;
         } else {
@@ -34,8 +54,17 @@ public class CommandInvocation {
         }
     }
 
-    public List<String> getAllArgValues( String argument ) {
-        List<List<String>> allArgs = arguments.getOrDefault( argument, Collections.emptyList() );
+    /**
+     * Get the arguments provided for an option.
+     * <p>
+     * If the option was not specified, or it was specified but no argument was provided, this method returns
+     * the empty List.
+     *
+     * @param option command option
+     * @return argument values for the given option, or the empty List if none was provided.
+     */
+    public List<String> getAllArgumentsFor( String option ) {
+        List<List<String>> allArgs = options.getOrDefault( option, Collections.emptyList() );
         int size = 0;
         for (List<String> list : allArgs) {
             size += list.size();
@@ -47,10 +76,22 @@ public class CommandInvocation {
         return result;
     }
 
-    public boolean hasArg( String argument ) {
-        return arguments.containsKey( argument );
+    /**
+     * Check if an option was provided during the command invocation.
+     *
+     * @param option option
+     * @return whether the option was provided by the user.
+     */
+    public boolean hasOption( String option ) {
+        return options.containsKey( option );
     }
 
+    /**
+     * Get unprocessed input, ie. the final part of the command invocation that did not match any
+     * command options/arguments.
+     *
+     * @return unprocessed input
+     */
     public String getUnprocessedInput() {
         return unprocessedInput;
     }
@@ -58,7 +99,7 @@ public class CommandInvocation {
     @Override
     public String toString() {
         return "CommandInvocation{" +
-                "arguments=" + arguments +
+                "options=" + options +
                 ", unprocessedInput='" + unprocessedInput + '\'' +
                 '}';
     }
