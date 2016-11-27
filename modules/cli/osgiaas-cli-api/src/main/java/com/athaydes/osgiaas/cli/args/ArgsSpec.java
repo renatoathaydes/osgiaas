@@ -230,28 +230,28 @@ public class ArgsSpec {
         }
 
         /**
-         * Argument a command might accept.
+         * An option a command might accept.
          * <p>
          * Call {@code end()} once all options have been set to retrieve the {@link ArgsSpecBuilder}.
          *
-         * @param argument of the command being specified
+         * @param option of the command being specified
          * @return this builder
          */
-        public ArgBuilder accepts( String argument ) {
-            return new ArgBuilder( argument );
+        public ArgBuilder accepts( String option ) {
+            return new ArgBuilder( option );
         }
 
         /**
-         * Argument a command might accept (in short and long form).
+         * An option a command might accept (in short and long form).
          * <p>
          * Call {@code end()} once all options have been set to retrieve the {@link ArgsSpecBuilder}.
          *
-         * @param argument     of the command being specified
-         * @param longArgument long form of the command being specified
+         * @param option     of the command being specified
+         * @param longOption long form of the given option
          * @return this builder
          */
-        public ArgBuilder accepts( String argument, String longArgument ) {
-            return new ArgBuilder( argument, longArgument );
+        public ArgBuilder accepts( String option, String longOption ) {
+            return new ArgBuilder( option, longOption );
         }
 
         /**
@@ -266,25 +266,25 @@ public class ArgsSpec {
          */
         public class ArgBuilder {
 
-            private final String name;
+            private final String option;
             @Nullable
-            private final String longName;
+            private final String longOption;
             private boolean mandatory = false;
             private int minArgs = 0;
             private int maxArgs = 0;
             private boolean allowMultiple = false;
 
-            private ArgBuilder( String name ) {
-                this( name, null );
+            private ArgBuilder( String option ) {
+                this( option, null );
             }
 
-            private ArgBuilder( String name, @Nullable String longName ) {
-                this.name = name;
-                this.longName = longName;
+            private ArgBuilder( String option, @Nullable String longOption ) {
+                this.option = option;
+                this.longOption = longOption;
             }
 
             /**
-             * Make this argument mandatory.
+             * Make this option mandatory.
              *
              * @return this builder
              */
@@ -294,9 +294,9 @@ public class ArgsSpec {
             }
 
             /**
-             * Set the exact number of arguments the command must take.
+             * Set the exact number of arguments the option must take.
              * <p>
-             * If the number of arguments the command might take is in a range of values,
+             * If the number of arguments the option might take is in a range of values,
              * use the {@link #withArgCount(int, int)} method.
              *
              * @param args exact number of arguments
@@ -307,9 +307,9 @@ public class ArgsSpec {
             }
 
             /**
-             * Set a range of the number of arguments the command must take.
+             * Set a range of the number of arguments the option must take.
              * <p>
-             * If the number of arguments the command might take is exact,
+             * If the number of arguments the option might take is exact,
              * use the {@link #withArgCount(int)} method.
              *
              * @param minArgs minimum number of arguments
@@ -329,7 +329,7 @@ public class ArgsSpec {
             }
 
             /**
-             * Allow this argument to be specified multiple times.
+             * Allow this option to be specified multiple times.
              * <p>
              * If not set, passing an argument more than once is considered an error.
              *
@@ -341,14 +341,14 @@ public class ArgsSpec {
             }
 
             /**
-             * End the specification of this argument.
+             * End the specification of this option.
              * <p>
              * To finalize the arguments specification, call {@link ArgsSpecBuilder#build()}.
              *
-             * @return the {@link ArgsSpecBuilder} currently being used to specify a command arguments.
+             * @return the {@link ArgsSpecBuilder} currently being used to specify a command's arguments.
              */
             public ArgsSpecBuilder end() {
-                arguments.add( new Arg( name, longName, mandatory, minArgs, maxArgs, allowMultiple ) );
+                arguments.add( new Arg( option, longOption, mandatory, minArgs, maxArgs, allowMultiple ) );
                 return ArgsSpecBuilder.this;
             }
 
