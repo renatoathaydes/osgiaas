@@ -135,7 +135,7 @@ class GroovyCommand implements StreamingCommand {
             new LineOutputStream( { String line ->
                 def result = ( callback as Closure ).call( line )
                 if ( result != null ) {
-                    println result
+                    out.println result
                 }
             } as Consumer<String>, out )
         } else {
