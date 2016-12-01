@@ -23,6 +23,17 @@ class Grabber {
      * @throws GrabException if there was a problem grabbing the artifact
      */
     GrabResult grab( String artifact ) {
+        grab( artifact, true )
+    }
+
+    /**
+     * Grabs an artifact from the one of the configured repositories.
+     * @param artifact to grab. Use the form "groupId:artifactId:version[:classifier]".
+     * @param transitive include transitive dependencies.
+     * @return the result of trying to grab the artifact, if successful.
+     * @throws GrabException if there was a problem grabbing the artifact
+     */
+    GrabResult grab( String artifact, boolean transitive ) {
         def parts = artifact.trim().split( ':' )
         if ( parts.size() == 3 || parts.size() == 4 ) {
             def group = parts[ 0 ]
@@ -32,12 +43,15 @@ class Grabber {
 
             def grapes = findGrapesHome()
 
-            def grape = downloadAndGetLocation( grapes, group, name, version, classifier )
+            def grape = downloadAndGetLocation( grapes, group, name, version, classifier, transitive )
             def grapeLocation = grape.file as File
             def grapeVersion = grape.version as String
 
             if ( grapeLocation.exists() ) {
-                def dependencies = collectGrapeDependencies( grapes, grapeLocation, grapeVersion )
+                def dependencies = transitive ?
+                        collectGrapeDependencies( grapes, grapeLocation, grapeVersion ) :
+                        Stream.<File> empty()
+
                 return new GrabResult( grapeVersion, grapeLocation, dependencies )
             } else {
                 throw new GrabException( "Grape was not saved in the expected location: $grapeLocation\n" )
@@ -67,8 +81,9 @@ class Grabber {
         grapesDir
     }
 
-    private void dowloadGrape( group, name, version, classifier = '' ) {
+    private void dowloadGrape( group, name, version, classifier = '', transitive = true ) {
         def grabInstruction = "@Grab(group='$group', module='$name', version='$version'" +
+                ( !transitive ? ', transitive=false' : '' ) +
                 ( classifier ? ", classifier='$classifier')" : ')' )
 
         String script = [ getReposString(), grabInstruction, 'import java.util.List' ].join( '\n' )
@@ -96,11 +111,11 @@ class Grabber {
         return dependencies
     }
 
-    private Map downloadAndGetLocation( File grapes, group, name, version, classifier = '' ) {
+    private Map downloadAndGetLocation( File grapes, group, name, version, classifier = '', transitive = true ) {
         def moduleDir = new File( grapes, "$group/$name" )
 
         try {
-            dowloadGrape( group, name, version, classifier )
+            dowloadGrape( group, name, version, classifier, transitive )
             def properties = new Properties()
             new File( moduleDir, "ivydata-${version}.properties" ).withInputStream {
                 properties.load( it )

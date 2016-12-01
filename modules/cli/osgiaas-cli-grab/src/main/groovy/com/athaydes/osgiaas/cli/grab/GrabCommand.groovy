@@ -12,14 +12,17 @@ import java.util.stream.Stream
 class GrabCommand implements Command {
 
     static final String ADD_REPO = '--add-repo'
-    static final String REMOVE_REPO = '--rm-repo'
+    static final String REMOVE_REPO = '--remove-repo'
     static final String LIST_REPOS = '--list-repos'
+    static final String NO_TRANSITIVE_DEPS = '-n'
+    static final String NO_TRANSITIVE_DEPS_LONG = '--no-transitive'
     static final String VERBOSE = '-v'
 
     final ArgsSpec argsSpec = ArgsSpec.builder()
             .accepts( ADD_REPO ).allowMultiple().withArgCount( 1, 2 ).end()
             .accepts( REMOVE_REPO ).allowMultiple().withArgCount( 1 ).end()
             .accepts( LIST_REPOS ).end()
+            .accepts( NO_TRANSITIVE_DEPS, NO_TRANSITIVE_DEPS_LONG ).end()
             .accepts( VERBOSE ).end()
             .build()
 
@@ -34,26 +37,28 @@ class GrabCommand implements Command {
     @Override
     String getShortDescription() {
         """
-            Grabs a Maven/Ivy artifact from a repository.
+            Grabs Maven/Ivy artifacts from local or remote repositories.
 
             Artifact coordinates, composed of groupId, artifactId, and version (optionally, with a classifier),
             should be joined with ':'.
 
-            Example: grab com.google.guava:guava:19.0
+            Example:
+
+            >> grab com.google.guava:guava:19.0
 
             The following options are supported:
 
-              * -v : verbose mode. Prints information about downloads.
-
-            Grab also supports the following sub-commands:
-
-              * $ADD_REPO [<repo-id>] <repo> : adds a repository to grab artifacts from.
-              * $REMOVE_REPO <repo-id> : removes a repository.
-              * $LIST_REPOS : lists existing repositories.
-
-            If <repo-id> is not given, the repo address is also used as its ID.
-
-            Example: grab --add-repo spring http://repo.spring.io/release
+              * $ADD_REPO [repo-id] repo:
+                adds a repository to grab artifacts from.
+                If <repo-id> is not given, the repo address is also used as its ID.
+              * $REMOVE_REPO repo-id:
+                removes a repository.
+              * $LIST_REPOS:
+                lists existing repositories.
+              * $NO_TRANSITIVE_DEPS, $NO_TRANSITIVE_DEPS_LONG:
+                do not grab transitive dependencies.
+              * $VERBOSE:
+                show verbose output.
             """.stripIndent()
     }
 
@@ -82,7 +87,9 @@ class GrabCommand implements Command {
                     def verbose = argMap.containsKey( VERBOSE ) ? 'true' : 'false'
                     System.setProperty( 'groovy.grape.report.downloads', verbose )
 
-                    grab rest, out, err, verbose.toBoolean()
+                    def transitive = !argMap.containsKey( NO_TRANSITIVE_DEPS )
+
+                    grab rest, out, err, verbose.toBoolean(), transitive
                 } else {
                     CommandHelper.printError( err, getUsage(), "Wrong number of arguments" )
                 }
@@ -128,9 +135,14 @@ class GrabCommand implements Command {
         allRepos.each { name, repo -> out.println "  * $name: $repo" }
     }
 
-    private void grab( String artifact, PrintStream out, PrintStream err, boolean verbose ) {
+    private void grab( String artifact, PrintStream out, PrintStream err,
+                       boolean verbose, boolean transitive ) {
         try {
-            def grabResult = new Grabber( repositories ).grab( artifact )
+            if ( verbose ) {
+                out.println( "Grabing $artifact${transitive ? ' and its dependencies' : ''}." )
+            }
+
+            def grabResult = new Grabber( repositories ).grab( artifact, transitive )
             def grapeFiles = Stream.concat( Stream.of( grabResult.grapeFile ), grabResult.dependencies )
             out.println grapeFiles.collect { "file://$it" }.join( ' ' )
         } catch ( GrabException e ) {
