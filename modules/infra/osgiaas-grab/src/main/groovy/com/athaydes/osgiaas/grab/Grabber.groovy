@@ -28,17 +28,17 @@ class Grabber {
 
     /**
      * Grabs an artifact from the one of the configured repositories.
-     * @param artifact to grab. Use the form "groupId:artifactId:version[:classifier]".
+     * @param artifact to grab. Use the form "groupId:artifactId[:version[:classifier]]".
      * @param transitive include transitive dependencies.
      * @return the result of trying to grab the artifact, if successful.
      * @throws GrabException if there was a problem grabbing the artifact
      */
     GrabResult grab( String artifact, boolean transitive ) {
         def parts = artifact.trim().split( ':' )
-        if ( parts.size() == 3 || parts.size() == 4 ) {
+        if ( parts.size() == 2 || parts.size() == 3 || parts.size() == 4 ) {
             def group = parts[ 0 ]
             def name = parts[ 1 ]
-            def version = parts[ 2 ]
+            def version = ( parts.size() > 2 ? parts[ 2 ] : 'latest.integration' )
             def classifier = ( parts.size() == 4 ? parts[ 3 ] : '' )
 
             def grapes = findGrapesHome()
@@ -83,7 +83,7 @@ class Grabber {
 
     private void dowloadGrape( group, name, version, classifier = '', transitive = true ) {
         def grabInstruction = "@Grab(group='$group', module='$name', version='$version'" +
-                ( !transitive ? ', transitive=false' : '' ) +
+                ( transitive ? '' : ', transitive=false' ) +
                 ( classifier ? ", classifier='$classifier')" : ')' )
 
         String script = [ getReposString(), grabInstruction, 'import java.util.List' ].join( '\n' )
