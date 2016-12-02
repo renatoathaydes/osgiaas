@@ -85,11 +85,15 @@ class GrabCommand implements Command {
                     removeRepo( reposToRemove, out, err )
                 } else if ( rest ) {
                     def verbose = argMap.containsKey( VERBOSE ) ? 'true' : 'false'
-                    System.setProperty( 'groovy.grape.report.downloads', verbose )
+                    def sysPropertyValue = System.setProperty( 'groovy.grape.report.downloads', verbose )
 
                     def transitive = !argMap.containsKey( NO_TRANSITIVE_DEPS )
 
-                    grab rest, out, err, verbose.toBoolean(), transitive
+                    try {
+                        grab rest, out, err, verbose.toBoolean(), transitive
+                    } finally {
+                        System.setProperty( 'groovy.grape.report.downloads', sysPropertyValue ?: 'false' )
+                    }
                 } else {
                     CommandHelper.printError( err, getUsage(), "Wrong number of arguments" )
                 }
