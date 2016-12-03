@@ -23,8 +23,8 @@ jar {
 dependencies {
     compile project( ':modules:infra:osgiaas-common' )
     compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
-    compile 'org.osgi:org.osgi.core:6.0.0'
-    compile 'org.osgi:org.osgi.service.component:1.3.0'
+    compileOnly 'org.osgi:org.osgi.core:6.0.0'
+    compileOnly 'org.osgi:org.osgi.service.component:1.3.0'
     compile 'org.slf4j:slf4j-api:1.7.21'
 }
 

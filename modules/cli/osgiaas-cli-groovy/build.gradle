@@ -12,11 +12,11 @@ description = 'OSGiaaS CLI Groovy Command'
 
 dependencies {
     compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
+    compileOnly 'org.osgi:osgi.core:6.0.0'
     compile project( ':modules:infra:osgiaas-common' )
     compile project( ':modules:cli:osgiaas-cli-api' )
     compile project( ':modules:lang:osgiaas-autocomplete' )
     compile 'org.codehaus.groovy:groovy-all:2.4.5'
-    compile 'org.osgi:osgi.core:6.0.0'
 
     testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
 }
