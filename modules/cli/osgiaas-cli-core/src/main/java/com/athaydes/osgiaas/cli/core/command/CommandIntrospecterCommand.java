@@ -7,14 +7,15 @@ import org.apache.felix.shell.Command;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceReference;
 
+import javax.annotation.Nullable;
 import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Command-introspecter command.
@@ -87,23 +88,36 @@ public class CommandIntrospecterCommand implements Command {
 
     private String summaryOf( CommandEntry commandEntry, boolean verbose ) {
         Bundle bundle = commandEntry.commandServiceReference.getBundle();
+        Map<String, String> serviceProperties = readServiceProperties( commandEntry.commandServiceReference );
+
         String bundleId = "[" + bundle.getBundleId() + "]";
         Command command = commandEntry.command;
         String bundleDescription = bundle.getSymbolicName() == null
                 ? bundleId
                 : bundle.getSymbolicName() + " " + bundleId;
 
-        String services = String.join( ", ",
-                Stream.of( ( String[] ) commandEntry.commandServiceReference.getProperty( "objectclass" ) )
-                        .collect( Collectors.toList() ) );
-
-        return "Name        : " + command.getName() +
+        return "Command     : " + command.getName() +
                 "\nUsage       : " + command.getUsage() +
                 ( verbose ? "\nDescription : " + command.getShortDescription() : "" ) +
                 ( verbose ? "\nBundle      : " + bundleDescription : "" ) +
                 ( verbose ? "\nClass name  : " + command.getClass().getName() : "" ) +
-                ( verbose ? "\nServices    : " + services : "" ) +
+                ( verbose ? "\nProperties  : " + serviceProperties : "" ) +
                 "\n---";
+    }
+
+    private static Map<String, String> readServiceProperties( ServiceReference<Command> commandServiceReference ) {
+        Map<String, String> result = new HashMap<>( commandServiceReference.getPropertyKeys().length );
+
+        for (String key : commandServiceReference.getPropertyKeys()) {
+            @Nullable Object value = commandServiceReference.getProperty( key );
+            if ( value instanceof Object[] ) {
+                value = Arrays.deepToString( ( Object[] ) value );
+            }
+            String stringValue = value == null ? "<null>" : value.toString();
+            result.put( key, stringValue );
+        }
+
+        return result;
     }
 
     private static class CommandEntry {
