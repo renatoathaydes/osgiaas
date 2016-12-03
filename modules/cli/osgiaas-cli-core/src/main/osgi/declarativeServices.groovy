@@ -131,6 +131,15 @@ component( name: 'useCommandCompleter', xmlns: SCR_NAMESPACE ) {
     cliPropertiesReference()
 }
 
+component( name: 'startCommandModifier', xmlns: SCR_NAMESPACE ) {
+    commonProperties()
+    implementation( 'class': 'com.athaydes.osgiaas.cli.core.command.StartCommandModifier' )
+    property( name: 'service.description', value: 'OsgiAAS Start and Install Command Modifier' )
+    service {
+        provide( 'interface': 'com.athaydes.osgiaas.cli.CommandModifier' )
+    }
+}
+
 component( name: 'helpCommandCompleter', xmlns: SCR_NAMESPACE ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.core.completer.HelpCommandCompleter' )
