@@ -3,3 +3,24 @@ apply plugin: 'osgi'
 apply plugin: 'maven'
 
 description = 'OSGiaaS Common Library'
+
+final javaTemplateDir = 'src/main/java-template'
+
+sourceSets {
+    main {
+        java.srcDirs = [ 'src/main/java', javaTemplateDir ]
+    }
+}
+
+// process generated files
+tasks.compileJava.doFirst {
+    println "Wiilll compiler java"
+    def generatedJavaDir = "$buildDir/generated-java"
+    new File( generatedJavaDir ).mkdirs()
+    copy {
+        from javaTemplateDir
+        into generatedJavaDir
+        expand( osgiaasVersion: project.version )
+    }
+    sourceSets.main.java.srcDirs = [ 'src/main/java', generatedJavaDir ]
+}
