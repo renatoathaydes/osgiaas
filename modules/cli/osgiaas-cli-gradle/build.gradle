@@ -1,0 +1,27 @@
+apply plugin: 'java'
+apply plugin: 'osgi'
+apply plugin: 'com.athaydes.osgi-ds'
+apply plugin: 'maven'
+
+repositories {
+    jcenter()
+}
+
+description = 'OSGiaaS Gradle. Runs Gradle programmatically.'
+
+jar {
+    manifest {
+        instruction 'Export-Package', ''
+    }
+}
+
+declarativeServices {
+    declarations = project.file( 'src/main/osgi/declarativeServices.groovy' )
+}
+
+dependencies {
+    compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
+
+    compile project( ':modules:infra:osgiaas-gradle' )
+    compile project( ':modules:cli:osgiaas-cli-api' )
+}
