@@ -5,6 +5,7 @@ include 'modules:infra:osgiaas-common',
         'modules:infra:osgiaas-grab',
         'modules:infra:osgiaas-autoupdate',
         'modules:infra:osgiaas-autoupdate-grabber',
+        'modules:infra:osgiaas-gradle',
         'modules:infra:slf4j-to-osgi-log'
 
 // language modules
