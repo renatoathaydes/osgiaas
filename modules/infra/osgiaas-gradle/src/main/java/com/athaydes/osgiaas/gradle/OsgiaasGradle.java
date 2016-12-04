@@ -38,6 +38,7 @@ public class OsgiaasGradle {
      * Create an instance of this class using System.out and System.err for Gradle output.
      *
      * @param gradleExecutable gradle executable to invoke.
+     * @param commandRunner    runner to use to execute commands
      */
     public OsgiaasGradle( String gradleExecutable, NativeCommandRunner commandRunner ) {
         this( gradleExecutable, commandRunner, System.out, System.err );
