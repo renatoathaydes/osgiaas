@@ -21,6 +21,7 @@ declarativeServices {
 
 dependencies {
     compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
+    compile 'org.apache.ivy:ivy:2.4.0'
 
     compile project( ':modules:infra:osgiaas-gradle' )
     compile project( ':modules:cli:osgiaas-cli-api' )
