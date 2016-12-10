@@ -7,7 +7,7 @@ repositories {
     jcenter()
 }
 
-description = 'OSGiaaS Gradle. Runs Gradle programmatically.'
+description = 'OSGiaaS Cli Ivy uses Apache Ivy to get dependencies.'
 
 jar {
     manifest {
@@ -23,6 +23,5 @@ dependencies {
     compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
     compile 'org.apache.ivy:ivy:2.4.0'
 
-    compile project( ':modules:infra:osgiaas-gradle' )
     compile project( ':modules:cli:osgiaas-cli-api' )
 }

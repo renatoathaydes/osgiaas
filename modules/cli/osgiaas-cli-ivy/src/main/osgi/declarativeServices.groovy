@@ -4,9 +4,9 @@ commonProperties = { ->
     property( name: 'service.vendor', value: 'com.athaydes' )
 }
 
-component( xmlns: SCR_NAMESPACE, deactivate: 'stop', name: 'ivyCommand' ) {
+component( xmlns: SCR_NAMESPACE, name: 'ivyCommand' ) {
     commonProperties()
-    implementation( 'class': 'com.athaydes.osgiaas.cli.gradle.IvyCommand' )
+    implementation( 'class': 'com.athaydes.osgiaas.cli.ivy.IvyCommand' )
     property( name: 'service.description', value: 'OSGiaaS CLI Ivy Command' )
     service {
         provide( 'interface': 'org.apache.felix.shell.Command' )
