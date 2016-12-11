@@ -7,10 +7,9 @@ import org.apache.felix.shell.Command;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.report.ResolveReport;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
 import java.io.PrintStream;
-import java.text.ParseException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -24,35 +23,19 @@ public class IvyCommand implements Command {
     public static final String REPOSITORIES_OPTION = "-r";
     public static final String DOWNLOAD_ALL_OPTION = "-a";
 
-    @Nullable
-    private Ivy defaultIvy = null;
+    private IvyFactory ivyFactory = new IvyFactory();
 
     private ArgsSpec argsSpec = ArgsSpec.builder()
             .accepts( INTRANSITIVE_OPTION, "--intransitive" ).end()
             .accepts( DOWNLOAD_ALL_OPTION, "--download-all" ).end()
-            .accepts( REPOSITORIES_OPTION, "--repositories" ).withArgCount( 1 ).end()
+            .accepts( REPOSITORIES_OPTION, "--repositories" ).withArgCount( 1 ).allowMultiple().end()
             .build();
-
-    private Ivy getDefaultIvy() {
-        if ( defaultIvy == null ) {
-            defaultIvy = Ivy.newInstance();
-            assert defaultIvy != null;
-
-            try {
-                defaultIvy.configure( getClass().getResource( "/ivy-settings.xml" ) );
-            } catch ( ParseException | IOException e ) {
-                e.printStackTrace();
-            }
-        }
-
-        return defaultIvy;
-    }
-
 
     @Override
     public String getName() {
         return "ivy";
     }
+
 
     @Override
     public String getUsage() {
@@ -91,12 +74,13 @@ public class IvyCommand implements Command {
             if ( dependencyParts.length == 3 ) {
                 version = dependencyParts[ 2 ];
             } else {
-                version = "latest";
+                version = "integration.latest";
             }
 
+            Ivy ivy = getIvy( invocation );
+
             try {
-                // TODO get another Ivy if repositories are specified
-                ResolveReport resolveReport = new IvyResolver( getDefaultIvy() )
+                ResolveReport resolveReport = new IvyResolver( ivy )
                         .includeTransitiveDependencies( !invocation.hasOption( INTRANSITIVE_OPTION ) )
                         .downloadJarOnly( !invocation.hasOption( DOWNLOAD_ALL_OPTION ) )
                         .resolve( group, module, version );
@@ -120,5 +104,17 @@ public class IvyCommand implements Command {
             }
         }
     }
+
+    private Ivy getIvy( CommandInvocation invocation ) {
+        return ivyFactory.getIvy( invocation.getAllArgumentsFor( REPOSITORIES_OPTION )
+                .stream().map( ( it ) -> {
+                    try {
+                        return new URL( it );
+                    } catch ( MalformedURLException e ) {
+                        throw new RuntimeException( "Invalid URL: " + it );
+                    }
+                } ).collect( Collectors.toSet() ) );
+    }
+
 
 }
