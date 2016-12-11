@@ -3,9 +3,9 @@
     <resolvers>
         <chain name="ivy-downloads" returnFirst="true">
             <filesystem name="ivyCache">
-                <ivy pattern="${user.home}/.groovy/grapes/[organisation]/[module]/ivy-[revision].xml"/>
+                <ivy pattern="${user.home}/.ivy2/cache/[organisation]/[module]/ivy-[revision].xml"/>
                 <artifact
-                        pattern="${user.home}/.groovy/grapes/[organisation]/[module]/[type]s/[artifact]-[revision](-[classifier]).[ext]"/>
+                        pattern="${user.home}/.ivy2/cache/[organisation]/[module]/[type]s/[artifact]-[revision](-[classifier]).[ext]"/>
             </filesystem>
             <ibiblio name="localm2" root="file:${user.home}/.m2/repository/" checkmodified="true" changingPattern=".*"
                      changingMatcher="regexp" m2compatible="true"/>

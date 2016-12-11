@@ -1,20 +1,13 @@
 package com.athaydes.osgiaas.cli.ivy;
 
 import com.athaydes.osgiaas.cli.CommandHelper;
+import com.athaydes.osgiaas.cli.CommandInvocation;
+import com.athaydes.osgiaas.cli.args.ArgsSpec;
 import org.apache.felix.shell.Command;
 import org.apache.ivy.Ivy;
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.Configuration;
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.ResolveReport;
-import org.apache.ivy.core.resolve.ResolveOptions;
-import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorWriter;
-import org.apache.ivy.util.filter.Filter;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.text.ParseException;
@@ -27,8 +20,18 @@ import java.util.stream.Stream;
  */
 public class IvyCommand implements Command {
 
+    public static final String INTRANSITIVE_OPTION = "-i";
+    public static final String REPOSITORIES_OPTION = "-r";
+    public static final String DOWNLOAD_ALL_OPTION = "-a";
+
     @Nullable
     private Ivy defaultIvy = null;
+
+    private ArgsSpec argsSpec = ArgsSpec.builder()
+            .accepts( INTRANSITIVE_OPTION, "--intransitive" ).end()
+            .accepts( DOWNLOAD_ALL_OPTION, "--download-all" ).end()
+            .accepts( REPOSITORIES_OPTION, "--repositories" ).withArgCount( 1 ).end()
+            .build();
 
     private Ivy getDefaultIvy() {
         if ( defaultIvy == null ) {
@@ -45,37 +48,6 @@ public class IvyCommand implements Command {
         return defaultIvy;
     }
 
-    public ResolveReport resolve( String group, String module, String version ) {
-        Ivy ivy = getDefaultIvy();
-
-        DefaultModuleDescriptor moduleDescriptor =
-                DefaultModuleDescriptor.newDefaultInstance( ModuleRevisionId.newInstance( group,
-                        module + "-caller", "working" ) );
-
-        moduleDescriptor.addConfiguration( new Configuration( "default" ) );
-
-        DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor( moduleDescriptor,
-                ModuleRevisionId.newInstance( group, module, version ), false, false, true );
-
-        moduleDescriptor.addDependency( dependencyDescriptor );
-
-        try {
-            File ivyfile = File.createTempFile( "ivy", ".xml" );
-            ivyfile.deleteOnExit();
-
-            XmlModuleDescriptorWriter.write( moduleDescriptor, ivyfile );
-
-            Filter jarsOnly = ( obj ) -> ( ( obj instanceof Artifact ) &&
-                    "jar".equals( ( ( Artifact ) obj ).getType() ) );
-
-            return ivy.resolve( ivyfile.toURI().toURL(), new ResolveOptions()
-                    .setConfs( new String[]{ "default" } )
-                    .setArtifactFilter( jarsOnly )
-                    .setTransitive( true ) );
-        } catch ( ParseException | IOException e ) {
-            throw new RuntimeException( e );
-        }
-    }
 
     @Override
     public String getName() {
@@ -94,42 +66,57 @@ public class IvyCommand implements Command {
 
     @Override
     public void execute( String line, PrintStream out, PrintStream err ) {
-        List<String> arguments = CommandHelper.breakupArguments( line, 4 );
+        CommandInvocation invocation = argsSpec.parse( line );
 
-        if ( arguments.size() != 3 ) {
+        List<String> arguments = CommandHelper.breakupArguments( invocation.getUnprocessedInput(), 2 );
+
+        if ( arguments.size() != 1 ) {
             CommandHelper.printError( err, getUsage(), "Wrong number of arguments" );
         } else {
-            String subCommand = arguments.get( 1 );
-            String dependency = arguments.get( 2 );
+            String dependency = arguments.get( 0 );
 
             String[] dependencyParts = dependency.split( ":" );
 
-            switch ( subCommand ) {
-                case "get":
-                    try {
-                        ResolveReport resolveReport = resolve(
-                                dependencyParts[ 0 ], dependencyParts[ 1 ], dependencyParts[ 2 ] );
+            String group, module, version;
 
-                        if ( resolveReport.hasError() ) {
-                            if ( resolveReport.getProblemMessages().isEmpty() ) {
-                                err.println( "Unable to resolve dependency. Are you sure it exists?" );
-                            } else {
-                                err.println( "Errors resolving dependency:" );
-                                for (Object problem : resolveReport.getProblemMessages()) {
-                                    out.println( "- " + problem );
-                                }
-                            }
-                        } else {
-                            out.println( Stream.of( resolveReport.getAllArtifactsReports() )
-                                    .map( it -> "file://" + it.getLocalFile().getAbsolutePath() )
-                                    .collect( Collectors.joining( " " ) ) );
+            if ( dependencyParts.length != 2 && dependencyParts.length != 3 ) {
+                CommandHelper.printError( err, getUsage(), "Invalid artifact description. " +
+                        "Must follow pattern group:module[:version]" );
+                return; // done
+            }
+
+            group = dependencyParts[ 0 ];
+            module = dependencyParts[ 1 ];
+
+            if ( dependencyParts.length == 3 ) {
+                version = dependencyParts[ 2 ];
+            } else {
+                version = "latest";
+            }
+
+            try {
+                // TODO get another Ivy if repositories are specified
+                ResolveReport resolveReport = new IvyResolver( getDefaultIvy() )
+                        .includeTransitiveDependencies( !invocation.hasOption( INTRANSITIVE_OPTION ) )
+                        .downloadJarOnly( !invocation.hasOption( DOWNLOAD_ALL_OPTION ) )
+                        .resolve( group, module, version );
+
+                if ( resolveReport.hasError() ) {
+                    if ( resolveReport.getProblemMessages().isEmpty() ) {
+                        err.println( "Unable to resolve dependency. Are you sure it exists?" );
+                    } else {
+                        err.println( "Errors resolving dependency:" );
+                        for (Object problem : resolveReport.getProblemMessages()) {
+                            out.println( "- " + problem );
                         }
-                    } catch ( RuntimeException e ) {
-                        err.println( e.getCause() );
                     }
-                    break;
-                default:
-                    CommandHelper.printError( err, getUsage(), "Unknown sub-command: " + subCommand );
+                } else {
+                    out.println( Stream.of( resolveReport.getAllArtifactsReports() )
+                            .map( it -> "file://" + it.getLocalFile().getAbsolutePath() )
+                            .collect( Collectors.joining( " " ) ) );
+                }
+            } catch ( RuntimeException e ) {
+                err.println( e.getCause() );
             }
         }
     }
