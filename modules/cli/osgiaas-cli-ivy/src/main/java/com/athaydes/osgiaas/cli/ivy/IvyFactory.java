@@ -8,9 +8,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -18,50 +21,59 @@ import java.util.stream.Collectors;
 /**
  * Creates or return a previously created {@link Ivy} instance depending on which repositories are used.
  */
-public class IvyFactory {
+class IvyFactory {
 
-    @Nullable
-    private Ivy defaultIvy = null;
-    @Nullable
-    private Ivy configuredIvy = null;
+    private static final String jcenter = "https://jcenter.bintray.com/";
 
-    private Set<URL> currentConfiguredIvyRepos = Collections.emptySet();
+    private static final String localM2Repository = "<ibiblio name=\"localm2\" " +
+            "root=\"file:${user.home}/.m2/repository/\" checkmodified=\"true\" " +
+            "changingPattern=\".*\" changingMatcher=\"regexp\" m2compatible=\"true\"/>";
+
+    private final Set<URL> defaultRepositories;
+    private Map<RepositoryConfig, Ivy> ivyByConfig = new HashMap<>();
+
+    IvyFactory() {
+        URL jcenterURL;
+        try {
+            jcenterURL = new URL( jcenter );
+        } catch ( MalformedURLException e ) {
+            throw new IllegalStateException( "JCenter URL constant has an invalid value", e );
+        }
+
+        defaultRepositories = Collections.singleton( jcenterURL );
+    }
+
+    /**
+     * Create the default {@link Ivy} instance with the default repositories and using Maven local.
+     */
+    void createDefaultConfig() {
+        RepositoryConfig defaultConfig = new RepositoryConfig( defaultRepositories, true );
+        ivyByConfig.put( defaultConfig, createIvyWith( defaultConfig ) );
+    }
 
     /**
      * Create or re-use an Ivy instance using the provided repositories.
      *
-     * @param repositories URL to Maven repositories
+     * @param repositories      URL to Maven repositories or null to use the default repositories (JCenter).
+     * @param includeMavenLocal include the Maven local repository
      * @return Ivy instance (may be re-used)
      */
-    Ivy getIvy( Set<URL> repositories ) {
-        if ( repositories.isEmpty() ) {
-            return getDefaultIvy();
-        } else if ( configuredIvy != null && currentConfiguredIvyRepos.equals( repositories ) ) {
-            assert configuredIvy != null;
-            return configuredIvy;
-        } else {
-            return getIvyWith( repositories );
-        }
-    }
-
-    private Ivy getDefaultIvy() {
-        if ( defaultIvy == null ) {
-            defaultIvy = Ivy.newInstance();
-            assert defaultIvy != null;
-
-            try {
-                defaultIvy.configure( IvyFactory.class.getResource( "/ivy-settings.xml" ) );
-            } catch ( ParseException | IOException e ) {
-                e.printStackTrace();
-            }
+    Ivy getIvy( @Nullable Set<URL> repositories, boolean includeMavenLocal ) {
+        if ( repositories == null ) {
+            repositories = defaultRepositories;
         }
 
-        return defaultIvy;
+        RepositoryConfig config = new RepositoryConfig( repositories, includeMavenLocal );
+
+        if ( !ivyByConfig.containsKey( config ) ) {
+            ivyByConfig.put( config, createIvyWith( config ) );
+        }
+
+        return ivyByConfig.get( config );
     }
 
-    private Ivy getIvyWith( Set<URL> repositories ) {
-        configuredIvy = Ivy.newInstance();
-        assert configuredIvy != null;
+    private Ivy createIvyWith( RepositoryConfig config ) {
+        Ivy ivy = Ivy.newInstance();
 
         AtomicBoolean repositoriesFound = new AtomicBoolean( false );
 
@@ -76,7 +88,7 @@ public class IvyFactory {
                     if ( !repositoriesFound.get() ) {
                         if ( it.matches( "\\s*\\$\\{\\s*REPOSITORIES\\s*}\\s*" ) ) {
                             repositoriesFound.set( true );
-                            return xmlForRepositories( repositories );
+                            return xmlForRepositories( config );
                         }
                     }
 
@@ -90,21 +102,57 @@ public class IvyFactory {
                 } );
             }
 
-            configuredIvy.configure( tempSettings );
-            currentConfiguredIvyRepos = repositories;
+            ivy.configure( tempSettings );
         } catch ( ParseException | IOException e ) {
             e.printStackTrace();
         }
 
-        return configuredIvy;
+        return ivy;
     }
 
-    private String xmlForRepositories( Set<URL> repositories ) {
-        return repositories.stream()
+    private String xmlForRepositories( RepositoryConfig config ) {
+        String localRepo = config.useMavenLocal ? localM2Repository : "";
+        return localRepo + config.configuredIvyRepos.stream()
                 .map( it -> String.format(
                         "<ibiblio name=\"%s-%s\" root=\"%s/\" m2compatible=\"true\"/>",
                         it.getHost(), it.getPath(), it.toString() ) )
                 .collect( Collectors.joining() );
+    }
+
+    private static class RepositoryConfig {
+        Set<URL> configuredIvyRepos;
+        boolean useMavenLocal;
+
+        RepositoryConfig( Set<URL> configuredIvyRepos, boolean useMavenLocal ) {
+            this.configuredIvyRepos = configuredIvyRepos;
+            this.useMavenLocal = useMavenLocal;
+        }
+
+        @Override
+        public boolean equals( Object o ) {
+            if ( this == o ) return true;
+            if ( o == null || getClass() != o.getClass() ) return false;
+
+            RepositoryConfig that = ( RepositoryConfig ) o;
+
+            if ( useMavenLocal != that.useMavenLocal ) return false;
+            return configuredIvyRepos.equals( that.configuredIvyRepos );
+        }
+
+        @Override
+        public int hashCode() {
+            int result = configuredIvyRepos.hashCode();
+            result = 31 * result + ( useMavenLocal ? 1 : 0 );
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return "RepositoryConfig{" +
+                    "configuredIvyRepos=" + configuredIvyRepos +
+                    ", useMavenLocal=" + useMavenLocal +
+                    '}';
+        }
     }
 
 }

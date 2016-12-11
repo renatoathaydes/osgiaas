@@ -4,7 +4,7 @@ commonProperties = { ->
     property( name: 'service.vendor', value: 'com.athaydes' )
 }
 
-component( xmlns: SCR_NAMESPACE, name: 'ivyCommand' ) {
+component( xmlns: SCR_NAMESPACE, name: 'ivyCommand', activate: 'start' ) {
     commonProperties()
     implementation( 'class': 'com.athaydes.osgiaas.cli.ivy.IvyCommand' )
     property( name: 'service.description', value: 'OSGiaaS CLI Ivy Command' )

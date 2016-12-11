@@ -21,6 +21,7 @@ public class IvyCommand implements Command {
 
     public static final String INTRANSITIVE_OPTION = "-i";
     public static final String REPOSITORIES_OPTION = "-r";
+    public static final String NO_MAVEN_LOCAL_OPTION = "-n";
     public static final String DOWNLOAD_ALL_OPTION = "-a";
 
     private IvyFactory ivyFactory = new IvyFactory();
@@ -28,14 +29,18 @@ public class IvyCommand implements Command {
     private ArgsSpec argsSpec = ArgsSpec.builder()
             .accepts( INTRANSITIVE_OPTION, "--intransitive" ).end()
             .accepts( DOWNLOAD_ALL_OPTION, "--download-all" ).end()
+            .accepts( NO_MAVEN_LOCAL_OPTION, "--no-maven-local" ).end()
             .accepts( REPOSITORIES_OPTION, "--repositories" ).withArgCount( 1 ).allowMultiple().end()
             .build();
+
+    public void start() {
+        ivyFactory.createDefaultConfig();
+    }
 
     @Override
     public String getName() {
         return "ivy";
     }
-
 
     @Override
     public String getUsage() {
@@ -106,15 +111,16 @@ public class IvyCommand implements Command {
     }
 
     private Ivy getIvy( CommandInvocation invocation ) {
-        return ivyFactory.getIvy( invocation.getAllArgumentsFor( REPOSITORIES_OPTION )
+        return ivyFactory.getIvy( invocation.hasOption( REPOSITORIES_OPTION )
+                ? invocation.getAllArgumentsFor( REPOSITORIES_OPTION )
                 .stream().map( ( it ) -> {
                     try {
                         return new URL( it );
                     } catch ( MalformedURLException e ) {
                         throw new RuntimeException( "Invalid URL: " + it );
                     }
-                } ).collect( Collectors.toSet() ) );
+                } ).collect( Collectors.toSet() )
+                : null, !invocation.hasOption( NO_MAVEN_LOCAL_OPTION ) );
     }
-
 
 }
