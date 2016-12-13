@@ -135,8 +135,8 @@ class IvyFactory {
 
             RepositoryConfig that = ( RepositoryConfig ) o;
 
-            if ( useMavenLocal != that.useMavenLocal ) return false;
-            return configuredIvyRepos.equals( that.configuredIvyRepos );
+            return useMavenLocal == that.useMavenLocal &&
+                    configuredIvyRepos.equals( that.configuredIvyRepos );
         }
 
         @Override

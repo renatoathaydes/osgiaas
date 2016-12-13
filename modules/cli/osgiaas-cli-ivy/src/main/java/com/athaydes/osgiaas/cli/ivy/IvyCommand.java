@@ -20,17 +20,21 @@ import java.util.stream.Stream;
 public class IvyCommand implements Command {
 
     public static final String INTRANSITIVE_OPTION = "-i";
+    public static final String INTRANSITIVE_LONG_OPTION = "--intransitive";
     public static final String REPOSITORIES_OPTION = "-r";
+    public static final String REPOSITORIES_LONG_OPTION = "--repository";
     public static final String NO_MAVEN_LOCAL_OPTION = "-n";
+    public static final String NO_MAVEN_LOCAL_LONG_OPTION = "--no-maven-local";
     public static final String DOWNLOAD_ALL_OPTION = "-a";
+    public static final String DOWNLOAD_ALL_LONG_OPTION = "--download-all";
 
     private IvyFactory ivyFactory = new IvyFactory();
 
     private ArgsSpec argsSpec = ArgsSpec.builder()
-            .accepts( INTRANSITIVE_OPTION, "--intransitive" ).end()
-            .accepts( DOWNLOAD_ALL_OPTION, "--download-all" ).end()
-            .accepts( NO_MAVEN_LOCAL_OPTION, "--no-maven-local" ).end()
-            .accepts( REPOSITORIES_OPTION, "--repositories" ).withArgCount( 1 ).allowMultiple().end()
+            .accepts( INTRANSITIVE_OPTION, INTRANSITIVE_LONG_OPTION ).end()
+            .accepts( DOWNLOAD_ALL_OPTION, DOWNLOAD_ALL_LONG_OPTION ).end()
+            .accepts( NO_MAVEN_LOCAL_OPTION, NO_MAVEN_LOCAL_LONG_OPTION ).end()
+            .accepts( REPOSITORIES_OPTION, REPOSITORIES_LONG_OPTION ).withArgCount( 1 ).allowMultiple().end()
             .build();
 
     public void start() {
@@ -44,12 +48,27 @@ public class IvyCommand implements Command {
 
     @Override
     public String getUsage() {
-        return "ivy <sub-command>";
+        return "ivy [option] group:module[:version]";
     }
 
     @Override
     public String getShortDescription() {
-        return "Resolve or retrieve artifacts using Apache Ivy";
+        return "Retrieves Ivy/Maven artifacts using Apache Ivy.\n\n" +
+                "The ivy command supports the following options:\n\n" +
+                "  * " + INTRANSITIVE_OPTION + ", " + INTRANSITIVE_LONG_OPTION + "\n" +
+                "    do not retrieve transitive dependencies.\n" +
+                "  * " + DOWNLOAD_ALL_OPTION + ", " + DOWNLOAD_ALL_LONG_OPTION + "\n" +
+                "    download also javadocs and sources jars if available.\n" +
+                "  * " + NO_MAVEN_LOCAL_OPTION + ", " + NO_MAVEN_LOCAL_LONG_OPTION + "\n" +
+                "    do not use the Maven local repository.\n" +
+                "  * " + REPOSITORIES_OPTION + ", " + REPOSITORIES_LONG_OPTION + " repository-url\n" +
+                "    specify repositories to use to search for artifacts (uses JCenter by default).\n\n" +
+                "Example:\n" +
+                ">> ivy -i io.javaslang:javaslang:2.1.0-alpha\n\n" +
+                "The output of the ivy command is a file URL that can be recognized by the 'install' and 'start'" +
+                " commands.\n" +
+                "Example to download and immediately start a library:\n\n" +
+                ">> ivy io.javaslang:javaslang:2.1.0-alpha | start";
     }
 
     @Override
@@ -79,7 +98,7 @@ public class IvyCommand implements Command {
             if ( dependencyParts.length == 3 ) {
                 version = dependencyParts[ 2 ];
             } else {
-                version = "integration.latest";
+                version = "latest.integration";
             }
 
             Ivy ivy = getIvy( invocation );
