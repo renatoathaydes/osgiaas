@@ -9,7 +9,7 @@ class ArgsSpecSpecification extends Specification {
     def "It should be very easy to specify command arguments"() {
         given: 'An ArgsSpec is built with a few simple options'
         def spec = ArgsSpec.builder()
-                .accepts( '-f' ).mandatory().withArgCount( 1 ).end()
+                .accepts( '-f' ).mandatory().withArgs( "file" ).end()
                 .accepts( '--no-fuss' ).end()
                 .build()
 
@@ -31,7 +31,7 @@ class ArgsSpecSpecification extends Specification {
     def "It should be easy to specify long form command arguments"() {
         given: 'An ArgsSpec is built with a few simple options and long options'
         def spec = ArgsSpec.builder()
-                .accepts( '-f', '--fuss' ).mandatory().withArgCount( 1 ).end()
+                .accepts( '-f', '--fuss' ).mandatory().withArgs( "file" ).end()
                 .accepts( '-n', '--no-fuss' ).end()
                 .build()
 
@@ -56,7 +56,7 @@ class ArgsSpecSpecification extends Specification {
     def "Command options may take multiple arguments"() {
         given: 'An ArgsSpec is built with options that take multiple options'
         def spec = ArgsSpec.builder()
-                .accepts( '-f' ).allowMultiple().withArgCount( 1, 3 ).end()
+                .accepts( '-f' ).allowMultiple().withArgs( "a" ).withOptionalArgs( "b", "c" ).end()
                 .accepts( '--no-fuss' ).end()
                 .build()
 
@@ -82,7 +82,7 @@ class ArgsSpecSpecification extends Specification {
     def "Missing mandatory argument should cause an error"() {
         given: 'An ArgsSpec is built with a few options, including mandatory options'
         def spec = ArgsSpec.builder()
-                .accepts( '-f' ).mandatory().withArgCount( 1, 3 ).end()
+                .accepts( '-f' ).mandatory().withArgs( "a" ).withOptionalArgs( "b", "c" ).end()
                 .accepts( 'a' ).mandatory().end()
                 .accepts( '-n', '--no-fuss' ).end()
                 .build()
@@ -110,8 +110,8 @@ class ArgsSpecSpecification extends Specification {
     def "Missing argument to parameter causes an error"() {
         given: 'An ArgsSpec is built with a few options, including mandatory argument options'
         def spec = ArgsSpec.builder()
-                .accepts( '-f' ).mandatory().withArgCount( 1, 3 ).end()
-                .accepts( '-a', '--aaa' ).withArgCount( 1 ).end()
+                .accepts( '-f' ).mandatory().withArgs( "a" ).withOptionalArgs( "b", "c" ).end()
+                .accepts( '-a', '--aaa' ).withArgs( "a" ).end()
                 .accepts( '--no-fuss' ).end()
                 .build()
 
@@ -134,7 +134,7 @@ class ArgsSpecSpecification extends Specification {
     def "Command itself must always be removed from the results"() {
         given: 'An ArgsSpec with no mandatory options'
         def spec = ArgsSpec.builder()
-                .accepts( '-f' ).withArgCount( 1 ).end()
+                .accepts( '-f' ).withArgs( "file" ).end()
                 .build()
 
         when: 'some example command invocations are parsed'
@@ -153,20 +153,55 @@ class ArgsSpecSpecification extends Specification {
         'hello -f a b cde' | [ '-f': [ [ 'a' ] ] ] | 'b cde'
     }
 
-    def "Using negative argument count range should cause an error"() {
-        when: 'An ArgsSpec is created with argument containing a negative range'
-        ArgsSpec.builder()
-                .accepts( 'a' ).withArgCount( start, end ).end()
+    def "Documentation for extremely simple command works as expected"() {
+        given: 'An extremely simple ArgsSpec'
+        def spec = ArgsSpec.builder()
+                .accepts( 'a' ).mandatory().end()
                 .build()
 
-        then: 'An error is thrown'
-        thrown IllegalArgumentException
+        when: 'we request documentation for the ArgsSpec'
+        def result = spec.documentation
 
-        where:
-        start | end
-        1     | -1
-        -1    | 1
-        -10   | -30
+        then: 'the documentation is as expected'
+        result == '''* a'''
+    }
+
+    def "Documentation for simple command works as expected"() {
+        given: 'A simple ArgsSpec'
+        def spec = ArgsSpec.builder()
+                .accepts( 'a' ).end()
+                .accepts( 'bc' ).withArgs( 'hi' ).withDescription( 'this is description' ).end()
+                .build()
+
+        when: 'we request documentation for the ArgsSpec'
+        def result = spec.documentation
+
+        then: 'the documentation is as expected'
+        result == """|* [a]
+            |* [bc] <hi>
+            |  this is description""".stripMargin()
+    }
+
+    def "Documentation for complex command works as expected"() {
+        given: 'A complex ArgsSpec'
+        def spec = ArgsSpec.builder()
+                .accepts( '-a' ).allowMultiple().end()
+                .accepts( '-z', '--zzz' ).mandatory().allowMultiple().end()
+                .accepts( 'bc' ).withArgs( 'hi' ).withDescription( 'this is description' ).end()
+                .accepts( '-f', '--file' ).mandatory().withArgs( 'hi', 'bye' )
+                .withOptionalArgs( 'ho', 'ho' ).withDescription( 'very complex one' ).end()
+                .build()
+
+        when: 'we request documentation for the ArgsSpec'
+        def result = spec.documentation
+
+        then: 'the documentation is as expected'
+        result == """|* [-a…]
+            |* -z…, --zzz… <hi>
+            |* [bc] <hi>
+            |  this is description
+            |* -f, --file <hi> <bye> [<ho> <no>]
+            |  very complex one""".stripMargin()
     }
 
 }

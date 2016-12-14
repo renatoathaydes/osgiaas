@@ -19,8 +19,8 @@ class GrabCommand implements Command {
     static final String VERBOSE = '-v'
 
     final ArgsSpec argsSpec = ArgsSpec.builder()
-            .accepts( ADD_REPO ).allowMultiple().withArgCount( 1, 2 ).end()
-            .accepts( REMOVE_REPO ).allowMultiple().withArgCount( 1 ).end()
+            .accepts( ADD_REPO ).allowMultiple().withArgs( "repo-id" ).withOptionalArgs( "repo-url" ).end()
+            .accepts( REMOVE_REPO ).allowMultiple().withArgs( "repo-id" ).end()
             .accepts( LIST_REPOS ).end()
             .accepts( NO_TRANSITIVE_DEPS, NO_TRANSITIVE_DEPS_LONG ).end()
             .accepts( VERBOSE ).end()

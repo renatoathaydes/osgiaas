@@ -8,7 +8,6 @@ import javax.annotation.Nullable;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -18,7 +17,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.joining;
 
 /**
  * Command arguments specification.
@@ -50,26 +51,65 @@ public class ArgsSpec {
         this.mandatoryArgKeys = Collections.unmodifiableSet( tempMandatoryArgs );
     }
 
+    private void appendArg( StringBuilder builder, String arg, boolean mandatory, boolean allowMultiple ) {
+        if ( mandatory ) {
+            builder.append( arg );
+            if ( allowMultiple ) {
+                builder.append( "…" );
+            }
+        } else {
+            builder.append( "[" ).append( arg );
+            if ( allowMultiple ) {
+                builder.append( "…" );
+            }
+            builder.append( "]" );
+        }
+    }
+
     /**
      * @return documentation for the specified options.
      */
     public String getDocumentation() {
         Function<Arg, String> documentArg = ( arg ) -> {
             StringBuilder builder = new StringBuilder();
-            builder.append( "* " ).append( arg.key );
+            builder.append( "* " );
+
+            appendArg( builder, arg.key, arg.mandatory, arg.allowMultiple );
+
             if ( arg.longKey != null ) {
-                builder.append( ", " ).append( arg.longKey );
+                builder.append( ", " );
+                appendArg( builder, arg.longKey, arg.mandatory, arg.allowMultiple );
             }
+
+            if ( arg.mandatoryArgs.length > 0 ) {
+                builder.append( " " );
+                builder.append( Stream.of( arg.mandatoryArgs )
+                        .map( it -> "<" + it + ">" )
+                        .collect( joining( " " ) ) );
+            }
+
+            if ( arg.optionalArgs.length > 0 ) {
+                if ( arg.mandatoryArgs.length > 0 ) {
+                    builder.append( " " );
+                }
+                builder.append( "[" )
+                        .append( Stream.of( arg.optionalArgs )
+                                .map( it -> "<" + it + ">" )
+                                .collect( joining( " " ) ) )
+                        .append( "]" );
+            }
+
             if ( arg.description != null ) {
                 builder.append( "\n" ).append( "  " ).append( arg.description );
             }
+
             return builder.toString();
         };
 
-        return argMap.entrySet().stream().sorted( Comparator.comparing( a -> a.getValue().key ) )
+        return argMap.entrySet().stream()
                 .map( Entry::getValue )
                 .map( documentArg )
-                .collect( Collectors.joining( "\n" ) );
+                .collect( joining( "\n" ) );
     }
 
     /**
@@ -226,23 +266,24 @@ public class ArgsSpec {
         @Nullable
         private final String description;
         private final boolean mandatory;
+        private final String[] mandatoryArgs;
+        private final String[] optionalArgs;
         private final int minArgs;
         private final int maxArgs;
         private final boolean allowMultiple;
 
         private Arg( String key, @Nullable String longKey, @Nullable String description, boolean mandatory,
-                     int minArgs, int maxArgs, boolean allowMultiple ) {
-            if ( minArgs < 0 || maxArgs < 0 ) {
-                throw new IllegalArgumentException( "Invalid argument count range. " +
-                        "Must not contain negative limits: " + minArgs + ", " + maxArgs );
-            }
+                     String[] mandatoryArgs, String[] optionalArgs, boolean allowMultiple ) {
             this.key = key;
             this.longKey = longKey;
             this.description = description;
             this.mandatory = mandatory;
-            this.minArgs = minArgs;
-            this.maxArgs = maxArgs;
+            this.mandatoryArgs = mandatoryArgs;
+            this.optionalArgs = optionalArgs;
             this.allowMultiple = allowMultiple;
+
+            this.minArgs = mandatoryArgs.length;
+            this.maxArgs = mandatoryArgs.length + optionalArgs.length;
         }
     }
 
@@ -300,8 +341,8 @@ public class ArgsSpec {
             @Nullable
             private String description;
             private boolean mandatory = false;
-            private int minArgs = 0;
-            private int maxArgs = 0;
+            private String[] mandatoryArgs = { };
+            private String[] optionalArgs = { };
             private boolean allowMultiple = false;
 
             private ArgBuilder( String option ) {
@@ -335,37 +376,28 @@ public class ArgsSpec {
             }
 
             /**
-             * Set the exact number of arguments the option must take.
+             * Set mandatory named arguments the option must take.
              * <p>
-             * If the number of arguments the option might take is in a range of values,
-             * use the {@link #withArgCount(int, int)} method.
+             * The named arguments are used both to know how many arguments to parse and for documentation.
              *
-             * @param args exact number of arguments
+             * @param args named arguments
              * @return this builder
              */
-            public ArgBuilder withArgCount( int args ) {
-                return withArgCount( args, args );
+            public ArgBuilder withArgs( String... args ) {
+                this.mandatoryArgs = args;
+                return this;
             }
 
             /**
-             * Set a range of the number of arguments the option must take.
+             * Set the optional named arguments the option might take.
              * <p>
-             * If the number of arguments the option might take is exact,
-             * use the {@link #withArgCount(int)} method.
+             * The named arguments are used both to know how many arguments to parse and for documentation.
              *
-             * @param minArgs minimum number of arguments
-             * @param maxArgs maximum number of arguments
+             * @param args named arguments
              * @return this builder
              */
-            public ArgBuilder withArgCount( int minArgs, int maxArgs ) {
-                if ( minArgs > maxArgs ) {
-                    throw new IllegalArgumentException( "minArgs > maxArgs" );
-                }
-                if ( minArgs < 0 || maxArgs < 0 ) {
-                    throw new IllegalArgumentException( "minArgs or maxArgs < 0" );
-                }
-                this.minArgs = minArgs;
-                this.maxArgs = maxArgs;
+            public ArgBuilder withOptionalArgs( String... args ) {
+                this.optionalArgs = args;
                 return this;
             }
 
@@ -389,7 +421,8 @@ public class ArgsSpec {
              * @return the {@link ArgsSpecBuilder} currently being used to specify a command's arguments.
              */
             public ArgsSpecBuilder end() {
-                arguments.add( new Arg( option, longOption, description, mandatory, minArgs, maxArgs, allowMultiple ) );
+                arguments.add( new Arg( option, longOption, description, mandatory,
+                        mandatoryArgs, optionalArgs, allowMultiple ) );
                 return ArgsSpecBuilder.this;
             }
 

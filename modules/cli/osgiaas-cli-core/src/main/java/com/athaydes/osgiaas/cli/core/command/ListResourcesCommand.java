@@ -41,7 +41,7 @@ public class ListResourcesCommand implements Command {
             .accepts( RECURSIVE_OPTION, RECURSIVE_LONG_OPTION ).end()
             .accepts( SHOW_ALL_OPTION, SHOW_ALL_LONG_OPTION ).end()
             .accepts( VERBOSE_OPTION, VERBOSE_LONG_OPTION ).end()
-            .accepts( PATTERN_OPTION, PATTERN_LONG_OPTION ).withArgCount( 1 ).end()
+            .accepts( PATTERN_OPTION, PATTERN_LONG_OPTION ).withArgs( "regex" ).end()
             .build();
 
     public static Function<String, String> searchTransform = ( search ) ->

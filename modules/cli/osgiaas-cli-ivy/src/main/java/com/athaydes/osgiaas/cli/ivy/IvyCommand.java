@@ -34,7 +34,7 @@ public class IvyCommand implements Command {
             .accepts( INTRANSITIVE_OPTION, INTRANSITIVE_LONG_OPTION ).end()
             .accepts( DOWNLOAD_ALL_OPTION, DOWNLOAD_ALL_LONG_OPTION ).end()
             .accepts( NO_MAVEN_LOCAL_OPTION, NO_MAVEN_LOCAL_LONG_OPTION ).end()
-            .accepts( REPOSITORIES_OPTION, REPOSITORIES_LONG_OPTION ).withArgCount( 1 ).allowMultiple().end()
+            .accepts( REPOSITORIES_OPTION, REPOSITORIES_LONG_OPTION ).withArgs( "repo-url" ).allowMultiple().end()
             .build();
 
     public void start() {

@@ -66,8 +66,8 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
     public static final String CASE_INSENSITIVE_LONG_ARG = "--ignore-case";
 
     private final ArgsSpec argsSpec = ArgsSpec.builder()
-            .accepts( FOREGROUND_ARG, FOREGROUND_LONG_ARG ).withArgCount( 1 ).end()
-            .accepts( BACKGROUND_ARG, BACKGROUND_LONG_ARG ).withArgCount( 1 ).end()
+            .accepts( FOREGROUND_ARG, FOREGROUND_LONG_ARG ).withArgs( "color" ).end()
+            .accepts( BACKGROUND_ARG, BACKGROUND_LONG_ARG ).withArgs( "color" ).end()
             .accepts( CASE_INSENSITIVE_ARG, CASE_INSENSITIVE_LONG_ARG ).end()
             .build();
 

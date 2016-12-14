@@ -25,8 +25,8 @@ public class GrepCommand implements StreamingCommand {
     public static final String CASE_INSENSITIVE_LONG_ARG = "--ignore-case";
 
     private final ArgsSpec argsSpec = ArgsSpec.builder()
-            .accepts( BEFORE_ARG ).withArgCount( 1 ).end()
-            .accepts( AFTER_ARG ).withArgCount( 1 ).end()
+            .accepts( BEFORE_ARG ).withArgs( "lines" ).end()
+            .accepts( AFTER_ARG ).withArgs( "lines" ).end()
             .accepts( CASE_INSENSITIVE_ARG ).end()
             .build();
 
