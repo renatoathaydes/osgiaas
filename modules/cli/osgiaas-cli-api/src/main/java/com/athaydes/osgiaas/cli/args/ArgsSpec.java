@@ -8,6 +8,7 @@ import javax.annotation.Nullable;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -16,6 +17,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Command arguments specification.
@@ -45,6 +48,28 @@ public class ArgsSpec {
 
         this.argMap = Collections.unmodifiableMap( tempArgMap );
         this.mandatoryArgKeys = Collections.unmodifiableSet( tempMandatoryArgs );
+    }
+
+    /**
+     * @return documentation for the specified options.
+     */
+    public String getDocumentation() {
+        Function<Arg, String> documentArg = ( arg ) -> {
+            StringBuilder builder = new StringBuilder();
+            builder.append( "* " ).append( arg.key );
+            if ( arg.longKey != null ) {
+                builder.append( ", " ).append( arg.longKey );
+            }
+            if ( arg.description != null ) {
+                builder.append( "\n" ).append( "  " ).append( arg.description );
+            }
+            return builder.toString();
+        };
+
+        return argMap.entrySet().stream().sorted( Comparator.comparing( a -> a.getValue().key ) )
+                .map( Entry::getValue )
+                .map( documentArg )
+                .collect( Collectors.joining( "\n" ) );
     }
 
     /**
@@ -198,12 +223,14 @@ public class ArgsSpec {
         private final String key;
         @Nullable
         private final String longKey;
+        @Nullable
+        private final String description;
         private final boolean mandatory;
         private final int minArgs;
         private final int maxArgs;
         private final boolean allowMultiple;
 
-        private Arg( String key, @Nullable String longKey, boolean mandatory,
+        private Arg( String key, @Nullable String longKey, @Nullable String description, boolean mandatory,
                      int minArgs, int maxArgs, boolean allowMultiple ) {
             if ( minArgs < 0 || maxArgs < 0 ) {
                 throw new IllegalArgumentException( "Invalid argument count range. " +
@@ -211,6 +238,7 @@ public class ArgsSpec {
             }
             this.key = key;
             this.longKey = longKey;
+            this.description = description;
             this.mandatory = mandatory;
             this.minArgs = minArgs;
             this.maxArgs = maxArgs;
@@ -269,6 +297,8 @@ public class ArgsSpec {
             private final String option;
             @Nullable
             private final String longOption;
+            @Nullable
+            private String description;
             private boolean mandatory = false;
             private int minArgs = 0;
             private int maxArgs = 0;
@@ -281,6 +311,17 @@ public class ArgsSpec {
             private ArgBuilder( String option, @Nullable String longOption ) {
                 this.option = option;
                 this.longOption = longOption;
+            }
+
+            /**
+             * Provide a description for this option, so that it can be added to its documentation.
+             *
+             * @param description of this option
+             * @return this builder
+             */
+            public ArgBuilder withDescription( String description ) {
+                this.description = description;
+                return this;
             }
 
             /**
@@ -348,7 +389,7 @@ public class ArgsSpec {
              * @return the {@link ArgsSpecBuilder} currently being used to specify a command's arguments.
              */
             public ArgsSpecBuilder end() {
-                arguments.add( new Arg( option, longOption, mandatory, minArgs, maxArgs, allowMultiple ) );
+                arguments.add( new Arg( option, longOption, description, mandatory, minArgs, maxArgs, allowMultiple ) );
                 return ArgsSpecBuilder.this;
             }
 
