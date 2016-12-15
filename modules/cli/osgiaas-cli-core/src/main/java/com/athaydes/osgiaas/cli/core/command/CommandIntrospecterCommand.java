@@ -29,6 +29,7 @@ public class CommandIntrospecterCommand implements Command {
 
     private final ArgsSpec argsSpec = ArgsSpec.builder()
             .accepts( VERBOSE_ARG, VERBOSE_LONG_ARG )
+            .withDescription( "show verbose output" )
             .end()
             .build();
 
@@ -59,8 +60,8 @@ public class CommandIntrospecterCommand implements Command {
                 "For example, to introspect (ie. see all information about) the 'ps' command, type:\n\n" +
                 ">> ci ps\n\n" +
                 "The ci command supports the following options:\n\n" +
-                "  * " + VERBOSE_ARG + ", " + VERBOSE_LONG_ARG + ":\n" +
-                "    show verbose output.\n\n" +
+                argsSpec.getDocumentation( "  " ) +
+                "\n\n" +
                 "The <command-pattern> is a regular expression, so to see information about all commands starting" +
                 " with 'g', for example, you can type:\n\n" +
                 ">> ci -v g.*";
