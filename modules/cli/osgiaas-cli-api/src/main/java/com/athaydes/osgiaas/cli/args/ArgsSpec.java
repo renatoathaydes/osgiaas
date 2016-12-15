@@ -8,7 +8,6 @@ import javax.annotation.Nullable;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -33,7 +32,7 @@ public class ArgsSpec {
 
     private ArgsSpec( List<Arg> arguments ) {
         Set<String> tempMandatoryArgs = new HashSet<>();
-        Map<String, Arg> tempArgMap = new HashMap<>();
+        Map<String, Arg> tempArgMap = new LinkedHashMap<>();
 
         for (Arg arg : arguments) {
             if ( arg.mandatory ) {
@@ -52,16 +51,16 @@ public class ArgsSpec {
     }
 
     private void appendArg( StringBuilder builder, String arg, boolean mandatory, boolean allowMultiple ) {
-        if ( mandatory ) {
-            builder.append( arg );
-            if ( allowMultiple ) {
-                builder.append( "…" );
-            }
-        } else {
-            builder.append( "[" ).append( arg );
-            if ( allowMultiple ) {
-                builder.append( "…" );
-            }
+        if ( !mandatory ) {
+            builder.append( "[" );
+        }
+
+        builder.append( arg );
+
+        if ( allowMultiple ) {
+            builder.append( "…" );
+        }
+        if ( !mandatory ) {
             builder.append( "]" );
         }
     }
@@ -107,6 +106,8 @@ public class ArgsSpec {
         };
 
         return argMap.entrySet().stream()
+                // keep only the entries that use the primary Arg key (not the ones using the long option key)
+                .filter( entry -> entry.getKey().equals( entry.getValue().key ) )
                 .map( Entry::getValue )
                 .map( documentArg )
                 .collect( joining( "\n" ) );

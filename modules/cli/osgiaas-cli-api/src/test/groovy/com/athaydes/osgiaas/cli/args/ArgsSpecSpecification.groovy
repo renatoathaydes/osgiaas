@@ -186,7 +186,7 @@ class ArgsSpecSpecification extends Specification {
         given: 'A complex ArgsSpec'
         def spec = ArgsSpec.builder()
                 .accepts( '-a' ).allowMultiple().end()
-                .accepts( '-z', '--zzz' ).mandatory().allowMultiple().end()
+                .accepts( '-z', '--zzz' ).mandatory().allowMultiple().withArgs( "hi" ).end()
                 .accepts( 'bc' ).withArgs( 'hi' ).withDescription( 'this is description' ).end()
                 .accepts( '-f', '--file' ).mandatory().withArgs( 'hi', 'bye' )
                 .withOptionalArgs( 'ho', 'ho' ).withDescription( 'very complex one' ).end()
@@ -200,7 +200,7 @@ class ArgsSpecSpecification extends Specification {
             |* -z…, --zzz… <hi>
             |* [bc] <hi>
             |  this is description
-            |* -f, --file <hi> <bye> [<ho> <no>]
+            |* -f, --file <hi> <bye> [<ho> <ho>]
             |  very complex one""".stripMargin()
     }
 
