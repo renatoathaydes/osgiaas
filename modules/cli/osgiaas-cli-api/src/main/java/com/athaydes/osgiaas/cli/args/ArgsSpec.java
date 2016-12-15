@@ -69,9 +69,17 @@ public class ArgsSpec {
      * @return documentation for the specified options.
      */
     public String getDocumentation() {
+        return getDocumentation( "" );
+    }
+
+    /**
+     * @param indentation to prepend on each line
+     * @return documentation for the specified options.
+     */
+    public String getDocumentation( String indentation ) {
         Function<Arg, String> documentArg = ( arg ) -> {
             StringBuilder builder = new StringBuilder();
-            builder.append( "* " );
+            builder.append( indentation ).append( "* " );
 
             appendArg( builder, arg.key, arg.mandatory, arg.allowMultiple );
 
@@ -99,7 +107,7 @@ public class ArgsSpec {
             }
 
             if ( arg.description != null ) {
-                builder.append( "\n" ).append( "  " ).append( arg.description );
+                builder.append( "\n" ).append( indentation ).append( indentation ).append( arg.description );
             }
 
             return builder.toString();

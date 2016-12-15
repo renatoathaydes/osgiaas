@@ -179,7 +179,7 @@ class ArgsSpecSpecification extends Specification {
         then: 'the documentation is as expected'
         result == """|* [a]
             |* [bc] <hi>
-            |  this is description""".stripMargin()
+            |this is description""".stripMargin()
     }
 
     def "Documentation for complex command works as expected"() {
@@ -199,9 +199,31 @@ class ArgsSpecSpecification extends Specification {
         result == """|* [-a…]
             |* -z…, --zzz… <hi>
             |* [bc] <hi>
-            |  this is description
+            |this is description
             |* -f, --file <hi> <bye> [<ho> <ho>]
-            |  very complex one""".stripMargin()
+            |very complex one""".stripMargin()
+    }
+
+    def "Documentation for complex command with indentation works as expected"() {
+        given: 'A complex ArgsSpec'
+        def spec = ArgsSpec.builder()
+                .accepts( '-a' ).allowMultiple().end()
+                .accepts( '-z', '--zzz' ).mandatory().allowMultiple().withArgs( "hi" ).end()
+                .accepts( 'bc' ).withArgs( 'hi' ).withDescription( 'this is description' ).end()
+                .accepts( '-f', '--file' ).mandatory().withArgs( 'hi', 'bye' )
+                .withOptionalArgs( 'ho', 'ho' ).withDescription( 'very complex one' ).end()
+                .build()
+
+        when: 'we request documentation for the ArgsSpec'
+        def result = spec.getDocumentation( '  ' )
+
+        then: 'the documentation is as expected'
+        result == """|  * [-a…]
+            |  * -z…, --zzz… <hi>
+            |  * [bc] <hi>
+            |    this is description
+            |  * -f, --file <hi> <bye> [<ho> <ho>]
+            |    very complex one""".stripMargin()
     }
 
 }
