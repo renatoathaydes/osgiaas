@@ -18,16 +18,19 @@ import java.util.regex.PatternSyntaxException;
 public class GrepCommand implements StreamingCommand {
 
     public static final String BEFORE_ARG = "-B";
-    public static final String BEFORE_LONG_ARG = "--before-context  ";
+    public static final String BEFORE_LONG_ARG = "--before-context";
     public static final String AFTER_ARG = "-A";
     public static final String AFTER_LONG_ARG = "--after-context";
     public static final String CASE_INSENSITIVE_ARG = "-i";
     public static final String CASE_INSENSITIVE_LONG_ARG = "--ignore-case";
 
     private final ArgsSpec argsSpec = ArgsSpec.builder()
-            .accepts( BEFORE_ARG ).withArgs( "lines" ).end()
-            .accepts( AFTER_ARG ).withArgs( "lines" ).end()
-            .accepts( CASE_INSENSITIVE_ARG ).end()
+            .accepts( BEFORE_ARG, BEFORE_LONG_ARG ).withArgs( "lines" )
+            .withDescription( "number of lines to print before each match" ).end()
+            .accepts( AFTER_ARG, AFTER_LONG_ARG ).withArgs( "lines" )
+            .withDescription( "number of lines to print after each match" ).end()
+            .accepts( CASE_INSENSITIVE_ARG, CASE_INSENSITIVE_LONG_ARG )
+            .withDescription( "case insensitive regex" ).end()
             .build();
 
     @Override
@@ -37,7 +40,7 @@ public class GrepCommand implements StreamingCommand {
 
     @Override
     public String getUsage() {
-        return "grep [-B <num>] [-A <num>] [-i] <regex> <text-to-search>";
+        return "grep " + argsSpec.getUsage() + " <regex> <text-to-search>";
     }
 
     @Override
@@ -45,14 +48,8 @@ public class GrepCommand implements StreamingCommand {
         return "Shows only input text lines matching a regular expression.\n" +
                 "This command is often used to filter " +
                 "output from other commands via the '|' (pipe) operator (see example).\n\n" +
-                "The grep command accepts the following flags:\n" +
-                "  \n" +
-                "  * " + CASE_INSENSITIVE_ARG + ", " + CASE_INSENSITIVE_LONG_ARG + ":\n" +
-                "    case insensitive regex.\n" +
-                "  * " + BEFORE_ARG + " num, " + BEFORE_LONG_ARG + " num:\n" +
-                "    num is the number of lines to print before each match.\n" +
-                "  * " + AFTER_ARG + " num, " + AFTER_LONG_ARG + " num:\n" +
-                "    num is the number of lines to print after each match.\n\n" +
+                "The grep command accepts the following options:\n\n" +
+                argsSpec.getDocumentation( "  " ) + "\n\n" +
                 "Example usage (find all lines printed by the 'ps' command containing 'cli'):\n\n" +
                 "> ps | grep cli\n";
     }
