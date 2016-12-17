@@ -50,18 +50,65 @@ public class ArgsSpec {
         this.mandatoryArgKeys = Collections.unmodifiableSet( tempMandatoryArgs );
     }
 
-    private void appendArg( StringBuilder builder, String arg, boolean mandatory, boolean allowMultiple ) {
+    /**
+     * @return the supported options in a format suitable for command usage documentation.
+     */
+    public String getUsage() {
+        return argMap.values().stream()
+                .distinct()
+                .map( ArgsSpec::usageFor )
+                .collect( joining( " " ) );
+    }
+
+    private static String usageFor( Arg arg ) {
+        StringBuilder builder = new StringBuilder();
+
+        if ( !arg.mandatory ) {
+            builder.append( '[' );
+        }
+
+        appendOption( builder, arg.key, true, arg.allowMultiple );
+        appendArguments( builder, arg );
+
+        if ( !arg.mandatory ) {
+            builder.append( ']' );
+        }
+
+        return builder.toString();
+    }
+
+    private static void appendOption( StringBuilder builder, String option, boolean mandatory, boolean allowMultiple ) {
         if ( !mandatory ) {
             builder.append( "[" );
         }
 
-        builder.append( arg );
+        builder.append( option );
 
         if ( allowMultiple ) {
             builder.append( "…" );
         }
         if ( !mandatory ) {
             builder.append( "]" );
+        }
+    }
+
+    private static void appendArguments( StringBuilder builder, Arg arg ) {
+        if ( arg.mandatoryArgs.length > 0 ) {
+            builder.append( " " );
+            builder.append( Stream.of( arg.mandatoryArgs )
+                    .map( it -> "<" + it + ">" )
+                    .collect( joining( " " ) ) );
+        }
+
+        if ( arg.optionalArgs.length > 0 ) {
+            if ( arg.mandatoryArgs.length > 0 ) {
+                builder.append( " " );
+            }
+            builder.append( "[" )
+                    .append( Stream.of( arg.optionalArgs )
+                            .map( it -> "<" + it + ">" )
+                            .collect( joining( " " ) ) )
+                    .append( "]" );
         }
     }
 
@@ -81,30 +128,14 @@ public class ArgsSpec {
             StringBuilder builder = new StringBuilder();
             builder.append( indentation ).append( "* " );
 
-            appendArg( builder, arg.key, arg.mandatory, arg.allowMultiple );
+            appendOption( builder, arg.key, arg.mandatory, arg.allowMultiple );
 
             if ( arg.longKey != null ) {
                 builder.append( ", " );
-                appendArg( builder, arg.longKey, arg.mandatory, arg.allowMultiple );
+                appendOption( builder, arg.longKey, arg.mandatory, arg.allowMultiple );
             }
 
-            if ( arg.mandatoryArgs.length > 0 ) {
-                builder.append( " " );
-                builder.append( Stream.of( arg.mandatoryArgs )
-                        .map( it -> "<" + it + ">" )
-                        .collect( joining( " " ) ) );
-            }
-
-            if ( arg.optionalArgs.length > 0 ) {
-                if ( arg.mandatoryArgs.length > 0 ) {
-                    builder.append( " " );
-                }
-                builder.append( "[" )
-                        .append( Stream.of( arg.optionalArgs )
-                                .map( it -> "<" + it + ">" )
-                                .collect( joining( " " ) ) )
-                        .append( "]" );
-            }
+            appendArguments( builder, arg );
 
             if ( arg.description != null ) {
                 builder.append( "\n" ).append( indentation ).append( indentation ).append( arg.description );
@@ -113,10 +144,8 @@ public class ArgsSpec {
             return builder.toString();
         };
 
-        return argMap.entrySet().stream()
-                // keep only the entries that use the primary Arg key (not the ones using the long option key)
-                .filter( entry -> entry.getKey().equals( entry.getValue().key ) )
-                .map( Entry::getValue )
+        return argMap.values().stream()
+                .distinct()
                 .map( documentArg )
                 .collect( joining( "\n" ) );
     }

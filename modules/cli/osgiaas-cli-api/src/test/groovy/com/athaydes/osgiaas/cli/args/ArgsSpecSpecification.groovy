@@ -153,6 +153,19 @@ class ArgsSpecSpecification extends Specification {
         'hello -f a b cde' | [ '-f': [ [ 'a' ] ] ] | 'b cde'
     }
 
+    def "Usage for extremely simple command works as expected"() {
+        given: 'An extremely simple ArgsSpec'
+        def spec = ArgsSpec.builder()
+                .accepts( 'a' ).mandatory().end()
+                .build()
+
+        when: 'we request usage for the ArgsSpec'
+        def result = spec.usage
+
+        then: 'the usage is as expected'
+        result == 'a'
+    }
+
     def "Documentation for extremely simple command works as expected"() {
         given: 'An extremely simple ArgsSpec'
         def spec = ArgsSpec.builder()
@@ -163,7 +176,21 @@ class ArgsSpecSpecification extends Specification {
         def result = spec.documentation
 
         then: 'the documentation is as expected'
-        result == '''* a'''
+        result == '* a'
+    }
+
+    def "Usage for simple command works as expected"() {
+        given: 'A simple ArgsSpec'
+        def spec = ArgsSpec.builder()
+                .accepts( 'a' ).end()
+                .accepts( 'bc' ).withArgs( 'hi' ).withDescription( 'this is description' ).end()
+                .build()
+
+        when: 'we request usage for the ArgsSpec'
+        def result = spec.usage
+
+        then: 'the usage is as expected'
+        result == '[a] [bc <hi>]'
     }
 
     def "Documentation for simple command works as expected"() {
@@ -180,6 +207,23 @@ class ArgsSpecSpecification extends Specification {
         result == """|* [a]
             |* [bc] <hi>
             |this is description""".stripMargin()
+    }
+
+    def "Usage for complex command works as expected"() {
+        given: 'A complex ArgsSpec'
+        def spec = ArgsSpec.builder()
+                .accepts( '-a' ).allowMultiple().end()
+                .accepts( '-z', '--zzz' ).mandatory().allowMultiple().withArgs( "hi" ).end()
+                .accepts( 'bc' ).withArgs( 'hi' ).withDescription( 'this is description' ).end()
+                .accepts( '-f', '--file' ).mandatory().withArgs( 'hi', 'bye' )
+                .withOptionalArgs( 'ho', 'ho' ).withDescription( 'very complex one' ).end()
+                .build()
+
+        when: 'we request usage for the ArgsSpec'
+        def result = spec.usage
+
+        then: 'the usage is as expected'
+        result == "[-a…] -z… <hi> [bc <hi>] -f <hi> <bye> [<ho> <ho>]"
     }
 
     def "Documentation for complex command works as expected"() {
