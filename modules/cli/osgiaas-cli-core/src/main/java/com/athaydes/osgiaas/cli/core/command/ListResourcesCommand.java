@@ -38,10 +38,14 @@ public class ListResourcesCommand implements Command {
     private final AtomicReference<BundleContext> contextRef = new AtomicReference<>();
 
     public static final ArgsSpec argsSpec = ArgsSpec.builder()
-            .accepts( RECURSIVE_OPTION, RECURSIVE_LONG_OPTION ).end()
-            .accepts( SHOW_ALL_OPTION, SHOW_ALL_LONG_OPTION ).end()
-            .accepts( VERBOSE_OPTION, VERBOSE_LONG_OPTION ).end()
-            .accepts( PATTERN_OPTION, PATTERN_LONG_OPTION ).withArgs( "regex" ).end()
+            .accepts( RECURSIVE_OPTION, RECURSIVE_LONG_OPTION )
+            .withDescription( "recursively list resources under sub-paths" ).end()
+            .accepts( SHOW_ALL_OPTION, SHOW_ALL_LONG_OPTION )
+            .withDescription( "show all resources, including nested classes" ).end()
+            .accepts( VERBOSE_OPTION, VERBOSE_LONG_OPTION )
+            .withDescription( "show verbose output, including bundle information for each resource" ).end()
+            .accepts( PATTERN_OPTION, PATTERN_LONG_OPTION ).withArgs( "regex" )
+            .withDescription( "regular expression to filter displayed resources by name" ).end()
             .build();
 
     public static Function<String, String> searchTransform = ( search ) ->
@@ -62,24 +66,15 @@ public class ListResourcesCommand implements Command {
 
     @Override
     public String getUsage() {
-        return "lr [-r] [-p <pattern>] <package-name>";
+        return "lr " + argsSpec.getUsage() + " <package-name>";
     }
 
     @Override
     public String getShortDescription() {
         return "List JVM resources included in the installed bundles.\n" +
                 "\n" +
-                "The lr command supports the following options:\n" +
-                "\n" +
-                "  * " + RECURSIVE_OPTION + ", " + RECURSIVE_LONG_OPTION + ":\n" +
-                "    recursively list resources under sub-paths.\n" +
-                "  * " + SHOW_ALL_OPTION + ", " + SHOW_ALL_LONG_OPTION + ":\n" +
-                "    show all resources, including nested classes.\n" +
-                "  * " + PATTERN_OPTION + " pattern, " + PATTERN_LONG_OPTION + " pattern:\n" +
-                "    file pattern to search.\n" +
-                "  * " + VERBOSE_OPTION + ", " + VERBOSE_LONG_OPTION + ":\n" +
-                "    show verbose output, including bundle information for each resource.\n" +
-                "\n" +
+                "The lr command supports the following options:\n\n" +
+                argsSpec.getDocumentation( "  " ) + "\n\n" +
                 "For example, to list all class files available under the 'com' package:\n" +
                 "\n" +
                 "lr -r -p *.class com/\n";
