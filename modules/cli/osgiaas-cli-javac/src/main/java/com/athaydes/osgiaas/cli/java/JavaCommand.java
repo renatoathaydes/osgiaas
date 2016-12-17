@@ -59,10 +59,14 @@ public class JavaCommand implements Command, StreamingCommand {
     private ClassLoaderCapabilities classLoaderContext;
 
     private final ArgsSpec javaArgs = ArgsSpec.builder()
-            .accepts( RESET_CODE_ARG, RESET_CODE_LONG_ARG ).end()
-            .accepts( RESET_ALL_ARG, RESET_ALL_LONG_ARG ).end()
-            .accepts( SHOW_ARG, SHOW_LONG_ARG ).end()
-            .accepts( CLASS_ARG, CLASS_LONG_ARG ).end()
+            .accepts( RESET_CODE_ARG, RESET_CODE_LONG_ARG )
+            .withDescription( "reset the current code statement buffer" ).end()
+            .accepts( RESET_ALL_ARG, RESET_ALL_LONG_ARG )
+            .withDescription( "reset the current code statement buffer and imports" ).end()
+            .accepts( SHOW_ARG, SHOW_LONG_ARG )
+            .withDescription( "show the current statement buffer" ).end()
+            .accepts( CLASS_ARG, CLASS_LONG_ARG )
+            .withDescription( "define a Java class" ).end()
             .build();
 
     @SuppressWarnings( "ConstantConditions" )
@@ -95,8 +99,7 @@ public class JavaCommand implements Command, StreamingCommand {
 
     @Override
     public String getUsage() {
-        return "java [-r | -s | -t | <java snippet>] | " +
-                "[-c <class definition>]";
+        return "java " + javaArgs.getUsage() + " <Java code>";
     }
 
     @Override
@@ -108,17 +111,8 @@ public class JavaCommand implements Command, StreamingCommand {
                 "Permanent variables can be created by adding them to the 'binding' Map, whose contents\n" +
                 "get expanded into local variables on execution." +
                 "\n\n" +
-                "The java command accepts the following flags:\n" +
-                "  \n" +
-                "  * " + RESET_CODE_ARG + ", " + RESET_CODE_LONG_ARG + ":\n" +
-                "    reset the current code statement buffer.\n" +
-                "  * " + RESET_ALL_ARG + ", " + RESET_ALL_LONG_ARG + ":\n" +
-                "    reset the current code statement buffer and imports.\n" +
-                "  * " + SHOW_ARG + ", " + SHOW_LONG_ARG + ":\n" +
-                "    show the current statement buffer.\n" +
-                "  * " + CLASS_ARG + ", " + CLASS_LONG_ARG + ":\n" +
-                "    define a Java class.\n" +
-                "\n" +
+                "The java command accepts the following options:\n\n" +
+                javaArgs.getDocumentation( "  " ) + "\n\n" +
                 "Simple example:\n\n" +
                 ">> java return 2 + 2\n" +
                 "< 4\n\n" +
@@ -126,7 +120,8 @@ public class JavaCommand implements Command, StreamingCommand {
                 ">> java binding.put(\"var\", 10);\n" +
                 ">> java -r return var + 10; // var is still present even after using the -r option\n" +
                 "< 20\n\n" +
-                "Multi-line example to define a separate class:\n\n" +
+                "Multi-line example to define a separate class (notice that when using the -c option, " +
+                "a Java class or interface must be defined):\n\n" +
                 ">> :{\n" +
                 "java -c class Person {\n" +
                 "  String name;\n" +
@@ -141,10 +136,10 @@ public class JavaCommand implements Command, StreamingCommand {
                 "< class Person\n" +
                 ">> java return new Person(\"Mary\", 24);\n" +
                 "< Person(Mary, 24)\n\n" +
-                "When run through pipes, the Java snippet should be a Function<String, ?> that takes \n" +
-                "each input line as an argument, returning something to be printed (or null).\n" +
-                "Example:\n" +
-                ">> some_command | java line -> line.contains(\"text\") ? line : null";
+                "When run through pipes, the Java snippet should return a Function<String, ?> that takes \n" +
+                "each input line as an argument, returning something to be printed (or null).\n\n" +
+                "Example:\n\n" +
+                ">> some_command | java line -> line.contains(\"text\") ? line : null\n";
     }
 
     JavaCode getAutocompleContext() {
