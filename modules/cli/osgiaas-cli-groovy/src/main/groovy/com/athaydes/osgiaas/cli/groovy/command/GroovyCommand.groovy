@@ -33,8 +33,10 @@ class GroovyCommand implements StreamingCommand {
 
     final List<String> codeBuffer = [ ]
     final ArgsSpec argsSpec = ArgsSpec.builder()
-            .accepts( RESET_CODE_ARG, RESET_CODE_LONG_ARG ).end()
-            .accepts( SHOW_ARG, SHOW_LONG_ARG ).end()
+            .accepts( RESET_CODE_ARG, RESET_CODE_LONG_ARG )
+            .withDescription( 'reset the current code statements buffer' ).end()
+            .accepts( SHOW_ARG, SHOW_LONG_ARG )
+            .withDescription( 'show the current statements buffer' ).end()
             .build()
 
     GroovyCommand() {
@@ -55,7 +57,7 @@ class GroovyCommand implements StreamingCommand {
 
     @Override
     String getUsage() {
-        'groovy <option>|<script>'.stripMargin()
+        "groovy ${argsSpec.usage} <Groovy code>"
     }
 
     @Override
@@ -67,10 +69,7 @@ class GroovyCommand implements StreamingCommand {
 
            The following options are supported:
 
-             * $RESET_CODE_ARG, $RESET_CODE_LONG_ARG: 
-               reset the current code statements buffer (see below).
-             * $SHOW_ARG, $SHOW_LONG_ARG:
-               show the current statements buffer.
+        """.stripIndent() + argsSpec.getDocumentation( '  ' ) + """
 
            The code statements buffer contains all entered import statements (so imports do not need to be
            re-typed on every command).
