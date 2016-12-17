@@ -66,9 +66,12 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
     public static final String CASE_INSENSITIVE_LONG_ARG = "--ignore-case";
 
     private final ArgsSpec argsSpec = ArgsSpec.builder()
-            .accepts( FOREGROUND_ARG, FOREGROUND_LONG_ARG ).withArgs( "color" ).end()
-            .accepts( BACKGROUND_ARG, BACKGROUND_LONG_ARG ).withArgs( "color" ).end()
-            .accepts( CASE_INSENSITIVE_ARG, CASE_INSENSITIVE_LONG_ARG ).end()
+            .accepts( FOREGROUND_ARG, FOREGROUND_LONG_ARG ).withArgs( "color[+modifier]" )
+            .withDescription( "highlighted text foreground color and modifier(s)" ).end()
+            .accepts( BACKGROUND_ARG, BACKGROUND_LONG_ARG ).withArgs( "color" )
+            .withDescription( "highlighted text background color" ).end()
+            .accepts( CASE_INSENSITIVE_ARG, CASE_INSENSITIVE_LONG_ARG )
+            .withDescription( "case insensitive regex" ).end()
             .build();
 
     @Override
@@ -78,7 +81,7 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
 
     @Override
     public String getUsage() {
-        return "highlight [-i] [-f <color>] [-b <color>] <regex> <text-to-highlight>";
+        return "highlight " + argsSpec.getUsage() + " <regex> <text-to-highlight>";
     }
 
     @Override
@@ -86,15 +89,8 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
         return "Highlight the input lines that match a given regular expression.\n" +
                 "This command is often used to highlight " +
                 "output from other commands via the '|' (pipe) operator.\n" +
-                "The highlight command accepts the following flags:\n" +
-                "  \n" +
-                "  * " + CASE_INSENSITIVE_ARG + ", " + CASE_INSENSITIVE_LONG_ARG + ":\n" +
-                "    case insensitive regex.\n" +
-                "  * " + BACKGROUND_ARG + " color, " + BACKGROUND_LONG_ARG + " color:\n" +
-                "    highlighted text background color.\n" +
-                "  * " + FOREGROUND_ARG + " color[+modifier], " + FOREGROUND_LONG_ARG + " color[+modifier]:\n" +
-                "    highlighted text foreground color and modifier(s).\n" +
-                " \n" +
+                "The highlight command accepts the following options:\n\n" +
+                argsSpec.getDocumentation( "  " ) + "\n\n" +
                 "Example: ps | highlight -b red -f yellow+high_intensity";
     }
 
