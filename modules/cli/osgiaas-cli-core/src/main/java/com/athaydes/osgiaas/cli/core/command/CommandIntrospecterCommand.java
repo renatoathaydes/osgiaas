@@ -51,7 +51,7 @@ public class CommandIntrospecterCommand implements Command {
 
     @Override
     public String getUsage() {
-        return "ci [-v] <command-pattern>";
+        return "ci " + argsSpec.getUsage() + " <command-pattern>";
     }
 
     @Override
@@ -62,9 +62,9 @@ public class CommandIntrospecterCommand implements Command {
                 "The ci command supports the following options:\n\n" +
                 argsSpec.getDocumentation( "  " ) +
                 "\n\n" +
-                "The <command-pattern> is a regular expression, so to see information about all commands starting" +
-                " with 'g', for example, you can type:\n\n" +
-                ">> ci -v g.*";
+                "The <command-pattern> argument is a regular expression, so to see information about all " +
+                "commands starting with 'g', for example, you can type:\n\n" +
+                ">> ci -v g.*\n";
     }
 
     @Override
