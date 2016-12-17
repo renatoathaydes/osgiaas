@@ -19,11 +19,17 @@ class GrabCommand implements Command {
     static final String VERBOSE = '-v'
 
     final ArgsSpec argsSpec = ArgsSpec.builder()
-            .accepts( ADD_REPO ).allowMultiple().withArgs( "repo-id" ).withOptionalArgs( "repo-url" ).end()
-            .accepts( REMOVE_REPO ).allowMultiple().withArgs( "repo-id" ).end()
-            .accepts( LIST_REPOS ).end()
-            .accepts( NO_TRANSITIVE_DEPS, NO_TRANSITIVE_DEPS_LONG ).end()
-            .accepts( VERBOSE ).end()
+            .accepts( ADD_REPO ).allowMultiple().withArgs( "repo-id" ).withOptionalArgs( "repo-url" )
+            .withDescription( "adds a repository to grab artifacts from.\n" +
+            "                If <repo-id> is not given, the repo address is also used as its ID" ).end()
+            .accepts( REMOVE_REPO ).allowMultiple().withArgs( "repo-id" )
+            .withDescription( "removes a repository" ).end()
+            .accepts( LIST_REPOS )
+            .withDescription( "lists existing repositories" ).end()
+            .accepts( NO_TRANSITIVE_DEPS, NO_TRANSITIVE_DEPS_LONG )
+            .withDescription( "do not grab transitive dependencies" ).end()
+            .accepts( VERBOSE )
+            .withDescription( "show verbose output" ).end()
             .build()
 
     private final Map<String, String> repositories = [ : ]
@@ -48,18 +54,7 @@ class GrabCommand implements Command {
 
             The following options are supported:
 
-              * $ADD_REPO [repo-id] repo:
-                adds a repository to grab artifacts from.
-                If <repo-id> is not given, the repo address is also used as its ID.
-              * $REMOVE_REPO repo-id:
-                removes a repository.
-              * $LIST_REPOS:
-                lists existing repositories.
-              * $NO_TRANSITIVE_DEPS, $NO_TRANSITIVE_DEPS_LONG:
-                do not grab transitive dependencies.
-              * $VERBOSE:
-                show verbose output.
-            """.stripIndent()
+            """.stripIndent() + argsSpec.getDocumentation( '  ' )
     }
 
     @Override
