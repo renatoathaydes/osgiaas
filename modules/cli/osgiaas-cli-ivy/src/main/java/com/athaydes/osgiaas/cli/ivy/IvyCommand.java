@@ -31,10 +31,14 @@ public class IvyCommand implements Command {
     private IvyFactory ivyFactory = new IvyFactory();
 
     private ArgsSpec argsSpec = ArgsSpec.builder()
-            .accepts( INTRANSITIVE_OPTION, INTRANSITIVE_LONG_OPTION ).end()
-            .accepts( DOWNLOAD_ALL_OPTION, DOWNLOAD_ALL_LONG_OPTION ).end()
-            .accepts( NO_MAVEN_LOCAL_OPTION, NO_MAVEN_LOCAL_LONG_OPTION ).end()
-            .accepts( REPOSITORIES_OPTION, REPOSITORIES_LONG_OPTION ).withArgs( "repo-url" ).allowMultiple().end()
+            .accepts( INTRANSITIVE_OPTION, INTRANSITIVE_LONG_OPTION )
+            .withDescription( "do not retrieve transitive dependencies" ).end()
+            .accepts( DOWNLOAD_ALL_OPTION, DOWNLOAD_ALL_LONG_OPTION )
+            .withDescription( "download also javadocs and sources jars if available" ).end()
+            .accepts( NO_MAVEN_LOCAL_OPTION, NO_MAVEN_LOCAL_LONG_OPTION )
+            .withDescription( "do not use the local Maven repository" ).end()
+            .accepts( REPOSITORIES_OPTION, REPOSITORIES_LONG_OPTION ).withArgs( "repo-url" ).allowMultiple()
+            .withDescription( "specify repositories to use to search for artifacts (uses JCenter by default)" ).end()
             .build();
 
     public void start() {
@@ -48,27 +52,23 @@ public class IvyCommand implements Command {
 
     @Override
     public String getUsage() {
-        return "ivy [option] group:module[:version]";
+        return "ivy " + argsSpec.getUsage() + " group:module[:version]";
     }
 
     @Override
     public String getShortDescription() {
         return "Retrieves Ivy/Maven artifacts using Apache Ivy.\n\n" +
                 "The ivy command supports the following options:\n\n" +
-                "  * " + INTRANSITIVE_OPTION + ", " + INTRANSITIVE_LONG_OPTION + "\n" +
-                "    do not retrieve transitive dependencies.\n" +
-                "  * " + DOWNLOAD_ALL_OPTION + ", " + DOWNLOAD_ALL_LONG_OPTION + "\n" +
-                "    download also javadocs and sources jars if available.\n" +
-                "  * " + NO_MAVEN_LOCAL_OPTION + ", " + NO_MAVEN_LOCAL_LONG_OPTION + "\n" +
-                "    do not use the Maven local repository.\n" +
-                "  * " + REPOSITORIES_OPTION + ", " + REPOSITORIES_LONG_OPTION + " repository-url\n" +
-                "    specify repositories to use to search for artifacts (uses JCenter by default).\n\n" +
-                "Example:\n" +
-                ">> ivy -i io.javaslang:javaslang:2.1.0-alpha\n\n" +
+                argsSpec.getDocumentation( "  " ) + "\n\n" +
+                "Example:\n\n" +
+                ">> ivy -i io.javaslang:javaslang:2.1.0-alpha\n" +
+                "< file:///home/username/.ivy2/cache/io.javaslang/javaslang/jars/javaslang-2.1.0-alpha.jar" +
+                "\n\n" +
+                "The artifact's version can be omitted, in which case the latest version is downloaded.\n" +
                 "The output of the ivy command is a file URL that can be recognized by the 'install' and 'start'" +
                 " commands.\n" +
                 "Example to download and immediately start a library:\n\n" +
-                ">> ivy io.javaslang:javaslang:2.1.0-alpha | start";
+                ">> ivy io.javaslang:javaslang:2.1.0-alpha | start\n";
     }
 
     @Override
