@@ -1,5 +1,6 @@
 package com.athaydes.osgiaas.cli.core.util;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -12,6 +13,46 @@ public class InterruptableInputStream extends InputStream {
 
     public InterruptableInputStream( InputStream in ) {
         this.in = in;
+    }
+
+    @Override
+    public int read( @Nonnull byte[] b ) throws IOException {
+        return in.read( b );
+    }
+
+    @Override
+    public int read( @Nonnull byte[] b, int off, int len ) throws IOException {
+        return in.read( b, off, len );
+    }
+
+    @Override
+    public long skip( long n ) throws IOException {
+        return in.skip( n );
+    }
+
+    @Override
+    public int available() throws IOException {
+        return in.available();
+    }
+
+    @Override
+    public void close() throws IOException {
+        in.close();
+    }
+
+    @Override
+    public synchronized void mark( int readlimit ) {
+        in.mark( readlimit );
+    }
+
+    @Override
+    public synchronized void reset() throws IOException {
+        in.reset();
+    }
+
+    @Override
+    public boolean markSupported() {
+        return in.markSupported();
     }
 
     @Override
