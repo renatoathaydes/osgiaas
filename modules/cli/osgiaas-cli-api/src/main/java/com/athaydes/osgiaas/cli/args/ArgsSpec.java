@@ -31,8 +31,10 @@ public class ArgsSpec {
     private final Set<String> mandatoryArgKeys;
 
     private ArgsSpec( List<Arg> arguments ) {
-        Set<String> tempMandatoryArgs = new HashSet<>();
-        Map<String, Arg> tempArgMap = new LinkedHashMap<>();
+        Set<String> tempMandatoryArgs = new HashSet<>(
+                ( int ) arguments.stream().filter( arg -> arg.mandatory ).count() );
+
+        Map<String, Arg> tempArgMap = new LinkedHashMap<>( arguments.size() );
 
         for (Arg arg : arguments) {
             if ( arg.mandatory ) {
