@@ -40,6 +40,8 @@ class CliRun implements Runnable {
         this.cliProperties = cliProperties;
         this.input = new InterruptableInputStream( System.in );
 
+        // JLine must run with a blocking InputStream
+        System.setProperty( "jline.esc.timeout", "0" );
         consoleReader = new ConsoleReader( input, System.out );
         started = new AtomicBoolean( false );
         consoleReader.setPrompt( getPrompt() );
@@ -86,6 +88,7 @@ class CliRun implements Runnable {
         try {
             killWaiter.await( 500, TimeUnit.MILLISECONDS );
         } catch ( InterruptedException e ) {
+            // expected
             e.printStackTrace();
         }
     }
