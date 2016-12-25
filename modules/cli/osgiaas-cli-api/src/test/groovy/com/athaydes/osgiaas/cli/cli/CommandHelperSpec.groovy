@@ -177,6 +177,8 @@ class CommandHelperSpec extends Specification {
         'ab:% :c: %' | [ 'ab', ': :c: ' ]
         'ab:$ :c: $' | [ 'ab', ': :c: ' ]
         'ab:% :c: $' | [ 'ab', ': :c: ' ]
+        'ab:::'      | [ 'ab', ':::' ]
+        'ab::c::'    | [ 'ab', '::', 'c', '::' ]
         // FIXME 'ab:$c$:%%:d' | [ 'ab', ':c', ':', ':d' ]
     }
 

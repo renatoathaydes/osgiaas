@@ -105,6 +105,20 @@ public class CommandHelper {
     }
 
     /**
+     * Breaks up a command arguments into separate parts using the provided options for configuration.
+     *
+     * @param arguments command arguments or full command
+     * @param options   options to customize how the arguments are broken up
+     * @return the unprocessed input.
+     */
+    public static List<String> breakupArguments( String arguments,
+                                                 CommandBreakupOptions options ) {
+        List<String> result = new ArrayList<>();
+        breakupArguments( arguments, result::add, options );
+        return result;
+    }
+
+    /**
      * Breaks up a command arguments into separate parts using a function to receive arguments and determine
      * when to stop.
      * <p>
