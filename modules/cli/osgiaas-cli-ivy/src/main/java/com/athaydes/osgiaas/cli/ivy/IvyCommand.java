@@ -30,7 +30,7 @@ public class IvyCommand implements Command {
 
     private IvyFactory ivyFactory = new IvyFactory();
 
-    private ArgsSpec argsSpec = ArgsSpec.builder()
+    static final ArgsSpec argsSpec = ArgsSpec.builder()
             .accepts( INTRANSITIVE_OPTION, INTRANSITIVE_LONG_OPTION )
             .withDescription( "do not retrieve transitive dependencies" ).end()
             .accepts( DOWNLOAD_ALL_OPTION, DOWNLOAD_ALL_LONG_OPTION )

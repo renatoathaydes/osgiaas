@@ -12,3 +12,12 @@ component( xmlns: SCR_NAMESPACE, name: 'ivyCommand', activate: 'start' ) {
         provide( 'interface': 'org.apache.felix.shell.Command' )
     }
 }
+
+component( xmlns: SCR_NAMESPACE, name: 'ivyCommandCompleter' ) {
+    commonProperties()
+    implementation( 'class': 'com.athaydes.osgiaas.cli.ivy.IvyCommandCompleter' )
+    property( name: 'service.description', value: 'OSGiaaS CLI Ivy CommandCompleter' )
+    service {
+        provide( 'interface': 'com.athaydes.osgiaas.cli.CommandCompleter' )
+    }
+}
