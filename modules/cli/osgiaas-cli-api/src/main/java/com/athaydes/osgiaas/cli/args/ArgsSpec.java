@@ -1,5 +1,6 @@
 package com.athaydes.osgiaas.cli.args;
 
+import com.athaydes.osgiaas.cli.CommandCompleter;
 import com.athaydes.osgiaas.cli.CommandHelper;
 import com.athaydes.osgiaas.cli.CommandHelper.CommandBreakupOptions;
 import com.athaydes.osgiaas.cli.CommandInvocation;
@@ -18,6 +19,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.joining;
 
 /**
@@ -29,6 +31,7 @@ public class ArgsSpec {
 
     private final Map<String, Arg> argMap;
     private final Set<String> mandatoryArgKeys;
+    private final CommandCompleter commandCompleter;
 
     private ArgsSpec( List<Arg> arguments ) {
         Set<String> tempMandatoryArgs = new HashSet<>(
@@ -50,6 +53,11 @@ public class ArgsSpec {
 
         this.argMap = Collections.unmodifiableMap( tempArgMap );
         this.mandatoryArgKeys = Collections.unmodifiableSet( tempMandatoryArgs );
+        this.commandCompleter = new ArgsCommandCompleter();
+    }
+
+    public CommandCompleter getCommandCompleter() {
+        return commandCompleter;
     }
 
     /**
@@ -469,5 +477,102 @@ public class ArgsSpec {
         }
 
     }
+
+    private class ArgsCommandCompleter implements CommandCompleter {
+
+        @Override
+        public int complete( String buffer, int cursor, List<CharSequence> candidates ) {
+            List<String> commandParts = CommandHelper.breakupArguments( buffer.substring( 0, cursor ),
+                    CommandBreakupOptions.create().includeSeparators( true ) );
+
+            if ( commandParts.size() < 2 ) {
+                return -1;
+            }
+
+            String lastPart = commandParts.remove( commandParts.size() - 1 );
+            int lastPartLength = lastPart.length();
+            lastPart = lastPart.trim();
+
+            Set<Arg> remainingOptions = new HashSet<>( argMap.values() );
+            Set<Arg> specifiedOptions = new HashSet<>();
+            int completionIndex = lastPart.isEmpty() ? lastPartLength : 0;
+            int currentMandatoryArgs = 1; // treat the command itself as the first argument
+            int currentOptionalArgs = 0;
+
+            for (String commandPart : commandParts) {
+                // to keep track of the current position, we must use the un-trimmed command part's length
+                completionIndex += commandPart.length();
+
+                // but after that is done, we can trim the command part
+                commandPart = commandPart.trim();
+
+                if ( commandPart.isEmpty() ) {
+                    continue;
+                }
+
+                if ( currentMandatoryArgs > 0 ) {
+                    // skip mandatory argument
+                    currentMandatoryArgs--;
+                    currentOptionalArgs--;
+                    continue;
+                }
+
+                @Nullable Arg arg = argMap.get( commandPart );
+
+                boolean noMatch =
+                        // no argument found
+                        arg == null ||
+                                // multiple times not allowed and already specified
+                                ( !arg.allowMultiple && specifiedOptions.contains( arg ) );
+
+                boolean noOptionalArgsLeft = ( currentOptionalArgs <= 0 );
+
+                if ( noMatch && noOptionalArgsLeft ) {
+                    return -1;
+                }
+
+                if ( arg != null ) {
+                    specifiedOptions.add( arg );
+                }
+
+                if ( !noOptionalArgsLeft ) {
+                    // this was an optional arg
+                    currentOptionalArgs--;
+                }
+
+                if ( !noMatch ) {
+                    // we got a matching arg
+                    if ( !arg.allowMultiple ) {
+                        remainingOptions.remove( arg );
+                    }
+
+                    currentMandatoryArgs = arg.minArgs;
+                    currentOptionalArgs = arg.maxArgs;
+                }
+            }
+
+            boolean foundCompletion = false;
+
+            // all remaining options could be used for completion
+            for (Arg arg : remainingOptions) {
+                if ( arg.key.startsWith( lastPart ) ) {
+                    foundCompletion = true;
+                    candidates.add( arg.key );
+                }
+                if ( arg.longKey != null && arg.longKey.startsWith( lastPart ) ) {
+                    foundCompletion = true;
+                    candidates.add( arg.longKey );
+                }
+            }
+
+            if ( foundCompletion ) {
+                candidates.sort( comparing( CharSequence::toString ) );
+                return completionIndex;
+            } else {
+                return -1;
+            }
+        }
+    }
+
 
 }
