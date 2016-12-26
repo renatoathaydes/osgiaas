@@ -6,14 +6,11 @@ import java.util.List;
 
 public class IvyCommandCompleter implements CommandCompleter {
 
-    private final CommandCompleter ivyCommandCompleter = IvyCommand.argsSpec.getCommandCompleter();
+    private final CommandCompleter ivyCommandCompleter = IvyCommand.argsSpec.getCommandCompleter( IvyCommand.NAME );
 
     @Override
     public int complete( String buffer, int cursor, List<CharSequence> candidates ) {
-        if ( buffer.substring( 0, cursor ).startsWith( "ivy " ) ) {
-            return ivyCommandCompleter.complete( buffer, cursor, candidates );
-        } else {
-            return -1;
-        }
+        return ivyCommandCompleter.complete( buffer, cursor, candidates );
     }
+
 }

@@ -19,6 +19,7 @@ import java.util.stream.Stream;
  */
 public class IvyCommand implements Command {
 
+    static final String NAME = "ivy";
     public static final String INTRANSITIVE_OPTION = "-i";
     public static final String INTRANSITIVE_LONG_OPTION = "--intransitive";
     public static final String REPOSITORIES_OPTION = "-r";
@@ -47,12 +48,12 @@ public class IvyCommand implements Command {
 
     @Override
     public String getName() {
-        return "ivy";
+        return NAME;
     }
 
     @Override
     public String getUsage() {
-        return "ivy " + argsSpec.getUsage() + " group:module[:version]";
+        return NAME + " " + argsSpec.getUsage() + " group:module[:version]";
     }
 
     @Override

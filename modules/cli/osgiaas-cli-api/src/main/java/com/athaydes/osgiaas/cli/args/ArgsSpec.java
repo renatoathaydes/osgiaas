@@ -31,7 +31,6 @@ public class ArgsSpec {
 
     private final Map<String, Arg> argMap;
     private final Set<String> mandatoryArgKeys;
-    private final CommandCompleter commandCompleter;
 
     private ArgsSpec( List<Arg> arguments ) {
         Set<String> tempMandatoryArgs = new HashSet<>(
@@ -53,11 +52,10 @@ public class ArgsSpec {
 
         this.argMap = Collections.unmodifiableMap( tempArgMap );
         this.mandatoryArgKeys = Collections.unmodifiableSet( tempMandatoryArgs );
-        this.commandCompleter = new ArgsCommandCompleter();
     }
 
-    public CommandCompleter getCommandCompleter() {
-        return commandCompleter;
+    public CommandCompleter getCommandCompleter( String commandName ) {
+        return new ArgsCommandCompleter( commandName );
     }
 
     /**
@@ -480,12 +478,18 @@ public class ArgsSpec {
 
     private class ArgsCommandCompleter implements CommandCompleter {
 
+        private final String commandName;
+
+        public ArgsCommandCompleter( String commandName ) {
+            this.commandName = commandName;
+        }
+
         @Override
         public int complete( String buffer, int cursor, List<CharSequence> candidates ) {
             List<String> commandParts = CommandHelper.breakupArguments( buffer.substring( 0, cursor ),
                     CommandBreakupOptions.create().includeSeparators( true ) );
 
-            if ( commandParts.size() < 2 ) {
+            if ( commandParts.size() < 2 || !commandParts.get( 0 ).equals( commandName ) ) {
                 return -1;
             }
 
