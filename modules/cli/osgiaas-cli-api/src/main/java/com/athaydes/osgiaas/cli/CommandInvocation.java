@@ -7,7 +7,16 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Result of command invocation.
+ * Result of a command invocation.
+ * <p>
+ * Instances of this class are usually obtained by calling {@link com.athaydes.osgiaas.cli.args.ArgsSpec#parse(String)}.
+ * This method attempts to parse as much as possible of the provided input, leaving any unrecognized part of the input
+ * accessible with the {@link #getUnprocessedInput()} method.
+ * <p>
+ * Specified options can be accessed easily with {@link #getAllArgumentsFor(String)}
+ * or {@link #getOptionFirstArgument(String)}.
+ * <p>
+ * To find out if an option was specified at all, use the {@link #hasOption(String)} method.
  */
 public class CommandInvocation {
 

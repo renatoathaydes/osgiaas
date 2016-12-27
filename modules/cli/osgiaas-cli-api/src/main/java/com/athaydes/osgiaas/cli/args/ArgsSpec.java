@@ -26,7 +26,16 @@ import static java.util.stream.Collectors.joining;
 /**
  * Command arguments specification.
  * <p>
- * Used by cli commands to specify the arguments they may accept.
+ * Used by CLI Commands to specify the arguments they may accept, generate documentation and a {@link CommandCompleter}
+ * automatically.
+ * <p>
+ * To parse the command-line input, use the {@link #parse(String)} method, then the {@link CommandInvocation} object it
+ * returns to access the options provided by the user.
+ * <p>
+ * To enable command auto-completion for a Command, export a {@code CommandCompleter} OSGi service that
+ * delegates to the instance returned by {@link #getCommandCompleter(String)}).
+ * <p>
+ * Standard options documentation can be obtained by calling {@link #getUsage()} and {@link #getDocumentation(String)}.
  */
 public class ArgsSpec {
 
