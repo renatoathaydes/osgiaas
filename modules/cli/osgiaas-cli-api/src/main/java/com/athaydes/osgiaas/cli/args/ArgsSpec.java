@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.joining;
@@ -391,7 +392,8 @@ public class ArgsSpec {
          * By default, the name of the argument is shown, not its enumerated values.
          * <p>
          * Notice that because the enumerated values are provided lazily, a different set of values could be
-         * returned each time the documentation is generated.
+         * returned each time the documentation is generated. It is advisable to only use this option in case
+         * the enumerated argument values are completely static.
          *
          * @return this builder
          */
@@ -573,8 +575,12 @@ public class ArgsSpec {
             Set<Arg> remainingOptions = new HashSet<>( argMap.values() );
             Set<Arg> specifiedOptions = new HashSet<>();
             int completionIndex = lastPart.isEmpty() ? lastPartLength : 0;
-            int currentMandatoryArgs = 1; // treat the command itself as the first argument
-            int currentOptionalArgs = 0;
+            List<List<String>> currentMandatoryArgs = new ArrayList<>();
+
+            // treat the command itself as the first argument
+            currentMandatoryArgs.add( Collections.emptyList() );
+
+            List<List<String>> currentOptionalArgs = new ArrayList<>();
 
             for (String commandPart : commandParts) {
                 // to keep track of the current position, we must use the un-trimmed command part's length
@@ -587,11 +593,23 @@ public class ArgsSpec {
                     continue;
                 }
 
-                if ( currentMandatoryArgs > 0 ) {
-                    // skip mandatory argument
-                    currentMandatoryArgs--;
-                    currentOptionalArgs--;
+                if ( currentMandatoryArgs.size() > 0 ) {
+                    List<String> options = currentMandatoryArgs.remove( 0 );
+                    if ( !options.isEmpty() && !options.contains( commandPart ) ) {
+                        // mandatory argument value was not matched
+                        return -1;
+                    }
+
+                    // mandatory argument value matched
                     continue;
+                }
+
+                if ( !currentOptionalArgs.isEmpty() ) {
+                    List<String> options = currentOptionalArgs.remove( 0 );
+                    if ( options.isEmpty() || options.contains( commandPart ) ) {
+                        // this is an optional argument
+                        continue;
+                    }
                 }
 
                 @Nullable Arg arg = argMap.get( commandPart );
@@ -602,45 +620,66 @@ public class ArgsSpec {
                                 // multiple times not allowed and already specified
                                 ( !arg.allowMultiple && specifiedOptions.contains( arg ) );
 
-                boolean noOptionalArgsLeft = ( currentOptionalArgs <= 0 );
-
-                if ( noMatch && noOptionalArgsLeft ) {
-                    return -1;
-                }
-
-                if ( arg != null ) {
-                    specifiedOptions.add( arg );
-                }
-
-                if ( !noOptionalArgsLeft ) {
-                    // this was an optional arg
-                    currentOptionalArgs--;
-                }
-
                 if ( !noMatch ) {
                     // we got a matching arg
+                    specifiedOptions.add( arg );
+
                     if ( !arg.allowMultiple ) {
                         remainingOptions.remove( arg );
                     }
 
-                    currentMandatoryArgs = arg.minArgs;
-                    currentOptionalArgs = arg.maxArgs;
+                    Function<List<Entry<String, Supplier<List<String>>>>, List<List<String>>> optionArgValues =
+                            ( a ) -> a.stream()
+                                    .map( Entry::getValue )
+                                    .map( Supplier::get )
+                                    .collect( Collectors.toList() );
+
+                    currentMandatoryArgs = optionArgValues.apply( arg.mandatoryArgs );
+                    currentOptionalArgs = optionArgValues.apply( arg.optionalArgs );
+                } else {
+                    // did not match anything
+                    return -1;
                 }
             }
 
             boolean foundCompletion = false;
 
-            // all remaining options could be used for completion
-            for (Arg arg : remainingOptions) {
-                if ( arg.key.startsWith( lastPart ) ) {
-                    foundCompletion = true;
-                    candidates.add( arg.key );
+            if ( !currentMandatoryArgs.isEmpty() ) {
+                // mandatory arguments are required, use only valid options for completion
+                List<String> possibleCompletions = currentMandatoryArgs.get( 0 );
+                for (String possibility : possibleCompletions) {
+                    if ( possibility.startsWith( lastPart ) ) {
+                        candidates.add( possibility );
+                        foundCompletion = true;
+                    }
                 }
-                if ( arg.longKey != null && arg.longKey.startsWith( lastPart ) ) {
-                    foundCompletion = true;
-                    candidates.add( arg.longKey );
+
+                // only check for more possibilities if no mandatory argument was required
+            } else {
+                // all remaining option arguments could be used for completion
+                if ( !currentOptionalArgs.isEmpty() ) {
+                    List<String> possibleCompletions = currentOptionalArgs.get( 0 );
+                    for (String possibility : possibleCompletions) {
+                        if ( possibility.startsWith( lastPart ) ) {
+                            candidates.add( possibility );
+                            foundCompletion = true;
+                        }
+                    }
+                }
+
+                // all remaining options could be used for completion
+                for (Arg arg : remainingOptions) {
+                    if ( arg.key.startsWith( lastPart ) ) {
+                        foundCompletion = true;
+                        candidates.add( arg.key );
+                    }
+                    if ( arg.longKey != null && arg.longKey.startsWith( lastPart ) ) {
+                        foundCompletion = true;
+                        candidates.add( arg.longKey );
+                    }
                 }
             }
+
 
             if ( foundCompletion ) {
                 candidates.sort( comparing( CharSequence::toString ) );
