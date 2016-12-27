@@ -488,6 +488,26 @@ public class ArgsSpec {
              * Enumerated values are provided via a #Supplier, meaning they are evaluated each time, making it
              * possible to support dynamic arguments such as file names within a directory.
              *
+             * @param name                     argument name (used only for documentation)
+             * @param enumeratedValuesSupplier possible values the
+             *                                 argument might take (used for auto-completion).
+             * @return this builder
+             */
+            public ArgBuilder withEnumeratedArg( String name, Supplier<List<String>> enumeratedValuesSupplier ) {
+                mandatoryArgs.add( new SimpleEntry<>( name, enumeratedValuesSupplier ) );
+                return this;
+            }
+
+            /**
+             * Set mandatory named arguments, with enumerated possible values, the option must take.
+             * <p>
+             * The named arguments are used both to know how many arguments to parse and for documentation.
+             * The enumerated values for each argument are used for CLI auto-completion. If the supplied List for an
+             * argument is empty, then no auto-completion is possible.
+             * <p>
+             * Enumerated values are provided via a #Supplier, meaning they are evaluated each time, making it
+             * possible to support dynamic arguments such as file names within a directory.
+             *
              * @param enumeratedArgs map from argument name (used only for documentation) to possible values the
              *                       argument might take (used for auto-completion).
              * @return this builder
@@ -528,6 +548,26 @@ public class ArgsSpec {
              */
             public ArgBuilder withOptionalEnumeratedArgs( Map<String, Supplier<List<String>>> enumeratedArgs ) {
                 optionalArgs.addAll( enumeratedArgs.entrySet() );
+                return this;
+            }
+
+            /**
+             * Set optional named arguments, with enumerated possible values, the option might take.
+             * <p>
+             * The named arguments are used both to know how many arguments to parse and for documentation.
+             * The enumerated values for each argument are used for CLI auto-completion. If the supplied List for an
+             * argument is empty, then no auto-completion is possible.
+             * <p>
+             * Enumerated values are provided via a #Supplier, meaning they are evaluated each time, making it
+             * possible to support dynamic arguments such as file names within a directory.
+             *
+             * @param name                     of the argument (used only for documentation)
+             * @param enumeratedValuesSupplier possible values the
+             *                                 argument might take (used for auto-completion).
+             * @return this builder
+             */
+            public ArgBuilder withOptionalEnumeratedArg( String name, Supplier<List<String>> enumeratedValuesSupplier ) {
+                optionalArgs.add( new SimpleEntry<>( name, enumeratedValuesSupplier ) );
                 return this;
             }
 

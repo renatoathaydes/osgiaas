@@ -110,9 +110,7 @@ public class ListResourcesCommand implements Command {
 
         boolean showAll = invocation.hasOption( SHOW_ALL_OPTION );
 
-        String pattern = invocation.hasOption( PATTERN_OPTION ) ?
-                invocation.getOptionFirstArgument( PATTERN_OPTION ) :
-                "*";
+        String pattern = invocation.getOptionalFirstArgument( PATTERN_OPTION ).orElse( "*" );
 
         String searchWord = searchTransform.apply( invocation.getUnprocessedInput() );
 

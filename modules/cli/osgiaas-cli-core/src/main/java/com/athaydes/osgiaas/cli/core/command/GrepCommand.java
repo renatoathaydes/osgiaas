@@ -10,6 +10,7 @@ import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
@@ -145,8 +146,8 @@ public class GrepCommand implements StreamingCommand {
         }
 
         boolean caseInsensitive = invocation.hasOption( CASE_INSENSITIVE_ARG );
-        @Nullable String after = invocation.getOptionFirstArgument( AFTER_ARG );
-        @Nullable String before = invocation.getOptionFirstArgument( BEFORE_ARG );
+        Optional<String> after = invocation.getOptionalFirstArgument( AFTER_ARG );
+        Optional<String> before = invocation.getOptionalFirstArgument( BEFORE_ARG );
 
         List<String> rest = CommandHelper.breakupArguments( invocation.getUnprocessedInput(), 2 );
 
@@ -161,20 +162,14 @@ public class GrepCommand implements StreamingCommand {
         try {
             return new GrepCall(
                     caseInsensitive,
-                    parseInt( before ), before != null,
-                    parseInt( after ), after != null,
+                    Integer.parseInt( before.orElse( "0" ) ), before.isPresent(),
+                    Integer.parseInt( after.orElse( "0" ) ), after.isPresent(),
                     regex, text == null ? "" : text );
         } catch ( NumberFormatException nfe ) {
             CommandHelper.printError( err, getUsage(), "Expected integer argument for " +
                     BEFORE_ARG + " or " + AFTER_ARG );
             return null;
         }
-    }
-
-    private static int parseInt( @Nullable String arg ) {
-        return ( arg == null ) ?
-                0 :
-                Integer.parseInt( arg );
     }
 
     static class GrepCall {

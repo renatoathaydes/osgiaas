@@ -1,5 +1,9 @@
 package com.athaydes.osgiaas.api.ansi;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * Enumerator containing simple ANSI Colors.
  *
@@ -50,6 +54,13 @@ public enum AnsiColor {
         } catch ( IllegalArgumentException e ) {
             return false;
         }
+    }
+
+    public static List<String> colorNames() {
+        return Arrays.stream( values() ).map( AnsiColor::name )
+                .filter( it -> !it.startsWith( "_" ) )
+                .map( String::toLowerCase )
+                .collect( Collectors.toList() );
     }
 
 }
