@@ -1,10 +1,12 @@
 package com.athaydes.osgiaas.cli.core.completer;
 
+import com.athaydes.osgiaas.api.ansi.AnsiColor;
 import com.athaydes.osgiaas.cli.completer.BaseCompleter;
 import com.athaydes.osgiaas.cli.completer.CompletionMatcher;
 import com.athaydes.osgiaas.cli.core.command.HighlightCommand;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -16,9 +18,32 @@ import static com.athaydes.osgiaas.cli.completer.CompletionMatcher.nameMatcher;
 import static com.athaydes.osgiaas.cli.core.command.HighlightCommand.BACKGROUND_ARG;
 import static com.athaydes.osgiaas.cli.core.command.HighlightCommand.CASE_INSENSITIVE_ARG;
 import static com.athaydes.osgiaas.cli.core.command.HighlightCommand.FOREGROUND_ARG;
-import static com.athaydes.osgiaas.cli.core.completer.ColorCommandCompleter.colorsNodesWithChildren;
 
 public class HighlightCommandCompleter extends BaseCompleter {
+
+    private static final List<CompletionMatcher> colorTargets =
+            Stream.of( "prompt", "text", "error" )
+                    .map( CompletionMatcher::nameMatcher )
+                    .collect( Collectors.toList() );
+
+    private static final CompletionMatcher[] colors = colorsNodesWithChildren( colorTargets );
+
+    static CompletionMatcher[] colorsNodesWithChildren(
+            CompletionMatcher... children ) {
+        return colorsNodesWithChildren( Arrays.asList( children ) );
+    }
+
+    static CompletionMatcher[] colorsNodesWithChildren(
+            List<CompletionMatcher> children ) {
+        Stream<CompletionMatcher> matcherStream = Stream.of( AnsiColor.values() )
+                .map( AnsiColor::name )
+                .filter( color -> !color.startsWith( "_" ) )
+                .map( String::toLowerCase )
+                .sorted()
+                .map( color -> CompletionMatcher.nameMatcher( color, children::stream ) );
+
+        return matcherStream.toArray( CompletionMatcher[]::new );
+    }
 
     static CompletionMatcher ansiModifierNodesWithChildren(
             Supplier<Stream<CompletionMatcher>> children ) {

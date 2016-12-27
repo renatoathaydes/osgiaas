@@ -159,8 +159,8 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
             return null;
         } else {
             boolean caseInsensitive = invocation.hasOption( CASE_INSENSITIVE_ARG );
-            @Nullable String foreground = invocation.getOptionFirstArgument( FOREGROUND_ARG );
-            @Nullable String background = invocation.getOptionFirstArgument( BACKGROUND_ARG );
+            @Nullable String foreground = invocation.getOptionalFirstArgument( FOREGROUND_ARG ).orElse( null );
+            String background = invocation.getOptionalFirstArgument( BACKGROUND_ARG ).orElse( AnsiColor.DEFAULT_BG.name() );
             List<String> rest = CommandHelper.breakupArguments(
                     invocation.getUnprocessedInput(), 2 );
 
@@ -199,15 +199,14 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
         private final String text;
         private final String originalColor;
 
-        HighlightCall( @Nullable String back, @Nullable String fore,
+        HighlightCall( String back, @Nullable String fore,
                        Pattern pattern, String text, String originalColor ) {
             this.pattern = pattern;
             this.text = text;
             this.originalColor = originalColor;
 
-            AnsiColor background = ( back == null ) ?
-                    AnsiColor.DEFAULT_BG :
-                    parse( "_" + back, AnsiColor::valueOf, null );
+            AnsiColor background = parse( back.startsWith( "_" ) ? back : "_" + back,
+                    AnsiColor::valueOf, null );
 
             if ( fore != null ) {
                 String[] foreParts = fore.split( Pattern.quote( "+" ) );
