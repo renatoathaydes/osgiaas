@@ -65,7 +65,7 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
     public static final String CASE_INSENSITIVE_ARG = "-i";
     public static final String CASE_INSENSITIVE_LONG_ARG = "--ignore-case";
 
-    private final ArgsSpec argsSpec = ArgsSpec.builder()
+    private static final ArgsSpec argsSpec = ArgsSpec.builder()
             .accepts( FOREGROUND_ARG, FOREGROUND_LONG_ARG ).withArgs( "color[+modifier]" )
             .withDescription( "highlighted text foreground color and modifier(s)" ).end()
             .accepts( BACKGROUND_ARG, BACKGROUND_LONG_ARG ).withArgs( "color" )

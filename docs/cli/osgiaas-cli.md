@@ -118,28 +118,28 @@ The color command can change the color of:
 * the **prompt**
 * the commands' **text** output
 * the commands' **error** output
+* all of the above
+
+The color command accepts the following options:
+
+  * [-t], [--target] <prompt|text|error|all>
+  * -c, --color <reset|black|red|green|yellow|blue|purple|cyan|white>
 
 For example, to change the prompt color to green, the text output to white, and the error output to yellow:
 
 ```
-color green prompt
-color white text
-color yellow error
+color -c green -t prompt
+color -c white -t text
+color -c yellow -t error
 ```
 
 To change all of them at once, type just the color:
 
 ```
-color cyan
+color -c cyan
 ```
 
 For the color command to work, your shell must support ANSI formatting.
-
-Available ANSI colors:
-
-```
-black, red, green, yellow, blue, purple, cyan, white
-```
 
 ### grep
 
