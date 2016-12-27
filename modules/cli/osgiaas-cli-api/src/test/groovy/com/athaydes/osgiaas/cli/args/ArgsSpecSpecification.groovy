@@ -3,6 +3,8 @@ package com.athaydes.osgiaas.cli.args
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.util.function.Supplier
+
 @Unroll
 class ArgsSpecSpecification extends Specification {
 
@@ -193,6 +195,22 @@ class ArgsSpecSpecification extends Specification {
         result == '[a] [bc <hi>]'
     }
 
+    def "Usage for simple command with enumerated arguments works as expected"() {
+        given: 'A simple ArgsSpec with enumerated arg values enabled'
+        def spec = ArgsSpec.builder()
+                .showEnumeratedArgValuesInDocumentation()
+                .accepts( 'a' ).withOptionalEnumeratedArgs( [ ho: { [ 'yes', 'no' ] } as Supplier ] ).end()
+                .accepts( 'bc' ).withEnumeratedArgs( [ hi: { [ 'a', 'b', 'c' ] } as Supplier ] )
+                .withDescription( 'this is description' ).end()
+                .build()
+
+        when: 'we request usage for the ArgsSpec'
+        def result = spec.usage
+
+        then: 'the usage is as expected'
+        result == '[a [<yes|no>]] [bc <a|b|c>]'
+    }
+
     def "Documentation for simple command works as expected"() {
         given: 'A simple ArgsSpec'
         def spec = ArgsSpec.builder()
@@ -211,19 +229,25 @@ class ArgsSpecSpecification extends Specification {
 
     def "Usage for complex command works as expected"() {
         given: 'A complex ArgsSpec'
-        def spec = ArgsSpec.builder()
+        def builder = ArgsSpec.builder()
                 .accepts( '-a' ).allowMultiple().end()
                 .accepts( '-z', '--zzz' ).mandatory().allowMultiple().withArgs( "hi" ).end()
                 .accepts( 'bc' ).withArgs( 'hi' ).withDescription( 'this is description' ).end()
                 .accepts( '-f', '--file' ).mandatory().withArgs( 'hi', 'bye' )
                 .withOptionalArgs( 'ho', 'ho' ).withDescription( 'very complex one' ).end()
-                .build()
+
+        def spec = showEnumeratedArgValues ?
+                builder.showEnumeratedArgValuesInDocumentation().build() :
+                builder.build()
 
         when: 'we request usage for the ArgsSpec'
         def result = spec.usage
 
         then: 'the usage is as expected'
         result == "[-a…] -z… <hi> [bc <hi>] -f <hi> <bye> [<ho> <ho>]"
+
+        where:
+        showEnumeratedArgValues << [ false, true ]
     }
 
     def "Documentation for complex command works as expected"() {

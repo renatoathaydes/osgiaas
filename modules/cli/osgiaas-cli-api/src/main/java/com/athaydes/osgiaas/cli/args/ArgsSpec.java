@@ -17,7 +17,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
-import java.util.stream.Stream;
+import java.util.function.Supplier;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.joining;
@@ -31,8 +31,11 @@ public class ArgsSpec {
 
     private final Map<String, Arg> argMap;
     private final Set<String> mandatoryArgKeys;
+    private final boolean showEnumeratedValuesInDocumentation;
 
-    private ArgsSpec( List<Arg> arguments ) {
+    private ArgsSpec( List<Arg> arguments, boolean showEnumeratedValuesInDocumentation ) {
+        this.showEnumeratedValuesInDocumentation = showEnumeratedValuesInDocumentation;
+
         Set<String> tempMandatoryArgs = new HashSet<>(
                 ( int ) arguments.stream().filter( arg -> arg.mandatory ).count() );
 
@@ -64,11 +67,11 @@ public class ArgsSpec {
     public String getUsage() {
         return argMap.values().stream()
                 .distinct()
-                .map( ArgsSpec::usageFor )
+                .map( this::usageFor )
                 .collect( joining( " " ) );
     }
 
-    private static String usageFor( Arg arg ) {
+    private String usageFor( Arg arg ) {
         StringBuilder builder = new StringBuilder();
 
         if ( !arg.mandatory ) {
@@ -85,38 +88,47 @@ public class ArgsSpec {
         return builder.toString();
     }
 
-    private static void appendOption( StringBuilder builder, String option, boolean mandatory, boolean allowMultiple ) {
+    private void appendOption( StringBuilder builder, String option, boolean mandatory, boolean allowMultiple ) {
         if ( !mandatory ) {
-            builder.append( "[" );
+            builder.append( '[' );
         }
 
         builder.append( option );
 
         if ( allowMultiple ) {
-            builder.append( "…" );
+            builder.append( '…' );
         }
         if ( !mandatory ) {
-            builder.append( "]" );
+            builder.append( ']' );
         }
     }
 
-    private static void appendArguments( StringBuilder builder, Arg arg ) {
-        if ( arg.mandatoryArgs.length > 0 ) {
-            builder.append( " " );
-            builder.append( Stream.of( arg.mandatoryArgs )
-                    .map( it -> "<" + it + ">" )
+    private void appendArguments( StringBuilder builder, Arg arg ) {
+        Function<Map.Entry<String, Supplier<List<String>>>, String> doc = ( entry ) -> {
+            if ( !showEnumeratedValuesInDocumentation ) {
+                return entry.getKey();
+            }
+            List<String> enumeratedValues = entry.getValue().get();
+            if ( enumeratedValues.isEmpty() ) {
+                return entry.getKey();
+            } else {
+                return String.join( "|", enumeratedValues );
+            }
+        };
+
+        if ( arg.mandatoryArgs.size() > 0 ) {
+            builder.append( ' ' );
+            builder.append( arg.mandatoryArgs.stream()
+                    .map( it -> "<" + doc.apply( it ) + ">" )
                     .collect( joining( " " ) ) );
         }
 
-        if ( arg.optionalArgs.length > 0 ) {
-            if ( arg.mandatoryArgs.length > 0 ) {
-                builder.append( " " );
-            }
-            builder.append( "[" )
-                    .append( Stream.of( arg.optionalArgs )
-                            .map( it -> "<" + it + ">" )
+        if ( arg.optionalArgs.size() > 0 ) {
+            builder.append( " [" )
+                    .append( arg.optionalArgs.stream()
+                            .map( it -> "<" + doc.apply( it ) + ">" )
                             .collect( joining( " " ) ) )
-                    .append( "]" );
+                    .append( ']' );
         }
     }
 
@@ -312,14 +324,16 @@ public class ArgsSpec {
         @Nullable
         private final String description;
         private final boolean mandatory;
-        private final String[] mandatoryArgs;
-        private final String[] optionalArgs;
+        private final List<Map.Entry<String, Supplier<List<String>>>> mandatoryArgs;
+        private final List<Map.Entry<String, Supplier<List<String>>>> optionalArgs;
         private final int minArgs;
         private final int maxArgs;
         private final boolean allowMultiple;
 
         private Arg( String key, @Nullable String longKey, @Nullable String description, boolean mandatory,
-                     String[] mandatoryArgs, String[] optionalArgs, boolean allowMultiple ) {
+                     List<Map.Entry<String, Supplier<List<String>>>> mandatoryArgs,
+                     List<Map.Entry<String, Supplier<List<String>>>> optionalArgs,
+                     boolean allowMultiple ) {
             this.key = key;
             this.longKey = longKey;
             this.description = description;
@@ -328,8 +342,8 @@ public class ArgsSpec {
             this.optionalArgs = optionalArgs;
             this.allowMultiple = allowMultiple;
 
-            this.minArgs = mandatoryArgs.length;
-            this.maxArgs = mandatoryArgs.length + optionalArgs.length;
+            this.minArgs = mandatoryArgs.size();
+            this.maxArgs = mandatoryArgs.size() + optionalArgs.size();
         }
     }
 
@@ -339,6 +353,7 @@ public class ArgsSpec {
     public static class ArgsSpecBuilder {
 
         private final List<Arg> arguments = new ArrayList<>();
+        private boolean showEnumeratedValuesInDocumentation = false;
 
         private ArgsSpecBuilder() {
             // use builder factory method
@@ -370,10 +385,26 @@ public class ArgsSpec {
         }
 
         /**
+         * Show the enumerated values for arguments specified with {@link ArgBuilder#withEnumeratedArgs(Map)} or
+         * {@link ArgBuilder#withOptionalEnumeratedArgs(Map)} in the generated documentation.
+         * <p>
+         * By default, the name of the argument is shown, not its enumerated values.
+         * <p>
+         * Notice that because the enumerated values are provided lazily, a different set of values could be
+         * returned each time the documentation is generated.
+         *
+         * @return this builder
+         */
+        public ArgsSpecBuilder showEnumeratedArgValuesInDocumentation() {
+            showEnumeratedValuesInDocumentation = true;
+            return this;
+        }
+
+        /**
          * @return the argument specification
          */
         public ArgsSpec build() {
-            return new ArgsSpec( arguments );
+            return new ArgsSpec( arguments, showEnumeratedValuesInDocumentation );
         }
 
         /**
@@ -387,8 +418,8 @@ public class ArgsSpec {
             @Nullable
             private String description;
             private boolean mandatory = false;
-            private String[] mandatoryArgs = { };
-            private String[] optionalArgs = { };
+            private List<Map.Entry<String, Supplier<List<String>>>> mandatoryArgs = new ArrayList<>( 2 );
+            private List<Map.Entry<String, Supplier<List<String>>>> optionalArgs = new ArrayList<>( 2 );
             private boolean allowMultiple = false;
 
             private ArgBuilder( String option ) {
@@ -430,7 +461,28 @@ public class ArgsSpec {
              * @return this builder
              */
             public ArgBuilder withArgs( String... args ) {
-                this.mandatoryArgs = args;
+                for (String arg : args) {
+                    mandatoryArgs.add( new SimpleEntry<>( arg, Collections::emptyList ) );
+                }
+                return this;
+            }
+
+            /**
+             * Set mandatory named arguments, with enumerated possible values, the option must take.
+             * <p>
+             * The named arguments are used both to know how many arguments to parse and for documentation.
+             * The enumerated values for each argument are used for CLI auto-completion. If the supplied List for an
+             * argument is empty, then no auto-completion is possible.
+             * <p>
+             * Enumerated values are provided via a #Supplier, meaning they are evaluated each time, making it
+             * possible to support dynamic arguments such as file names within a directory.
+             *
+             * @param enumeratedArgs map from argument name (used only for documentation) to possible values the
+             *                       argument might take (used for auto-completion).
+             * @return this builder
+             */
+            public ArgBuilder withEnumeratedArgs( Map<String, Supplier<List<String>>> enumeratedArgs ) {
+                mandatoryArgs.addAll( enumeratedArgs.entrySet() );
                 return this;
             }
 
@@ -443,7 +495,28 @@ public class ArgsSpec {
              * @return this builder
              */
             public ArgBuilder withOptionalArgs( String... args ) {
-                this.optionalArgs = args;
+                for (String arg : args) {
+                    optionalArgs.add( new SimpleEntry<>( arg, Collections::emptyList ) );
+                }
+                return this;
+            }
+
+            /**
+             * Set optional named arguments, with enumerated possible values, the option might take.
+             * <p>
+             * The named arguments are used both to know how many arguments to parse and for documentation.
+             * The enumerated values for each argument are used for CLI auto-completion. If the supplied List for an
+             * argument is empty, then no auto-completion is possible.
+             * <p>
+             * Enumerated values are provided via a #Supplier, meaning they are evaluated each time, making it
+             * possible to support dynamic arguments such as file names within a directory.
+             *
+             * @param enumeratedArgs map from argument name (used only for documentation) to possible values the
+             *                       argument might take (used for auto-completion).
+             * @return this builder
+             */
+            public ArgBuilder withOptionalEnumeratedArgs( Map<String, Supplier<List<String>>> enumeratedArgs ) {
+                optionalArgs.addAll( enumeratedArgs.entrySet() );
                 return this;
             }
 
@@ -480,7 +553,7 @@ public class ArgsSpec {
 
         private final String commandName;
 
-        public ArgsCommandCompleter( String commandName ) {
+        private ArgsCommandCompleter( String commandName ) {
             this.commandName = commandName;
         }
 
