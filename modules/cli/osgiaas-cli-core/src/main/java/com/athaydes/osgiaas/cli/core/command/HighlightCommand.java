@@ -65,14 +65,25 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
     public static final String CASE_INSENSITIVE_ARG = "-i";
     public static final String CASE_INSENSITIVE_LONG_ARG = "--ignore-case";
 
-    private static final ArgsSpec argsSpec = ArgsSpec.builder()
-            .accepts( FOREGROUND_ARG, FOREGROUND_LONG_ARG ).withArgs( "color[+modifier]" )
+    public static final ArgsSpec argsSpec = ArgsSpec.builder()
+            .accepts( FOREGROUND_ARG, FOREGROUND_LONG_ARG ).withEnumeratedArg( "color[+modifier]",
+                    HighlightCommand::foregroundColorAndModifiers )
             .withDescription( "highlighted text foreground color and modifier(s)" ).end()
-            .accepts( BACKGROUND_ARG, BACKGROUND_LONG_ARG ).withArgs( "color" )
+            .accepts( BACKGROUND_ARG, BACKGROUND_LONG_ARG ).withEnumeratedArg( "color", AnsiColor::colorNames )
             .withDescription( "highlighted text background color" ).end()
             .accepts( CASE_INSENSITIVE_ARG, CASE_INSENSITIVE_LONG_ARG )
             .withDescription( "case insensitive regex" ).end()
             .build();
+
+    private static List<String> foregroundColorAndModifiers() {
+        List<String> result = new ArrayList<>( AnsiColor.values().length +
+                ( AnsiColor.values().length * ansiModifierNameByShortOption.size() ) );
+        result.addAll( AnsiColor.colorNames() );
+        for (String ansiModifier : ansiModifierNameByShortOption.values()) {
+            AnsiColor.colorNames().forEach( color -> result.add( color + "+" + ansiModifier.toLowerCase() ) );
+        }
+        return result;
+    }
 
     @Override
     public String getName() {
@@ -117,7 +128,6 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
             }
         }
     }
-
 
     private Consumer<String> highlightMatchingLines( PrintStream out,
                                                      HighlightCall highlightCall ) {
