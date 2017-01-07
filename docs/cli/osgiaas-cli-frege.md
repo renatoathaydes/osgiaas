@@ -32,7 +32,7 @@ your Gradle file:
 ```groovy
 dependencies {
     // ... core dependencies
-    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-frege:1.0-SNAPSHOT'
+    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-frege:0.5'
     systemLib 'org.frege-lang:frege-interpreter-core:1.2'
 
     osgiRuntime 'com.athaydes.osgiaas:slf4j-to-osgi-log:1.7.0'

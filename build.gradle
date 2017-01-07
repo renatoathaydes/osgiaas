@@ -13,7 +13,7 @@ apply plugin: 'idea'
 
 allprojects {
     group = 'com.athaydes.osgiaas'
-    version = '1.0-SNAPSHOT'
+    version = '0.5'
 
     repositories {
         jcenter()

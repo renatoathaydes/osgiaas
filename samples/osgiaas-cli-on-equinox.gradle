@@ -34,13 +34,15 @@ repositories {
     jcenter()
 }
 
+final osgiaasVersion = '0.5'
+
 dependencies {
     // OSGiaaS Modules
-    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-core:1.0-SNAPSHOT'
-    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-grab:1.0-SNAPSHOT'
-    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-groovy:1.0-SNAPSHOT'
-    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-javac:1.0-SNAPSHOT'
-    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-js:1.0-SNAPSHOT'
+    osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-core:$osgiaasVersion"
+    osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-grab:$osgiaasVersion"
+    osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-groovy:$osgiaasVersion"
+    osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-javac:$osgiaasVersion"
+    osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-js:$osgiaasVersion"
 
     // OSGi Service Component Runtime implementation
     osgiRuntime 'org.apache.felix:org.apache.felix.scr:2.0.2', {

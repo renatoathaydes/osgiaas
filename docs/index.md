@@ -37,7 +37,7 @@ repositories {
 
 dependencies {
     // the osgiaas-cli core bundle
-    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-core:1.0-SNAPSHOT'
+    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-core:0.5'
 
     // OSGi Service Component Runtime implementation
     osgiRuntime 'org.apache.felix:org.apache.felix.scr:2.0.2', {
