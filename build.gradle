@@ -104,6 +104,9 @@ configure( subprojects ) {
                 labels = [ 'osgi', 'cli', 'jvm', 'languages', 'java', 'groovy', 'frege', 'kotlin' ]
                 publicDownloadNumbers = true
 
+                githubRepo = 'renatoathaydes/osgiaas'
+                githubReleaseNotesFile = 'README.md'
+
                 //noinspection GroovyAssignabilityCheck
                 version {
                     name = project.version
@@ -112,7 +115,7 @@ configure( subprojects ) {
                         sign = true
                     }
                     mavenCentralSync {
-                        sync = true
+                        sync = false
                         user = projectProperty( 'ossrhUsername' )
                         password = projectProperty( 'ossrhPassword' )
                         close = '1' // '0' to NOT close
