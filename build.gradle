@@ -35,6 +35,8 @@ configure( subprojects ) {
         return // no publishing config for parent modules
     }
 
+    project.apply plugin: 'com.jfrog.bintray'
+
     project.afterEvaluate {
         def allSources = sourceSets.main.allSource
 
@@ -89,9 +91,8 @@ configure( subprojects ) {
             }
         }
 
-        apply plugin: 'com.jfrog.bintray'
-
         bintray {
+            //dryRun = true
             user = projectProperty( "bintrayUserName" )
             key = projectProperty( "bintrayApiKey" )
             configurations = [ 'archives' ]
@@ -118,7 +119,7 @@ configure( subprojects ) {
                         sign = true
                     }
                     mavenCentralSync {
-                        sync = false
+                        sync = true
                         user = projectProperty( 'ossrhUsername' )
                         password = projectProperty( 'ossrhPassword' )
                         close = '1' // '0' to NOT close
