@@ -95,7 +95,7 @@ configure( subprojects ) {
             publish = true
             pkg {
                 repo = 'maven'
-                name = "osgiaas.${project.name}"
+                name = project.name
                 licenses = [ 'Apache-2.0' ]
                 desc = project.description
                 vcsUrl = 'https://github.com/renatoathaydes/osgiaas.git'
