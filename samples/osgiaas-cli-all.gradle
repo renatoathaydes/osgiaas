@@ -27,6 +27,7 @@ dependencies {
     osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-core:$osgiaasVersion"
     osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-frege:$osgiaasVersion" // requires the Frege systemLib
     osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-grab:$osgiaasVersion"
+    osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-ivy:$osgiaasVersion"
     osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-groovy:$osgiaasVersion"
     osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-javac:$osgiaasVersion"
     osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-js:$osgiaasVersion"
