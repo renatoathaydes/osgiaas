@@ -24,7 +24,7 @@ allprojects {
 description = 'OSGiaaS (OSGi as a Service) is a project that makes it easy to write JVM applications leveraging ' +
         'OSGi capabilities.'
 
-Set parentModules = [ 'modules', 'cli', 'lang', 'infra' ]
+Set parentModules = [ 'osgiaas', 'modules', 'cli', 'lang', 'infra' ]
 
 def projectProperty = { String name, defaultValue = '' ->
     project.hasProperty( name ) ? project.property( name ) : defaultValue
