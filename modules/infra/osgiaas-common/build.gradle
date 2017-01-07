@@ -14,7 +14,6 @@ sourceSets {
 
 // process generated files
 tasks.compileJava.doFirst {
-    println "Wiilll compiler java"
     def generatedJavaDir = "$buildDir/generated-java"
     new File( generatedJavaDir ).mkdirs()
     copy {
