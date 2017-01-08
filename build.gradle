@@ -159,6 +159,9 @@ dependencies {
 
     // Enable Frege as a system library for the Frege command
     systemLib "org.frege-lang:frege-interpreter-core:1.2"
+
+    // Enable the Scala Compiler as a system library for the Scala command
+    systemLib 'org.scala-lang:scala-compiler:2.12.1'
 }
 
 // configuration to run all sub-projects in an OSGi environment
