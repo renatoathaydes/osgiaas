@@ -12,9 +12,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -23,19 +23,20 @@ import java.util.stream.Collectors;
  */
 class IvyFactory {
 
-    private static final String jcenter = "https://jcenter.bintray.com/";
+    private static final String JCENTER = "https://jcenter.bintray.com";
 
-    private static final String localM2Repository = "<ibiblio name=\"localm2\" " +
+    private static final String LOCAL_M2_REPOSITORY = "<ibiblio name=\"localm2\" " +
             "root=\"file:${user.home}/.m2/repository/\" checkmodified=\"true\" " +
             "changingPattern=\".*\" changingMatcher=\"regexp\" m2compatible=\"true\"/>";
 
     private final Set<URL> defaultRepositories;
-    private Map<RepositoryConfig, Ivy> ivyByConfig = new HashMap<>();
+    private final Map<RepositoryConfig, Ivy> ivyByConfig = new ConcurrentHashMap<>( 4 );
+    private final AtomicBoolean ready = new AtomicBoolean( false );
 
     IvyFactory() {
         URL jcenterURL;
         try {
-            jcenterURL = new URL( jcenter );
+            jcenterURL = new URL( JCENTER );
         } catch ( MalformedURLException e ) {
             throw new IllegalStateException( "JCenter URL constant has an invalid value", e );
         }
@@ -49,6 +50,7 @@ class IvyFactory {
     void createDefaultConfig() {
         RepositoryConfig defaultConfig = new RepositoryConfig( defaultRepositories, true );
         ivyByConfig.put( defaultConfig, createIvyWith( defaultConfig ) );
+        ready.set( true );
     }
 
     /**
@@ -56,9 +58,14 @@ class IvyFactory {
      *
      * @param repositories      URL to Maven repositories or null to use the default repositories (JCenter).
      * @param includeMavenLocal include the Maven local repository
-     * @return Ivy instance (may be re-used)
+     * @return Ivy instance (may be re-used) or null if this factory is not ready yet.
      */
+    @Nullable
     Ivy getIvy( @Nullable Set<URL> repositories, boolean includeMavenLocal ) {
+        if ( !ready.get() ) {
+            return null;
+        }
+
         if ( repositories == null ) {
             repositories = defaultRepositories;
         }
@@ -111,11 +118,11 @@ class IvyFactory {
     }
 
     private String xmlForRepositories( RepositoryConfig config ) {
-        String localRepo = config.useMavenLocal ? localM2Repository : "";
+        String localRepo = config.useMavenLocal ? LOCAL_M2_REPOSITORY : "";
         return localRepo + config.configuredIvyRepos.stream()
                 .map( it -> String.format(
-                        "<ibiblio name=\"%s-%s\" root=\"%s/\" m2compatible=\"true\"/>",
-                        it.getHost(), it.getPath(), it.toString() ) )
+                        "<ibiblio name=\"%s\" root=\"%s\" m2compatible=\"true\"/>",
+                        it.getHost(), it.toString() ) )
                 .collect( Collectors.joining() );
     }
 

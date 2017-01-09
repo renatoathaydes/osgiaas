@@ -7,7 +7,7 @@
                 <artifact
                         pattern="${user.home}/.ivy2/cache/[organisation]/[module]/[type]s/[artifact]-[revision](-[classifier]).[ext]"/>
             </filesystem>
-            ${RESOLVERS}
+            ${REPOSITORIES}
         </chain>
     </resolvers>
 </ivysettings>

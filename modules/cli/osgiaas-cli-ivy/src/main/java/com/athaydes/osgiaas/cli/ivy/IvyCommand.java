@@ -7,10 +7,12 @@ import org.apache.felix.shell.Command;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.report.ResolveReport;
 
+import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -28,12 +30,16 @@ public class IvyCommand implements Command {
     public static final String NO_MAVEN_LOCAL_LONG_OPTION = "--no-maven-local";
     public static final String DOWNLOAD_ALL_OPTION = "-a";
     public static final String DOWNLOAD_ALL_LONG_OPTION = "--download-all";
+    public static final String VERBOSE_OPTION = "-v";
+    public static final String VERBOSE_LONG_OPTION = "--verbose";
 
-    private IvyFactory ivyFactory = new IvyFactory();
+    private final IvyFactory ivyFactory = new IvyFactory();
 
     static final ArgsSpec argsSpec = ArgsSpec.builder()
             .accepts( INTRANSITIVE_OPTION, INTRANSITIVE_LONG_OPTION )
             .withDescription( "do not retrieve transitive dependencies" ).end()
+            .accepts( VERBOSE_OPTION, VERBOSE_LONG_OPTION )
+            .withDescription( "show verbose output" ).end()
             .accepts( DOWNLOAD_ALL_OPTION, DOWNLOAD_ALL_LONG_OPTION )
             .withDescription( "download also javadocs and sources jars if available" ).end()
             .accepts( NO_MAVEN_LOCAL_OPTION, NO_MAVEN_LOCAL_LONG_OPTION )
@@ -102,7 +108,19 @@ public class IvyCommand implements Command {
                 version = "latest.integration";
             }
 
-            Ivy ivy = getIvy( invocation );
+            boolean verbose = invocation.hasOption( VERBOSE_OPTION );
+
+            if ( verbose ) {
+                System.out.printf( "Resolving group=%s, module=%s, version=%s\n",
+                        group, module, version );
+            }
+
+            @Nullable Ivy ivy = getIvy( invocation, verbose );
+
+            if ( ivy == null ) {
+                err.println( "The Ivy command is not fully initialized yet. Try again in a few seconds!" );
+                return;
+            }
 
             try {
                 ResolveReport resolveReport = new IvyResolver( ivy )
@@ -130,8 +148,9 @@ public class IvyCommand implements Command {
         }
     }
 
-    private Ivy getIvy( CommandInvocation invocation ) {
-        return ivyFactory.getIvy( invocation.hasOption( REPOSITORIES_OPTION )
+    @Nullable
+    private Ivy getIvy( CommandInvocation invocation, boolean verbose ) {
+        Set<URL> repositories = invocation.hasOption( REPOSITORIES_OPTION )
                 ? invocation.getAllArgumentsFor( REPOSITORIES_OPTION )
                 .stream().map( ( it ) -> {
                     try {
@@ -140,7 +159,18 @@ public class IvyCommand implements Command {
                         throw new RuntimeException( "Invalid URL: " + it );
                     }
                 } ).collect( Collectors.toSet() )
-                : null, !invocation.hasOption( NO_MAVEN_LOCAL_OPTION ) );
+                : null;
+
+        if ( verbose ) {
+            if ( repositories == null ) {
+                System.out.println( "No remote Ivy repositories are configured, using default JCenter!" );
+            } else {
+                System.out.println( "Current Ivy repositories: " + String.join( ", ",
+                        repositories.stream().map( Object::toString ).toArray( String[]::new ) ) );
+            }
+        }
+
+        return ivyFactory.getIvy( repositories, !invocation.hasOption( NO_MAVEN_LOCAL_OPTION ) );
     }
 
 }
