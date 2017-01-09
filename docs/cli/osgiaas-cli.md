@@ -30,8 +30,10 @@ monitoring the OSGi system itself), this bundle adds the following Commands:
 * [Frege](osgiaas-cli-frege.md) - Frege REPL
 * [Grab](osgiaas-cli-grab.md) - Grab Maven dependencies and add them to the running system
 * [Groovy](osgiaas-cli-groovy.md) - Groovy REPL
+* [Ivy](osgiaas-cli-ivy.md) - Install artifacts directly from Maven repositories using Apache Ivy
 * [Javac](osgiaas-cli-javac.md) - Java REPL
 * [JavaScript](osgiaas-cli-js.md) - JS REPL ([Nashorn](http://openjdk.java.net/projects/nashorn/))
+* [Scala](osgiaas-cli-scala.md) - Scala REPL
 
 ## Writing your own commands in Java and other JVM languages
 
