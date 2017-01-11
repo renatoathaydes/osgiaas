@@ -1,6 +1,9 @@
 package com.athaydes.osgiaas.cli.ivy;
 
 import org.apache.ivy.Ivy;
+import org.apache.ivy.util.AbstractMessageLogger;
+import org.apache.ivy.util.Message;
+import org.apache.ivy.util.MessageLogger;
 
 import javax.annotation.Nullable;
 import java.io.BufferedReader;
@@ -16,7 +19,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Creates or return a previously created {@link Ivy} instance depending on which repositories are used.
@@ -29,9 +35,12 @@ class IvyFactory {
             "root=\"file:${user.home}/.m2/repository/\" checkmodified=\"true\" " +
             "changingPattern=\".*\" changingMatcher=\"regexp\" m2compatible=\"true\"/>";
 
+    private static final Pattern REPOSITORIES_PATTERN = Pattern.compile( "(\\s*)\\$(\\{REPOSITORIES})\\s*" );
+
     private final Set<URL> defaultRepositories;
     private final Map<RepositoryConfig, Ivy> ivyByConfig = new ConcurrentHashMap<>( 4 );
     private final AtomicBoolean ready = new AtomicBoolean( false );
+    private final AtomicBoolean verbose = new AtomicBoolean( false );
 
     IvyFactory() {
         URL jcenterURL;
@@ -42,6 +51,10 @@ class IvyFactory {
         }
 
         defaultRepositories = Collections.singleton( jcenterURL );
+    }
+
+    AtomicBoolean getVerbose() {
+        return verbose;
     }
 
     /**
@@ -82,6 +95,30 @@ class IvyFactory {
     private Ivy createIvyWith( RepositoryConfig config ) {
         Ivy ivy = Ivy.newInstance();
 
+        MessageLogger defaultLogger = Message.getDefaultLogger();
+
+        ivy.getLoggerEngine().setDefaultLogger( new AbstractMessageLogger() {
+            @Override
+            protected void doProgress() {
+                if ( verbose.get() ) System.out.print( "-" );
+            }
+
+            @Override
+            protected void doEndProgress( String msg ) {
+                if ( verbose.get() ) System.out.println( "." );
+            }
+
+            @Override
+            public void log( String msg, int level ) {
+                if ( verbose.get() ) defaultLogger.log( msg, level );
+            }
+
+            @Override
+            public void rawlog( String msg, int level ) {
+                if ( verbose.get() ) defaultLogger.rawlog( msg, level );
+            }
+        } );
+
         AtomicBoolean repositoriesFound = new AtomicBoolean( false );
 
         try {
@@ -89,17 +126,23 @@ class IvyFactory {
 
             try ( FileWriter writer = new FileWriter( tempSettings );
                   BufferedReader buffer = new BufferedReader(
-                          new InputStreamReader( getClass().getResourceAsStream( "/ivy-template.xml" ) ) ) ) {
+                          new InputStreamReader( getClass().getResourceAsStream( "/ivy-settings-template.xml" ) ) ) ) {
 
-                buffer.lines().map( it -> {
+                buffer.lines().map( line -> {
                     if ( !repositoriesFound.get() ) {
-                        if ( it.matches( "\\s*\\$\\{\\s*REPOSITORIES\\s*}\\s*" ) ) {
+                        Matcher matcher = REPOSITORIES_PATTERN.matcher( line );
+                        if ( matcher.matches() ) {
                             repositoriesFound.set( true );
-                            return xmlForRepositories( config );
+
+                            String repositoriesXml = xmlForRepositories( config )
+                                    .map( repo -> "$1" + Matcher.quoteReplacement( repo ) )
+                                    .collect( Collectors.joining( "\n" ) );
+
+                            return matcher.replaceFirst( repositoriesXml );
                         }
                     }
 
-                    return it;
+                    return line;
                 } ).forEach( line -> {
                     try {
                         writer.append( line ).append( "\n" );
@@ -117,13 +160,12 @@ class IvyFactory {
         return ivy;
     }
 
-    private String xmlForRepositories( RepositoryConfig config ) {
-        String localRepo = config.useMavenLocal ? LOCAL_M2_REPOSITORY : "";
-        return localRepo + config.configuredIvyRepos.stream()
+    private Stream<String> xmlForRepositories( RepositoryConfig config ) {
+        Stream<String> localRepo = config.useMavenLocal ? Stream.of( LOCAL_M2_REPOSITORY ) : Stream.empty();
+        return Stream.concat( localRepo, config.configuredIvyRepos.stream()
                 .map( it -> String.format(
                         "<ibiblio name=\"%s\" root=\"%s\" m2compatible=\"true\"/>",
-                        it.getHost(), it.toString() ) )
-                .collect( Collectors.joining() );
+                        it.getHost(), it.toString() ) ) );
     }
 
     private static class RepositoryConfig {

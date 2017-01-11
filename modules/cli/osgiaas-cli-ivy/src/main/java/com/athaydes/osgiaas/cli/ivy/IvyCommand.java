@@ -22,16 +22,16 @@ import java.util.stream.Stream;
 public class IvyCommand implements Command {
 
     static final String NAME = "ivy";
-    public static final String INTRANSITIVE_OPTION = "-i";
-    public static final String INTRANSITIVE_LONG_OPTION = "--intransitive";
-    public static final String REPOSITORIES_OPTION = "-r";
-    public static final String REPOSITORIES_LONG_OPTION = "--repository";
-    public static final String NO_MAVEN_LOCAL_OPTION = "-n";
-    public static final String NO_MAVEN_LOCAL_LONG_OPTION = "--no-maven-local";
-    public static final String DOWNLOAD_ALL_OPTION = "-a";
-    public static final String DOWNLOAD_ALL_LONG_OPTION = "--download-all";
-    public static final String VERBOSE_OPTION = "-v";
-    public static final String VERBOSE_LONG_OPTION = "--verbose";
+    private static final String INTRANSITIVE_OPTION = "-i";
+    private static final String INTRANSITIVE_LONG_OPTION = "--intransitive";
+    private static final String REPOSITORIES_OPTION = "-r";
+    private static final String REPOSITORIES_LONG_OPTION = "--repository";
+    private static final String NO_MAVEN_LOCAL_OPTION = "-n";
+    private static final String NO_MAVEN_LOCAL_LONG_OPTION = "--no-maven-local";
+    private static final String DOWNLOAD_ALL_OPTION = "-a";
+    private static final String DOWNLOAD_ALL_LONG_OPTION = "--download-all";
+    private static final String VERBOSE_OPTION = "-v";
+    private static final String VERBOSE_LONG_OPTION = "--verbose";
 
     private final IvyFactory ivyFactory = new IvyFactory();
 
@@ -48,6 +48,7 @@ public class IvyCommand implements Command {
             .withDescription( "specify repositories to use to search for artifacts (uses JCenter by default)" ).end()
             .build();
 
+    @SuppressWarnings( "unused" ) // called by OSGi
     public void start() {
         ivyFactory.createDefaultConfig();
     }
@@ -122,10 +123,13 @@ public class IvyCommand implements Command {
                 return;
             }
 
+            ivyFactory.getVerbose().set( verbose );
+
             try {
                 ResolveReport resolveReport = new IvyResolver( ivy )
                         .includeTransitiveDependencies( !invocation.hasOption( INTRANSITIVE_OPTION ) )
                         .downloadJarOnly( !invocation.hasOption( DOWNLOAD_ALL_OPTION ) )
+                        .verbose( verbose )
                         .resolve( group, module, version );
 
                 if ( resolveReport.hasError() ) {

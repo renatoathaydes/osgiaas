@@ -1,79 +1,106 @@
 package com.athaydes.osgiaas.cli.ivy;
 
 import org.apache.ivy.Ivy;
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.Configuration;
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.ResolveReport;
-import org.apache.ivy.core.resolve.ResolveOptions;
-import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorWriter;
-import org.apache.ivy.util.filter.Filter;
 
+import javax.annotation.Nullable;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.text.ParseException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Thin wrapper around {@link Ivy} that makes it easy to resolve a dependency.
  */
-public class IvyResolver {
+class IvyResolver {
 
-    private static final Filter JARS_ONLY_FILTER = ( obj ) -> ( ( obj instanceof Artifact ) &&
-            "jar".equals( ( ( Artifact ) obj ).getType() ) );
-
-    private static final Filter NO_FILTER = ( obj ) -> true;
+    private static final Pattern DEPENDENCY_LINE = Pattern.compile( "(\\s*)(\\$\\{DEPENDENCY})\\s*" );
 
     private final Ivy ivy;
 
+    private boolean verbose = false;
     private boolean includeTransitive = true;
-    private Filter artifactFilter = JARS_ONLY_FILTER;
+    private boolean downloadJarOnly = true;
 
-    public IvyResolver() {
-        this( Ivy.newInstance() );
-    }
-
-    public IvyResolver( Ivy ivy ) {
+    IvyResolver( Ivy ivy ) {
         this.ivy = ivy;
     }
 
-    public IvyResolver includeTransitiveDependencies( boolean include ) {
+    IvyResolver includeTransitiveDependencies( boolean include ) {
         this.includeTransitive = include;
         return this;
     }
 
-    public IvyResolver downloadJarOnly( boolean downloadJarOnly ) {
-        this.artifactFilter = downloadJarOnly ? JARS_ONLY_FILTER : NO_FILTER;
+    IvyResolver downloadJarOnly( boolean downloadJarOnly ) {
+        this.downloadJarOnly = downloadJarOnly;
         return this;
     }
 
-    public ResolveReport resolve( String group, String module, String version ) {
-        DefaultModuleDescriptor moduleDescriptor =
-                DefaultModuleDescriptor.newDefaultInstance( ModuleRevisionId.newInstance( group,
-                        module + "-caller", "working" ) );
+    IvyResolver verbose( boolean verbose ) {
+        this.verbose = verbose;
+        return this;
+    }
 
-        moduleDescriptor.addConfiguration( new Configuration( "default" ) );
+    ResolveReport resolve( String group, String module, String version ) {
+        AtomicBoolean dependencyLineFound = new AtomicBoolean( false );
 
-        DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor( moduleDescriptor,
-                ModuleRevisionId.newInstance( group, module, version ), false, false, includeTransitive );
-
-        moduleDescriptor.addDependency( dependencyDescriptor );
+        @Nullable File tempModule = null;
 
         try {
-            File ivyfile = File.createTempFile( "ivy", ".xml" );
-            ivyfile.deleteOnExit();
+            tempModule = File.createTempFile( "ivy-module-", ".xml" );
 
-            XmlModuleDescriptorWriter.write( moduleDescriptor, ivyfile );
+            if ( verbose ) {
+                System.out.println( "Temp ivy-module: " + tempModule );
+            }
 
-            return ivy.resolve( ivyfile.toURI().toURL(), new ResolveOptions()
-                    .setConfs( new String[]{ "default" } )
-                    .setArtifactFilter( artifactFilter )
-                    .setTransitive( includeTransitive ) );
+            try ( FileWriter writer = new FileWriter( tempModule );
+                  BufferedReader buffer = new BufferedReader(
+                          new InputStreamReader( getClass().getResourceAsStream( "/ivy-module-template.xml" ) ) ) ) {
+
+                buffer.lines().map( it -> {
+                    if ( !dependencyLineFound.get() ) {
+                        Matcher matcher = DEPENDENCY_LINE.matcher( it );
+                        if ( matcher.matches() ) {
+                            dependencyLineFound.set( true );
+                            return matcher.replaceFirst( "$1" + xmlForDependency( group, module, version ) );
+                        }
+                    }
+
+                    return it;
+                } ).forEach( line -> {
+                    try {
+                        writer.append( line ).append( "\n" );
+                    } catch ( IOException e ) {
+                        e.printStackTrace();
+                    }
+                } );
+            }
+
+            return ivy.resolve( tempModule );
         } catch ( ParseException | IOException e ) {
             throw new RuntimeException( e );
+        } finally {
+            if ( tempModule != null ) {
+                //noinspection ResultOfMethodCallIgnored
+                tempModule.delete();
+            }
         }
     }
 
+    private String xmlForDependency( String group, String module, String version ) {
+        String transitive = includeTransitive ? "" : " transitive=\"false\"";
+
+        // to download only the main jar, we use the default conf.
+        // Not specifying a conf means downloading all confs.
+        String conf = downloadJarOnly ? " conf=\"default\"" : "";
+
+        return String.format( "<dependency org=\"%s\" name=\"%s\" rev=\"%s\"%s%s/>",
+                group, module, version, conf, transitive );
+    }
 
 }
