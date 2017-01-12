@@ -2,12 +2,6 @@ apply plugin: 'groovy'
 apply plugin: 'osgi'
 apply plugin: 'maven'
 
-repositories {
-    maven {
-        url 'https://repo.gradle.org/gradle/libs-releases-local'
-    }
-}
-
 description = 'OSGiaaS Grab Command (grabs dependencies from Maven repositories)'
 
 jar {
