@@ -1,0 +1,17 @@
+apply plugin: 'java'
+apply plugin: 'osgi'
+apply plugin: 'maven'
+
+description = 'OSGiaaS Jar Wrapper - wraps jars into OSGi bundles'
+
+jar {
+    manifest {
+        instruction 'Export-Package', 'com.athaydes.osgiaas.wrap'
+    }
+}
+
+dependencies {
+    compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
+    compile 'biz.aQute.bnd:biz.aQute.bndlib:3.1.0'
+    compile project( ':modules:infra:osgiaas-common' )
+}
