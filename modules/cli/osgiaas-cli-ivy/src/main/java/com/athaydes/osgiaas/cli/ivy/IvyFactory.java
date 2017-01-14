@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
@@ -29,7 +30,7 @@ import java.util.stream.Stream;
  */
 class IvyFactory {
 
-    private static final String JCENTER = "https://jcenter.bintray.com";
+    static final String JCENTER = "https://jcenter.bintray.com";
 
     private static final String LOCAL_M2_REPOSITORY = "<ibiblio name=\"localm2\" " +
             "root=\"file:${user.home}/.m2/repository/\" checkmodified=\"true\" " +
@@ -62,7 +63,7 @@ class IvyFactory {
      */
     void createDefaultConfig() {
         RepositoryConfig defaultConfig = new RepositoryConfig( defaultRepositories, true );
-        ivyByConfig.put( defaultConfig, createIvyWith( defaultConfig ) );
+        ivyByConfig.put( defaultConfig, createIvyWith( defaultConfig, null ) );
         ready.set( true );
     }
 
@@ -71,10 +72,11 @@ class IvyFactory {
      *
      * @param repositories      URL to Maven repositories or null to use the default repositories (JCenter).
      * @param includeMavenLocal include the Maven local repository
+     * @param out               stream to be used to log information
      * @return Ivy instance (may be re-used) or null if this factory is not ready yet.
      */
     @Nullable
-    Ivy getIvy( @Nullable Set<URL> repositories, boolean includeMavenLocal ) {
+    Ivy getIvy( @Nullable Set<URL> repositories, boolean includeMavenLocal, PrintStream out ) {
         if ( !ready.get() ) {
             return null;
         }
@@ -86,13 +88,13 @@ class IvyFactory {
         RepositoryConfig config = new RepositoryConfig( repositories, includeMavenLocal );
 
         if ( !ivyByConfig.containsKey( config ) ) {
-            ivyByConfig.put( config, createIvyWith( config ) );
+            ivyByConfig.put( config, createIvyWith( config, out ) );
         }
 
         return ivyByConfig.get( config );
     }
 
-    private Ivy createIvyWith( RepositoryConfig config ) {
+    private Ivy createIvyWith( RepositoryConfig config, @Nullable PrintStream out ) {
         Ivy ivy = Ivy.newInstance();
 
         MessageLogger defaultLogger = Message.getDefaultLogger();
@@ -100,12 +102,12 @@ class IvyFactory {
         ivy.getLoggerEngine().setDefaultLogger( new AbstractMessageLogger() {
             @Override
             protected void doProgress() {
-                if ( verbose.get() ) System.out.print( "-" );
+                if ( verbose.get() && out != null ) out.print( "-" );
             }
 
             @Override
             protected void doEndProgress( String msg ) {
-                if ( verbose.get() ) System.out.println( "." );
+                if ( verbose.get() && out != null ) out.println( "." );
             }
 
             @Override

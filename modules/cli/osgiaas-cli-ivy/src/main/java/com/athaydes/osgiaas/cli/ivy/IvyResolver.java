@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.text.ParseException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
@@ -46,7 +47,7 @@ class IvyResolver {
         return this;
     }
 
-    ResolveReport resolve( String group, String module, String version ) {
+    ResolveReport resolve( String group, String module, String version, PrintStream out ) {
         AtomicBoolean dependencyLineFound = new AtomicBoolean( false );
 
         @Nullable File tempModule = null;
@@ -55,7 +56,7 @@ class IvyResolver {
             tempModule = File.createTempFile( "ivy-module-", ".xml" );
 
             if ( verbose ) {
-                System.out.println( "Temp ivy-module: " + tempModule );
+                out.println( "Temp ivy-module: " + tempModule );
             }
 
             try ( FileWriter writer = new FileWriter( tempModule );

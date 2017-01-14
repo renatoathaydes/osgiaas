@@ -100,33 +100,40 @@ public class IvyCommand implements Command {
 
             String group, module, version;
 
-            if ( dependencyParts.length != 2 && dependencyParts.length != 3 ) {
-                CommandHelper.printError( err, getUsage(), "Invalid artifact description. " +
-                        "Must follow pattern group:module[:version]" );
-                return; // done
-            }
-
-            group = dependencyParts[ 0 ];
-            module = dependencyParts[ 1 ];
-
-            if ( dependencyParts.length == 3 ) {
-                version = dependencyParts[ 2 ];
-            } else {
-                version = "latest.integration";
+            switch ( dependencyParts.length ) {
+                case 1: // try to use OSGIaaS-CLI abbreviation
+                    group = "com.athaydes.osgiaas";
+                    module = "osgiaas-cli-" + dependencyParts[ 0 ];
+                    version = "latest.integration";
+                    break;
+                case 2:
+                    group = dependencyParts[ 0 ];
+                    module = dependencyParts[ 1 ];
+                    version = "latest.integration";
+                    break;
+                case 3:
+                    group = dependencyParts[ 0 ];
+                    module = dependencyParts[ 1 ];
+                    version = dependencyParts[ 2 ];
+                    break;
+                default:
+                    CommandHelper.printError( err, getUsage(), "Invalid artifact description. " +
+                            "Must follow pattern group:module[:version]" );
+                    return; // done
             }
 
             boolean verbose = invocation.hasOption( VERBOSE_OPTION );
 
-            if ( verbose ) {
-                System.out.printf( "Resolving group=%s, module=%s, version=%s\n",
-                        group, module, version );
-            }
-
-            @Nullable Ivy ivy = getIvy( invocation, verbose );
+            @Nullable Ivy ivy = getIvy( invocation, verbose, err );
 
             if ( ivy == null ) {
                 err.println( "The Ivy command is not fully initialized yet. Try again in a few seconds!" );
                 return;
+            }
+
+            if ( verbose ) {
+                err.printf( "Resolving group=%s, module=%s, version=%s\n",
+                        group, module, version );
             }
 
             ivyFactory.getVerbose().set( verbose );
@@ -136,7 +143,7 @@ public class IvyCommand implements Command {
                         .includeTransitiveDependencies( !invocation.hasOption( INTRANSITIVE_OPTION ) )
                         .downloadJarOnly( !invocation.hasOption( DOWNLOAD_ALL_OPTION ) )
                         .verbose( verbose )
-                        .resolve( group, module, version );
+                        .resolve( group, module, version, err );
 
                 showResolveReport( out, err, verbose, resolveReport );
             } catch ( RuntimeException e ) {
@@ -200,7 +207,7 @@ public class IvyCommand implements Command {
     }
 
     @Nullable
-    private Ivy getIvy( CommandInvocation invocation, boolean verbose ) {
+    private Ivy getIvy( CommandInvocation invocation, boolean verbose, PrintStream err ) {
         Set<URL> repositories = invocation.hasOption( REPOSITORIES_OPTION )
                 ? invocation.getAllArgumentsFor( REPOSITORIES_OPTION )
                 .stream().map( ( it ) -> {
@@ -214,14 +221,14 @@ public class IvyCommand implements Command {
 
         if ( verbose ) {
             if ( repositories == null ) {
-                System.out.println( "No remote Ivy repositories are configured, using default JCenter!" );
+                err.println( "No remote Ivy repositories are configured, using default: " + IvyFactory.JCENTER );
             } else {
-                System.out.println( "Current Ivy repositories: " + String.join( ", ",
+                err.println( "Current Ivy repositories: " + String.join( ", ",
                         repositories.stream().map( Object::toString ).toArray( String[]::new ) ) );
             }
         }
 
-        return ivyFactory.getIvy( repositories, !invocation.hasOption( NO_MAVEN_LOCAL_OPTION ) );
+        return ivyFactory.getIvy( repositories, !invocation.hasOption( NO_MAVEN_LOCAL_OPTION ), err );
     }
 
 }
