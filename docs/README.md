@@ -76,7 +76,7 @@ All modules can be found under the [modules](../modules) directory.
 ### OSGiaaS CLI
 
 The OSGiaaS CLI project is a command-line interface that allows users to run commands written in Java or in
-any other JVM language (Groovy, Kotlin, Ceylon, Frege), as well as native programs.
+any other JVM language (Groovy, Kotlin, Scala, Ceylon, Frege), as well as native programs.
 
 So you don't need to write scripts in bash or other inferior language anymore. Write the script in your favourite
 JVM language, with all the advantages that entails (eg. IDE support, debugging...).

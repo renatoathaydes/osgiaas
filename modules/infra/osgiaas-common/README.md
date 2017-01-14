@@ -14,4 +14,4 @@ The following packages are exported by the OSGiaaS Common bundle:
 * `com.athaydes.osgiaas.api.service` - helper classes to make it easier to work with OSGi services
 * `com.athaydes.osgiaas.api.stream` - helper classes to make it easier to work streams of data
 
-General documentation about the OSGIaaS Project can be found in the [docs](../../../docs/index.md) directory.
+General documentation about the OSGIaaS Project can be found in the [docs](../../../docs) directory.

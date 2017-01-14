@@ -9,7 +9,7 @@ of truly modular, dynamic applications easier.
 
 Though all modules are OSGi bundles, many modules can also be used without OSGi (in standard Java applications).
 
-For details, check the [Documentation](docs/index.md) in the docs directory.
+For details, check the [Documentation](docs) in the docs directory.
 
 ## Main features
 
