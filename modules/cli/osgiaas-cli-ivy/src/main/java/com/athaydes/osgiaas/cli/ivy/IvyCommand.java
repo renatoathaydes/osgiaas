@@ -14,10 +14,13 @@ import java.io.File;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Command that uses <a href="http://ant.apache.org/ivy/">Apache Ivy</a> to retrieve and resolve artifacts.
@@ -135,37 +138,65 @@ public class IvyCommand implements Command {
                         .verbose( verbose )
                         .resolve( group, module, version );
 
-                if ( resolveReport.hasError() ) {
-                    if ( resolveReport.getProblemMessages().isEmpty() ) {
-                        err.println( "Unable to resolve dependency. Are you sure it exists?" );
-                    } else {
-                        err.println( "Errors resolving dependency:" );
-                        for (Object problem : resolveReport.getProblemMessages()) {
-                            out.println( "- " + problem );
-                        }
-                    }
-                } else {
-                    out.println( Stream.of( resolveReport.getAllArtifactsReports() )
-                            .map( it -> "file://" + wrapIfRequired( it, err ).getAbsolutePath() )
-                            .collect( Collectors.joining( " " ) ) );
-                }
+                showResolveReport( out, err, verbose, resolveReport );
             } catch ( RuntimeException e ) {
                 err.println( e.getCause() );
             }
         }
     }
 
-    private File wrapIfRequired( ArtifactDownloadReport jar, PrintStream err ) {
+    private void showResolveReport( PrintStream out, PrintStream err,
+                                    boolean verbose, ResolveReport resolveReport ) {
+        if ( resolveReport.hasError() ) {
+            if ( resolveReport.getProblemMessages().isEmpty() ) {
+                err.println( "Unable to resolve artifact. Are you sure it exists?" );
+            } else {
+                err.println( "Error(s) resolving artifact:" );
+                for (Object problem : resolveReport.getProblemMessages()) {
+                    out.println( "  * " + problem );
+                }
+            }
+        } else {
+            List<File> bundles = new ArrayList<>();
+            List<Map.Entry<ArtifactDownloadReport, Exception>> errors = new ArrayList<>( 2 );
+
+            for (ArtifactDownloadReport report : resolveReport.getAllArtifactsReports()) {
+                try {
+                    File bundle = wrapIfRequired( report );
+                    bundles.add( bundle );
+                    if ( verbose && !bundle.equals( report.getLocalFile() ) ) {
+                        err.println( "Wrapped artifact into OSGi bundle: " + report.getName() );
+                    }
+                } catch ( Exception e ) {
+                    errors.add( new AbstractMap.SimpleEntry<>( report, e ) );
+                }
+            }
+
+            if ( !errors.isEmpty() ) {
+                err.println( "Error(s) trying to wrap the following artifacts:" );
+                for (Map.Entry<ArtifactDownloadReport, Exception> error : errors) {
+                    err.println( "  * " + error.getKey().getName() + ": " + error.getValue() );
+                    if ( verbose ) {
+                        error.getValue().printStackTrace( err );
+                    }
+                }
+            }
+
+            // the last dependency is the at the bottom of the dependency graph, so we need to start
+            // by printing the last dependency first, then walk up the graph to make it easy to install dependencies
+            // in the correct order.
+            Collections.reverse( bundles );
+
+            out.println( bundles.stream()
+                    .map( it -> "file://" + it.getAbsolutePath() )
+                    .collect( Collectors.joining( " " ) ) );
+        }
+    }
+
+    private File wrapIfRequired( ArtifactDownloadReport jar ) throws Exception {
         String version = jar.getArtifactOrigin().getArtifact().getModuleRevisionId().getRevision();
         JarWrapper wrapper = new JarWrapper( jar.getLocalFile() );
-
-        try {
-            return wrapper.wrap( version );
-        } catch ( Exception e ) {
-            err.println( "Problem trying to wrap jar into OSGi bundle: " + jar );
-            e.printStackTrace( err );
-            return jar.getLocalFile();
-        }
+        return wrapper.wrap( version );
     }
 
     @Nullable
