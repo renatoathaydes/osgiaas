@@ -3,11 +3,14 @@ package com.athaydes.osgiaas.cli.ivy;
 import com.athaydes.osgiaas.cli.CommandHelper;
 import com.athaydes.osgiaas.cli.CommandInvocation;
 import com.athaydes.osgiaas.cli.args.ArgsSpec;
+import com.athaydes.osgiaas.wrap.JarWrapper;
 import org.apache.felix.shell.Command;
 import org.apache.ivy.Ivy;
+import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.ResolveReport;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -143,12 +146,25 @@ public class IvyCommand implements Command {
                     }
                 } else {
                     out.println( Stream.of( resolveReport.getAllArtifactsReports() )
-                            .map( it -> "file://" + it.getLocalFile().getAbsolutePath() )
+                            .map( it -> "file://" + wrapIfRequired( it, err ).getAbsolutePath() )
                             .collect( Collectors.joining( " " ) ) );
                 }
             } catch ( RuntimeException e ) {
                 err.println( e.getCause() );
             }
+        }
+    }
+
+    private File wrapIfRequired( ArtifactDownloadReport jar, PrintStream err ) {
+        String version = jar.getArtifactOrigin().getArtifact().getModuleRevisionId().getRevision();
+        JarWrapper wrapper = new JarWrapper( jar.getLocalFile() );
+
+        try {
+            return wrapper.wrap( version );
+        } catch ( Exception e ) {
+            err.println( "Problem trying to wrap jar into OSGi bundle: " + jar );
+            e.printStackTrace( err );
+            return jar.getLocalFile();
         }
     }
 

@@ -25,4 +25,5 @@ dependencies {
     compile 'org.apache.ivy:ivy:2.4.0'
 
     compile project( ':modules:cli:osgiaas-cli-api' )
+    compile project( ':modules:infra:osgiaas-jar-wrap' )
 }
