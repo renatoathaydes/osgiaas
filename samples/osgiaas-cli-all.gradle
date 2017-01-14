@@ -31,7 +31,7 @@ dependencies {
     osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-groovy:$osgiaasVersion"
     osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-javac:$osgiaasVersion"
     osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-js:$osgiaasVersion"
-    osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-scala:$osgiaasVersion"
+    osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-scala:$osgiaasVersion" // requires the Scala compiler systemLib
 
     // system libs
     systemLib 'org.frege-lang:frege-interpreter-core:1.2'

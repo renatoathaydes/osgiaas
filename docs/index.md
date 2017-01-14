@@ -94,8 +94,10 @@ to your favourite shell.
 * Frege (Haskell/Frege interpreter)
 * Grab (grab and use a dependency from any repository)
 * Groovy (Groovy interpreter)
+* Ivy-CLI (Maven/Ivy artifact downloader)
 * Javac (Java interpreter)
 * JS (JavaScript interpreter)
+* Scala (Scala script interpreter)
 
 ### Language modules
 
@@ -122,6 +124,8 @@ Infrastructure modules add support for a number of useful facilities for applica
 **List of infrastructure modules**:
 
 * Auto-update (OSGi bundle auto-updater config and API)
-* Grab (Grab and wrap any jar dependency into an OSGi bundle)
 * Auto-update-Grabber (Auto-update implementation based on the Grab module)
+* OSGIaaS-Common (common, generic types used by many other modules)
+* Grab (Grab and wrap any jar dependency into an OSGi bundle)
+* Jar-Wrap (Wraps jars into OSGi bundles)
 * SLF4J Implementation (allows using the SLF4J Logging API for logging within OSGi bundles)
