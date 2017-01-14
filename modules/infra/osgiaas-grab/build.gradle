@@ -15,6 +15,7 @@ dependencies {
     compile 'biz.aQute.bnd:biz.aQute.bndlib:3.1.0'
 
     compile project( ':modules:infra:osgiaas-common' )
+    compile project( ':modules:infra:osgiaas-jar-wrap' )
     compile 'org.codehaus.groovy:groovy-all:2.4.5'
 
     // allows Groovy Grapes to work
