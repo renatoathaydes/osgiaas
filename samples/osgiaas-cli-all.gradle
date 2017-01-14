@@ -24,10 +24,10 @@ final osgiaasVersion = '0.5'
 
 dependencies {
     // OSGiaaS Modules
-    osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-core:$osgiaasVersion"
+    osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-core:0.6"
     osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-frege:$osgiaasVersion" // requires the Frege systemLib
     osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-grab:$osgiaasVersion"
-    osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-ivy:$osgiaasVersion"
+    osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-ivy:0.6"
     osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-groovy:$osgiaasVersion"
     osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-javac:$osgiaasVersion"
     osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-js:$osgiaasVersion"

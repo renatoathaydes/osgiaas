@@ -9,6 +9,7 @@ repositories {
 }
 
 description = 'OSGiaaS CLI Core'
+version = '0.6'
 
 dependencies {
     compileOnly 'com.google.code.findbugs:jsr305:3.0.1'

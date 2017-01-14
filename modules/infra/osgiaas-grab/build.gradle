@@ -3,6 +3,7 @@ apply plugin: 'osgi'
 apply plugin: 'maven'
 
 description = 'OSGiaaS Grab Command (grabs dependencies from Maven repositories)'
+version = '0.6'
 
 jar {
     manifest {
