@@ -1,5 +1,7 @@
 # OSGiaaS Grab Module
 
+> Status: beta
+
 Module implementing a service to download (or grab) dependencies from Maven repositories such as
 [JCenter](https://jcenter.bintray.com/) (enabled by default) and [Maven Central](https://repo1.maven.org/maven2).
 

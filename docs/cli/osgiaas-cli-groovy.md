@@ -1,5 +1,7 @@
 # OSGiaaS CLI Groovy Module
 
+> Status: beta
+
 The OSGiaaS CLI Groovy bundle exports a command which allows users to run arbitrary Groovy
 scripts from the shell, much like in the Groovy REPL.
 

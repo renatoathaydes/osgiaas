@@ -1,5 +1,7 @@
 # OSGiaaS CLI Frege Module
 
+> Status: alpha
+
 A module that implements a [Frege](https://github.com/Frege/frege) REPL.
 
 > Frege is a Haskell for the JVM

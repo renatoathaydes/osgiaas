@@ -1,6 +1,6 @@
 # OSGiaaS Autoupdate Grabber Module
 
-> This module is still in an alpha version
+> Status: alpha
 
 This module is an implementation of the [osgiaas-autoupdate](osgiaas-autoupdate.md) module that uses the
 [osgiaas-grab](osgiaas-grab) module to check and download newer versions of installed bundles.

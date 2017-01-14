@@ -1,5 +1,7 @@
 # OSGiaaS Jar-Wrap Module
 
+> Status: beta
+
 This module is a simple Java API for wrapping regular jars into OSGi bundles.
 
 It uses [Bnd](http://www.aqute.biz/Bnd/Bnd) to perform the wrapping.

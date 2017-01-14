@@ -1,5 +1,7 @@
 # OSGiaaS Java-Autocomplete Module
 
+> Status: alpha
+
 Java language specialization of the [OSGiaaS Autocomplete](osgiaas-autocomplete) module.
 
 This module exposes a richer set of interfaces (with a default implementation) for auto-completion of Java code

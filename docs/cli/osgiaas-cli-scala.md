@@ -1,6 +1,6 @@
 # OSGiaaS Scala CLI Module
 
-> Status: in devel
+> Status: alpha
 
 A module that implements a Scala REPL.
 

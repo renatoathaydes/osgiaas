@@ -1,5 +1,7 @@
 # OSGiaaS Javac Module
 
+> Status: beta
+
 This module implements a in-memory Java compiler service based on the JVM's own
 [JavaCompiler](https://docs.oracle.com/javase/7/docs/api/javax/tools/JavaCompiler.html).
 

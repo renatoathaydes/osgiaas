@@ -15,7 +15,7 @@ The only requirements to get started is to have a (Java 8) JVM and
 
 ## Getting started
 
-### Downloading the modules
+### Downloading modules
 
 Choose a Gradle script from one of the [samples](../samples/) files, copy the file contents into a file called `build.script`,
 then run `gradle createOsgi`.

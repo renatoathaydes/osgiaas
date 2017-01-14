@@ -1,5 +1,7 @@
 # OSGiaaS CLI Grab Module
 
+> Status: alpha
+
 The OSGIaaS CLI Grab Module uses the [osgiaas-grab](../infra/osgiaas-grab.md) module to implement a command
 which can download (or grab) Maven dependencies from any Maven repository such as
 [JCenter](https://jcenter.bintray.com/) (enabled by default) and [Maven Central](https://repo1.maven.org/maven2).

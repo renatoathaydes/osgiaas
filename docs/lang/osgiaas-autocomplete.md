@@ -1,5 +1,7 @@
 # OSGiaaS Autocomplete Module
 
+> Status: alpha
+
 Very simple module providing an interface for text auto-completion implementations which exposes two different
 implementations:
 

@@ -1,7 +1,11 @@
 # OSGiaaS CLI Javac Module
 
+> Status: alpha
+
 The OSGiaaS CLI Javac Module exports the `java` command which can run Java code statements, return the value of
 simple Java expressions, or compile Java classes on the run.
+
+The [osgiaas-javac](../lang/osgiaas-javac.md) Compiler is used to compile Java code.
 
 ## Details
 

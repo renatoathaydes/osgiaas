@@ -1,6 +1,6 @@
 # OSGiaaS Autoupdate Module
 
-> This module is still in an alpha version
+> Status: alpha
 
 This module defines a simple auto-update API for OSGi bundles, as well as a means for the auto-update functionality
 to be configured.
