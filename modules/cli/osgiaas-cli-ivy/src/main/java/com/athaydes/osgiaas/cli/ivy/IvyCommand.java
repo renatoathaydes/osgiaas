@@ -56,7 +56,7 @@ public class IvyCommand implements Command {
 
     @SuppressWarnings( "unused" ) // called by OSGi
     public void start() {
-        ivyFactory.createDefaultConfig();
+        new Thread( ivyFactory::createDefaultConfig, "ivy-command-startup-thread" ).start();
     }
 
     @Override
@@ -182,8 +182,8 @@ public class IvyCommand implements Command {
                 }
             }
 
-            // the last dependency is the at the bottom of the dependency graph, so we need to start
-            // by printing the last dependency first, then walk up the graph to make it easy to install dependencies
+            // the last dependency is at the bottom of the dependency graph, so we need to start
+            // by printing the last dependency, then walk up the graph to make it easy to install dependencies
             // in the correct order.
             Collections.reverse( bundles );
 
