@@ -13,5 +13,4 @@ jar {
 dependencies {
     compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
     compile 'biz.aQute.bnd:biz.aQute.bndlib:3.1.0'
-    compile project( ':modules:infra:osgiaas-common' )
 }

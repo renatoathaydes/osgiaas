@@ -45,9 +45,11 @@ public class JarWrapper {
      * It can be set to null to revert to the default behavior.
      *
      * @param destination where to save the generated OSGi bundle
+     * @return this
      */
-    public void setDestination( @Nullable File destination ) {
+    public JarWrapper setDestination( @Nullable File destination ) {
         this.destination = destination;
+        return this;
     }
 
     /**
@@ -56,9 +58,11 @@ public class JarWrapper {
      * The default is "*" (ie. import all packages used by the jar).
      *
      * @param importInstructions import instructions for Bnd
+     * @return this
      */
-    public void setImportInstructions( String importInstructions ) {
+    public JarWrapper setImportInstructions( String importInstructions ) {
         this.importInstructions = importInstructions;
+        return this;
     }
 
     /**
@@ -67,9 +71,11 @@ public class JarWrapper {
      * The default is "*" (ie. export all packages contained in the jar).
      *
      * @param exportInstructions export instructions for Bnd
+     * @return this
      */
-    public void setExportInstructions( String exportInstructions ) {
+    public JarWrapper setExportInstructions( String exportInstructions ) {
         this.exportInstructions = exportInstructions;
+        return this;
     }
 
     /**
@@ -77,9 +83,11 @@ public class JarWrapper {
      * bundle file name (if the destination file was not set explicitly).
      *
      * @param artifactName name of the artifact
+     * @return this
      */
-    public void setArtifactName( @Nullable String artifactName ) {
+    public JarWrapper setArtifactName( @Nullable String artifactName ) {
         this.artifactName = artifactName;
+        return this;
     }
 
     /**
