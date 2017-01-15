@@ -3,6 +3,7 @@ package com.athaydes.osgiaas.cli.groovy.command
 import com.athaydes.osgiaas.cli.CommandHelper
 import com.athaydes.osgiaas.cli.StreamingCommand
 import com.athaydes.osgiaas.cli.args.ArgsSpec
+import groovy.transform.CompileStatic
 import org.codehaus.groovy.runtime.metaclass.MissingMethodExceptionNoStack
 import org.osgi.framework.BundleContext
 
@@ -10,7 +11,7 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Consumer
 import java.util.regex.Pattern
 
-//@CompileStatic
+@CompileStatic
 class GroovyCommand implements StreamingCommand {
 
     static final String RESET_CODE_ARG = "-r"
