@@ -3,7 +3,7 @@
  * includes the osgiaas-cli bundle, amongst other bundles (see the dependencies section).
  *
  * Build with:
- *     gradle -b osgiaas-cli-minimal.gradle createOsgiRuntime
+ *     gradle -b osgiaas-cli-spring.gradle createOsgiRuntime
  *
  * Then, run with:
  *     bash build/osgi/run.sh
@@ -11,24 +11,9 @@
  *     build/osgi/run.bat
  */
 
-// Uncomment this once osgi-run 1.5.2 is released
-//plugins {
-//    id "com.athaydes.osgi-run" version "1.5.2"
-//}
-
-// Use osgi-run 1.5.2-SNAPSHOT until 1.5.2 gets released
-buildscript {
-    repositories {
-        mavenLocal()
-        jcenter()
-    }
-    dependencies {
-        classpath group: 'com.athaydes.gradle.osgi', name: 'osgi-run-core', version: '1.5.2'
-    }
+plugins {
+    id "com.athaydes.osgi-run" version "1.5.4"
 }
-////////////////////////////////////////////////////////
-
-apply plugin: 'com.athaydes.osgi-run'
 
 repositories {
     mavenLocal()

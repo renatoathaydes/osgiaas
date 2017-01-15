@@ -5,7 +5,7 @@
  * It runs inside a Equinox container (rather than the default Apache Felix).
  *
  * Build with:
- *     gradle -b osgiaas-cli-minimal.gradle createOsgiRuntime
+ *     gradle -b osgiaas-cli-on-equinox.gradle createOsgiRuntime
  *
  * Then, run with:
  *     bash build/osgi/run.sh
@@ -13,21 +13,9 @@
  *     build/osgi/run.bat
  */
 
-//plugins {
-//    id "com.athaydes.osgi-run" version "1.5.2"
-//}
-
-buildscript {
-    repositories {
-        mavenLocal()
-        jcenter()
-    }
-    dependencies {
-        classpath group: 'com.athaydes.gradle.osgi', name: 'osgi-run-core', version: '1.5.2'
-    }
+plugins {
+    id "com.athaydes.osgi-run" version "1.5.4"
 }
-
-apply plugin: 'com.athaydes.osgi-run'
 
 repositories {
     mavenLocal()

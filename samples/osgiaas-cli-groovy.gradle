@@ -12,7 +12,7 @@
  */
 
 plugins {
-    id "com.athaydes.osgi-run" version "1.5.3"
+    id "com.athaydes.osgi-run" version "1.5.4"
 }
 
 repositories {
