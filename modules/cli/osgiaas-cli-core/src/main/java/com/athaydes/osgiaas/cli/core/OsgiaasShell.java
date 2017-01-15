@@ -94,7 +94,7 @@ public class OsgiaasShell implements CommandRunner {
         return result;
     }
 
-    private static List<String> transformCommand( String command, Collection<CommandModifier> modifiers ) {
+    static List<String> transformCommand( String command, Collection<CommandModifier> modifiers ) {
         List<String> nextCommands = new ArrayList<>();
         for (CommandModifier modifier : modifiers) {
             List<String> commands = new ArrayList<>( modifier.apply( command ) );
@@ -117,7 +117,7 @@ public class OsgiaasShell implements CommandRunner {
         }
     }
 
-    private void executePiped( LinkedList<List<Cmd>> pipeline, PrintStream out, PrintStream err ) throws Exception {
+    void executePiped( LinkedList<List<Cmd>> pipeline, PrintStream out, PrintStream err ) throws Exception {
         // we initially assign lineConsumer to an instance that will print to the console and never closes its stream
         OutputStream lineConsumer = new LineOutputStream( out::println, () -> {
         } );

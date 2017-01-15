@@ -141,7 +141,7 @@ For example, to change the prompt color to green, the text output to white, and 
 To change all of them at once, type just the color:
 
 ```
-color -c cyan
+color cyan
 ```
 
 For the color command to work, your shell must support ANSI formatting.

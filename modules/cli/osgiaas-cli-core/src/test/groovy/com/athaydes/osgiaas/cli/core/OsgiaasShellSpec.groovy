@@ -1,8 +1,8 @@
-package com.athaydes.osgiaas.cli
+package com.athaydes.osgiaas.cli.core
 
 import com.athaydes.osgiaas.api.stream.LineOutputStream
-import com.athaydes.osgiaas.cli.core.Commands
-import com.athaydes.osgiaas.cli.core.OsgiaasShell
+import com.athaydes.osgiaas.cli.CommandModifier
+import com.athaydes.osgiaas.cli.StreamingCommand
 import org.apache.felix.shell.Command
 import spock.lang.Specification
 
@@ -263,7 +263,7 @@ class OsgiaasShellSpec extends Specification {
             //noinspection GroovyAssignabilityCheck
             pipe( _, _, _ ) >> { String line, PrintStream out, PrintStream err ->
                 linesToPrint.each( out.&println )
-                return new LineOutputStream( receiver.&add, out )
+                return receiver.&add
             }
             execute( _, _, _ ) >> { String line, PrintStream out, PrintStream err ->
                 linesToPrint.each( out.&println )
