@@ -9,41 +9,59 @@ import java.util.function.Consumer;
 
 /**
  * OutputStream that can be used to receive a line of text at a time from a writer.
- * <p>
- * This class is very useful to implement {@code StreamingCommand}.
  */
 public final class LineOutputStream extends OutputStream {
 
-    private static final int BUFFER_CAPACITY = 1024;
+    private static final int DEFAULT_BUFFER_CAPACITY = 1024;
 
     private final Consumer<String> onLine;
     private final LinkedList<ByteBuffer> buffers = new LinkedList<>();
     private final AutoCloseable closeWhenDone;
+    private final int bufferCapacity;
 
     private ByteBuffer buffer;
 
     /**
-     * Create an instance of {@link LineOutputStream}.
+     * Create an instance of {@link LineOutputStream} using the default buffer capacity.
      *
      * @param onLine        callback to run on each line of text received.
      * @param closeWhenDone callback to run when this stream gets closed.
      */
     public LineOutputStream( Consumer<String> onLine, AutoCloseable closeWhenDone ) {
+        this( onLine, closeWhenDone, DEFAULT_BUFFER_CAPACITY );
+    }
+
+    /**
+     * Create an instance of {@link LineOutputStream}.
+     *
+     * @param onLine         callback to run on each line of text received.
+     * @param closeWhenDone  callback to run when this stream gets closed.
+     * @param bufferCapacity internal buffer capacity.
+     *                       If the given capacity is not enough, new buffers are created as needed.
+     */
+    public LineOutputStream( Consumer<String> onLine,
+                             AutoCloseable closeWhenDone,
+                             int bufferCapacity ) {
         this.onLine = onLine;
         this.closeWhenDone = closeWhenDone;
+        this.bufferCapacity = bufferCapacity;
+
+        if ( bufferCapacity < 1 ) {
+            throw new IllegalArgumentException( "bufferCapacity must be greater than 0" );
+        }
 
         startNewByteBuffer();
     }
 
     private void startNewByteBuffer() {
-        buffer = ByteBuffer.allocate( BUFFER_CAPACITY );
+        buffer = ByteBuffer.allocate( bufferCapacity );
         buffers.add( buffer );
     }
 
     private String readBuffers() {
         int totalSize = 0;
         for (int i = 0; i < buffers.size() - 1; i++) {
-            totalSize += BUFFER_CAPACITY;
+            totalSize += bufferCapacity;
         }
 
         totalSize += buffers.getLast().position();
@@ -55,8 +73,8 @@ public final class LineOutputStream extends OutputStream {
         while ( buffers.size() > 1 ) {
             ByteBuffer currentBuffer = buffers.removeFirst();
             currentBuffer.rewind();
-            currentBuffer.get( finalArray, currentFirstIndex, BUFFER_CAPACITY );
-            currentFirstIndex += BUFFER_CAPACITY;
+            currentBuffer.get( finalArray, currentFirstIndex, bufferCapacity );
+            currentFirstIndex += bufferCapacity;
         }
 
         // unload the last ByteBuffer now (do not remove it as there must be always one buffer at least)
@@ -76,7 +94,7 @@ public final class LineOutputStream extends OutputStream {
             return;
         }
 
-        if ( buffer.position() >= BUFFER_CAPACITY ) {
+        if ( buffer.position() >= bufferCapacity ) {
             startNewByteBuffer();
         }
 
