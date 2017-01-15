@@ -64,12 +64,12 @@ public class OsgiaasShell implements CommandRunner {
                 List<String> transformedCommands = transformCommand( pipe.trim(), commandModifiers );
                 List<Cmd> commands = new ArrayList<>( transformedCommands.size() );
 
-                for (String command : transformedCommands) {
-                    @Nullable Command actualCommand = tryGetCommand( command, err );
+                for (String commandInvocation : transformedCommands) {
+                    @Nullable Command actualCommand = tryGetCommand( commandInvocation, err );
                     if ( actualCommand == null ) {
                         return;
                     }
-                    commands.add( new Cmd( actualCommand, command ) );
+                    commands.add( new Cmd( actualCommand, commandInvocation ) );
                 }
 
                 commandsPipeline.add( commands );
@@ -94,7 +94,7 @@ public class OsgiaasShell implements CommandRunner {
         return result;
     }
 
-    static List<String> transformCommand( String command, Collection<CommandModifier> modifiers ) {
+    private static List<String> transformCommand( String command, Collection<CommandModifier> modifiers ) {
         List<String> nextCommands = new ArrayList<>();
         for (CommandModifier modifier : modifiers) {
             List<String> commands = new ArrayList<>( modifier.apply( command ) );
@@ -117,29 +117,34 @@ public class OsgiaasShell implements CommandRunner {
         }
     }
 
-    void executePiped( LinkedList<List<Cmd>> pipeline, PrintStream out, PrintStream err ) throws Exception {
+    private void executePiped( LinkedList<List<Cmd>> pipeline, PrintStream out, PrintStream err ) throws Exception {
+        // we initially assign lineConsumer to an instance that will print to the console and never closes its stream
         OutputStream lineConsumer = new LineOutputStream( out::println, () -> {
         } );
 
         while ( !pipeline.isEmpty() ) {
-            List<Cmd> currentCmds = pipeline.removeLast();
-            if ( currentCmds.isEmpty() ) {
+            List<Cmd> serialCmds = pipeline.removeLast();
+            if ( serialCmds.isEmpty() ) {
                 continue;
             }
 
-            PrintStream cmdOut = new PrintStream( lineConsumer, true );
+            // the output of the current command-series is the lineConsumer of the next one
+            // (we're iterating from last to first)
+            PrintStream cmdOut = new PrintStream( lineConsumer, true, "UTF-8" );
 
-            Cmd current = executeAllButLast( currentCmds, cmdOut, err );
-            boolean firstCommand = pipeline.isEmpty();
-            Command cmd = current.cmd;
+            Cmd lastCmd = executeAllButLast( serialCmds, cmdOut, err );
+            Command cmd = lastCmd.cmd;
 
+            boolean isFirstCommand = pipeline.isEmpty();
 
-            if ( !firstCommand && cmd instanceof StreamingCommand ) {
-                lineConsumer = ( ( StreamingCommand ) cmd )
-                        .pipe( current.userCommand, cmdOut, err );
+            // if this command does not support streaming, or is the first command,
+            // we need to block the pipeline on it
+            if ( !isFirstCommand && cmd instanceof StreamingCommand ) {
+                lineConsumer = new LineOutputStream( ( ( StreamingCommand ) cmd )
+                        .pipe( lastCmd.userCommand, cmdOut, err ), cmdOut );
             } else {
                 lineConsumer = new LineAccumulatorOutputStream( ( allLines ) ->
-                        cmd.execute( current.userCommand + " " + allLines, cmdOut, err )
+                        cmd.execute( lastCmd.userCommand + " " + allLines, cmdOut, err )
                         , lineConsumer );
             }
         }
@@ -149,6 +154,7 @@ public class OsgiaasShell implements CommandRunner {
     }
 
     private Cmd executeAllButLast( List<Cmd> currentCmds, PrintStream out, PrintStream err ) {
+        // serial commands must execute blocking
         for (int i = 0; i < currentCmds.size() - 1; i++) {
             Cmd command = currentCmds.get( i );
             command.cmd.execute( command.userCommand, out, err );
@@ -156,6 +162,7 @@ public class OsgiaasShell implements CommandRunner {
         return currentCmds.get( currentCmds.size() - 1 );
     }
 
+    @Nullable
     private Command tryGetCommand( String userCommand, PrintStream err ) {
         String commandName = extractCommandNameFrom( userCommand );
         @Nullable Command cmd = commands.getCommand( commandName );
@@ -182,7 +189,7 @@ public class OsgiaasShell implements CommandRunner {
         final Command cmd;
         final String userCommand;
 
-        public Cmd( Command cmd, String userCommand ) {
+        Cmd( Command cmd, String userCommand ) {
             this.cmd = cmd;
             this.userCommand = userCommand;
         }

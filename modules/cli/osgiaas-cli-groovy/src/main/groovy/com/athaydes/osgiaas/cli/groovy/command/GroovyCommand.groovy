@@ -1,6 +1,5 @@
 package com.athaydes.osgiaas.cli.groovy.command
 
-import com.athaydes.osgiaas.api.stream.LineOutputStream
 import com.athaydes.osgiaas.cli.CommandHelper
 import com.athaydes.osgiaas.cli.StreamingCommand
 import com.athaydes.osgiaas.cli.args.ArgsSpec
@@ -118,7 +117,7 @@ class GroovyCommand implements StreamingCommand {
     }
 
     @Override
-    OutputStream pipe( String command, PrintStream out, PrintStream err ) {
+    Consumer<String> pipe( String command, PrintStream out, PrintStream err ) {
         command = ( command.trim() - 'groovy' ).trim()
 
         if ( !command.startsWith( "{" ) && !command.endsWith( "}" ) ) {
@@ -131,12 +130,12 @@ class GroovyCommand implements StreamingCommand {
 
         def callback = run( command, out, err )
         if ( callback instanceof Closure ) {
-            new LineOutputStream( { String line ->
+            { String line ->
                 def result = ( callback as Closure ).call( line )
                 if ( result != null ) {
                     out.println result
                 }
-            } as Consumer<String>, out )
+            } as Consumer<String>
         } else {
             throw new RuntimeException( 'When used in a pipeline, the groovy script must return a ' +
                     'Closure callback that takes one text line of the input at a time.\n' +

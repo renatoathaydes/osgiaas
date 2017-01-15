@@ -3,8 +3,6 @@ package com.athaydes.osgiaas.cli.core.command;
 import com.athaydes.osgiaas.api.ansi.Ansi;
 import com.athaydes.osgiaas.api.ansi.AnsiColor;
 import com.athaydes.osgiaas.api.ansi.AnsiModifier;
-import com.athaydes.osgiaas.api.stream.LineOutputStream;
-import com.athaydes.osgiaas.api.stream.NoOpPrintStream;
 import com.athaydes.osgiaas.cli.CommandHelper;
 import com.athaydes.osgiaas.cli.CommandInvocation;
 import com.athaydes.osgiaas.cli.StreamingCommand;
@@ -12,7 +10,6 @@ import com.athaydes.osgiaas.cli.args.ArgsSpec;
 import com.athaydes.osgiaas.cli.core.util.UsesCliProperties;
 
 import javax.annotation.Nullable;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -106,14 +103,16 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
     }
 
     @Override
-    public OutputStream pipe( String command, PrintStream out, PrintStream err ) {
+    public Consumer<String> pipe( String command, PrintStream out, PrintStream err ) {
         @Nullable HighlightCall highlightCall = highlightCall( command, err );
 
         if ( highlightCall == null ) {
-            return new NoOpPrintStream();
+            return ( ignore ) -> {
+                // do nothing
+            };
         }
 
-        return new LineOutputStream( highlightMatchingLines( out, highlightCall ), out );
+        return highlightMatchingLines( out, highlightCall );
     }
 
     @Override
