@@ -12,10 +12,13 @@ is based on this compiler.
 
 ## System Requirements
 
-Not all JREs provide the JavaCompiler class and the other Java tools required for this module to work.
+Not all JREs provide the `JavaCompiler` class and the other Java tools required for this module to work.
 
 If you cannot run your system using a full JDK, add the `tools.jar` file (part of the JDK, but not usually the JRE)
 to your JRE's `ext` folder and the compiler should work.
+
+This module uses `slf4j` to log, so the runtime must provide a `slf4j` implementation such as `log4j` or, in OSGi
+environments, the [`slf4j-to-osgi-log`](../infra/slf4j-to-osgi-log.md) module.
 
 ## Basic usage
 

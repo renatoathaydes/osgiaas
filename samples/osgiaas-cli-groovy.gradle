@@ -3,7 +3,7 @@
  * includes the osgiaas-cli bundle, amongst other bundles (see the dependencies section).
  *
  * Build with:
- *     gradle -b osgiaas-cli-frege.gradle createOsgiRuntime
+ *     gradle -b osgiaas-cli-groovy.gradle createOsgiRuntime
  *
  * Then, run with:
  *     bash build/osgi/run.sh
@@ -12,7 +12,7 @@
  */
 
 plugins {
-    id "com.athaydes.osgi-run" version "1.5.2"
+    id "com.athaydes.osgi-run" version "1.5.3"
 }
 
 repositories {
@@ -23,18 +23,7 @@ repositories {
 dependencies {
     // the osgiaas-cli core bundle
     osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-core:0.6'
-
-    // Frege modules
-    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-frege:0.5'
-    systemLib 'org.frege-lang:frege-interpreter-core:1.2'
-
-    // Logging
-    osgiRuntime 'com.athaydes.osgiaas:slf4j-to-osgi-log:1.7.0'
-
-    // Enable this to be able to read logs (using the log command, for example)
-//    osgiRuntime 'org.apache.felix:org.apache.felix.log:1.0.1', {
-//        transitive = false
-//    }
+    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-groovy:0.5'
 
     // OSGi Service Component Runtime implementation
     osgiRuntime 'org.apache.felix:org.apache.felix.scr:2.0.2', {
@@ -44,4 +33,7 @@ dependencies {
 
 runOsgi {
     bundles = [ ] // all bundles added as osgiRuntime dependencies
+
+    // required to run Groovy
+    config += [ 'org.osgi.framework.system.packages.extra': 'sun.reflect' ]
 }

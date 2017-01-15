@@ -7,6 +7,10 @@ simple Java expressions, or compile Java classes on the run.
 
 The [osgiaas-javac](../lang/osgiaas-javac.md) Compiler is used to compile Java code.
 
+## System Requirements
+
+See the requirements for the [osgiaas-javac](../lang/osgiaas-javac.md) module.
+
 ## Details
 
 All statements entered earlier are executed each time a new statement is entered.
