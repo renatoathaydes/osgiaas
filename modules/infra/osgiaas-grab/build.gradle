@@ -17,7 +17,7 @@ dependencies {
 
     compile project( ':modules:infra:osgiaas-common' )
     compile project( ':modules:infra:osgiaas-jar-wrap' )
-    compile 'org.codehaus.groovy:groovy-all:2.4.7'
+    compile 'org.codehaus.groovy:groovy-all:2.4.8'
 
     // allows Groovy Grapes to work
     runtime 'org.apache.ivy:ivy:2.4.0'
