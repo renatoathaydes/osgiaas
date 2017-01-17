@@ -1,6 +1,6 @@
 package com.athaydes.osgiaas.cli.core.command;
 
-import com.athaydes.osgiaas.api.env.NativeCommandRunner;
+import com.athaydes.osgiaas.api.env.ProcessRunner;
 import com.athaydes.osgiaas.cli.CommandHelper;
 import org.apache.felix.shell.Command;
 
@@ -17,7 +17,7 @@ public class RunCommand implements Command {
 
     private Path workingDirectory = getUserHome();
 
-    private final NativeCommandRunner commandRunner = new NativeCommandRunner();
+    private final ProcessRunner commandRunner = new ProcessRunner();
 
     private static Path getUserHome() {
         @Nullable String home = System.getProperty( "user.home" );
