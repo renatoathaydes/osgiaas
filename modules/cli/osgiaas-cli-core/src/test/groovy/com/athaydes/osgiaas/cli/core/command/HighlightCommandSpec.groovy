@@ -1,23 +1,25 @@
 package com.athaydes.osgiaas.cli.core.command
 
+import com.athaydes.osgiaas.api.ansi.AnsiColor
 import com.athaydes.osgiaas.api.stream.LineOutputStream
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
+import static com.athaydes.osgiaas.api.ansi.AnsiColor.BKG_BLUE
+import static com.athaydes.osgiaas.api.ansi.AnsiColor.BKG_GREEN
+import static com.athaydes.osgiaas.api.ansi.AnsiColor.BKG_PURPLE
 import static com.athaydes.osgiaas.api.ansi.AnsiColor.BLACK
 import static com.athaydes.osgiaas.api.ansi.AnsiColor.CYAN
 import static com.athaydes.osgiaas.api.ansi.AnsiColor.DEFAULT_BG
 import static com.athaydes.osgiaas.api.ansi.AnsiColor.GREEN
 import static com.athaydes.osgiaas.api.ansi.AnsiColor.RED
 import static com.athaydes.osgiaas.api.ansi.AnsiColor.WHITE
-import static com.athaydes.osgiaas.api.ansi.AnsiColor._BLUE
-import static com.athaydes.osgiaas.api.ansi.AnsiColor._GREEN
-import static com.athaydes.osgiaas.api.ansi.AnsiColor._PURPLE
 import static com.athaydes.osgiaas.api.ansi.AnsiModifier.BLINK
-import static com.athaydes.osgiaas.api.ansi.AnsiModifier.ITALIC
+import static com.athaydes.osgiaas.api.ansi.AnsiModifier.BOLD
 import static com.athaydes.osgiaas.api.ansi.AnsiModifier.RAPID_BLINK
+import static com.athaydes.osgiaas.api.ansi.AnsiModifier.REVERSE
 import static com.athaydes.osgiaas.api.ansi.AnsiModifier.UNDERLINE
 
 class HighlightCommandSpec extends Specification {
@@ -29,33 +31,31 @@ class HighlightCommandSpec extends Specification {
         def errStream = new PrintStream( new LineOutputStream( errors.&add, Stub( AutoCloseable ) ) )
 
         when: 'A highlightCall is created from an example #line'
-        def result = new HighlightCommand()
+        final result = new HighlightCommand()
                 .highlightCall( "highlight $args regex input", errStream )
 
         then: 'all values are correctly read'
-        result != null
-        result.colors.toList() == expectedColors
+        !errors && result != null
+        result.backEscape == AnsiColor.backColorEscapeCode( expectedBkg.name() )
+        result.foreEscape == ( expectedFore ? AnsiColor.foreColorEscapeCode( expectedFore.name() ) : '' )
         result.modifiers.toList() == expectedModifiers
         ( result.pattern.flags() & Pattern.CASE_INSENSITIVE ) >= ( caseInsensitive ? 1 : 0 )
 
-        and: 'No error is reported'
-        errors.empty
-
         where:
-        args                         | expectedArgumentsGiven | expectedColors        | expectedModifiers    | caseInsensitive
-        ''                           | 0                      | [ DEFAULT_BG ]        | [ ]                  | false
-        '-f red'                     | 1                      | [ DEFAULT_BG, RED ]   | [ ]                  | false
-        '-b blue'                    | 1                      | [ _BLUE ]             | [ ]                  | false
-        '-i -b blue'                 | 1                      | [ _BLUE ]             | [ ]                  | true
-        '-f white -b green'          | 2                      | [ _GREEN, WHITE ]     | [ ]                  | false
-        '-b purple -f cyan'          | 2                      | [ _PURPLE, CYAN ]     | [ ]                  | false
-        '-f cyan+italic'             | 1                      | [ DEFAULT_BG, CYAN ]  | [ ITALIC ]           | false
-        '-f black+blink+underline'   | 1                      | [ DEFAULT_BG, BLACK ] | [ BLINK, UNDERLINE ] | false
-        '-f green+rapid_blink'       | 1                      | [ DEFAULT_BG, GREEN ] | [ RAPID_BLINK ]      | false
-        '-b purple -f cyan+blink'    | 2                      | [ _PURPLE, CYAN ]     | [ BLINK ]            | false
-        '-b purple -f cyan+blink -i' | 2                      | [ _PURPLE, CYAN ]     | [ BLINK ]            | true
-        '-f cyan+blink -b purple'    | 2                      | [ _PURPLE, CYAN ]     | [ BLINK ]            | false
-        '-f cyan+blink -i -b purple' | 2                      | [ _PURPLE, CYAN ]     | [ BLINK ]            | true
+        args                         | expectedBkg | expectedFore | expectedModifiers    | caseInsensitive
+        ''                           | DEFAULT_BG  | null         | [ ]                  | false
+        '-f red'                     | DEFAULT_BG  | RED          | [ ]                  | false
+        '-b blue'                    | BKG_BLUE    | null         | [ ]                  | false
+        '-i -b blue'                 | BKG_BLUE    | null         | [ ]                  | true
+        '-f white -b green'          | BKG_GREEN   | WHITE        | [ ]                  | false
+        '-b purple -f cyan'          | BKG_PURPLE  | CYAN         | [ ]                  | false
+        '-f cyan+bold'               | DEFAULT_BG  | CYAN         | [ BOLD ]             | false
+        '-f black+blink+underline'   | DEFAULT_BG  | BLACK        | [ BLINK, UNDERLINE ] | false
+        '-f green+rapid_blink'       | DEFAULT_BG  | GREEN        | [ RAPID_BLINK ]      | false
+        '-b purple -f cyan+blink'    | BKG_PURPLE  | CYAN         | [ BLINK ]            | false
+        '-b purple -f cyan+blink -i' | BKG_PURPLE  | CYAN         | [ BLINK ]            | true
+        '-f cyan+blink -b purple'    | BKG_PURPLE  | CYAN         | [ BLINK ]            | false
+        '-f cyan+blink -i -b purple' | BKG_PURPLE  | CYAN         | [ BLINK ]            | true
     }
 
     @Unroll
@@ -69,20 +69,21 @@ class HighlightCommandSpec extends Specification {
                 .highlightCall( "highlight $args regex input", errStream )
 
         then: 'all values are correctly read'
-        result != null
-        result.colors.toList() == expectedColors
+        !errors && result != null
+        result.backEscape == AnsiColor.backColorEscapeCode( expectedBkg.name() )
+        result.foreEscape == ( expectedFore ? AnsiColor.foreColorEscapeCode( expectedFore.name() ) : '' )
         result.modifiers.toList() == expectedModifiers
 
         and: 'No error is reported'
         errors.empty
 
         where:
-        args                  | expectedArgumentsGiven | expectedColors        | expectedModifiers
-        '-f cyan+i'           | 1                      | [ DEFAULT_BG, CYAN ]  | [ ITALIC ]
-        '-f black+b+u'        | 1                      | [ DEFAULT_BG, BLACK ] | [ BLINK, UNDERLINE ]
-        '-f green+rb'         | 1                      | [ DEFAULT_BG, GREEN ] | [ RAPID_BLINK ]
-        '-b purple -f cyan+b' | 2                      | [ _PURPLE, CYAN ]     | [ BLINK ]
-        '-f cyan+b -b purple' | 2                      | [ _PURPLE, CYAN ]     | [ BLINK ]
+        args                   | expectedBkg | expectedFore | expectedModifiers
+        '-f cyan+b'            | DEFAULT_BG  | CYAN         | [ BOLD ]
+        '-f black+bl+u'        | DEFAULT_BG  | BLACK        | [ BLINK, UNDERLINE ]
+        '-f green+rb'          | DEFAULT_BG  | GREEN        | [ RAPID_BLINK ]
+        '-b purple -f cyan+bl' | BKG_PURPLE  | CYAN         | [ BLINK ]
+        '-f cyan+rv -b purple' | BKG_PURPLE  | CYAN         | [ REVERSE ]
     }
 
 }

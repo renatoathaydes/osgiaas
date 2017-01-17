@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -42,15 +41,14 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
             }
         };
 
-        map.accept( "i", AnsiModifier.ITALIC.name() );
         map.accept( "r", AnsiModifier.RESET.name() );
-        map.accept( "b", AnsiModifier.BLINK.name() );
-        map.accept( "hi", AnsiModifier.HIGH_INTENSITY.name() );
-        map.accept( "li", AnsiModifier.LOW_INTENSITY.name() );
-        map.accept( "it", AnsiModifier.INVISIBLE_TEXT.name() );
+        map.accept( "bl", AnsiModifier.BLINK.name() );
+        map.accept( "b", AnsiModifier.BOLD.name() );
+        map.accept( "d", AnsiModifier.DIM.name() );
+        map.accept( "h", AnsiModifier.HIDDEN.name() );
         map.accept( "rb", AnsiModifier.RAPID_BLINK.name() );
         map.accept( "u", AnsiModifier.UNDERLINE.name() );
-        map.accept( "rv", AnsiModifier.REVERSE_VIDEO.name() );
+        map.accept( "rv", AnsiModifier.REVERSE.name() );
 
         ansiModifierNameByShortOption = Collections.unmodifiableMap( argumentByShortArgMap );
     }
@@ -135,7 +133,7 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
             if ( match ) {
                 out.print( Ansi.applyAnsi(
                         Ansi.ANSI_PATTERN.matcher( line ).replaceAll( "" ),
-                        highlightCall.getColors(), highlightCall.getModifiers() ) );
+                        highlightCall.getBackEscape(), highlightCall.getForeEscape(), highlightCall.getModifiers() ) );
                 out.println( highlightCall.getOriginalColor() );
             } else {
                 out.println( line );
@@ -168,8 +166,57 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
             return null;
         } else {
             boolean caseInsensitive = invocation.hasOption( CASE_INSENSITIVE_ARG );
-            @Nullable String foreground = invocation.getOptionalFirstArgument( FOREGROUND_ARG ).orElse( null );
-            String background = invocation.getOptionalFirstArgument( BACKGROUND_ARG ).orElse( AnsiColor.DEFAULT_BG.name() );
+
+            @Nullable String foregroundPlusModifier = invocation.getOptionalFirstArgument( FOREGROUND_ARG )
+                    .orElse( null );
+
+            String background = invocation.getOptionalFirstArgument( BACKGROUND_ARG )
+                    .orElse( AnsiColor.DEFAULT_BG.name() );
+
+            String foreground;
+            AnsiModifier[] modifiers;
+            boolean error = false;
+
+            if ( foregroundPlusModifier != null ) {
+                String[] parts = foregroundPlusModifier.split( Pattern.quote( "+" ) );
+
+                if ( parts.length < 1 || parts.length > 3 ) {
+                    err.println( "Invalid foreground color: " + foregroundPlusModifier );
+                    error = true;
+                }
+
+                modifiers = new AnsiModifier[ parts.length - 1 ];
+
+                // parts.length is 1, 2 or 3 (first is color, 2nd and 3rd maybe modifiers)
+                switch ( parts.length ) {
+                    case 3:
+                        modifiers[ 1 ] = parseAnsiModifier( parts[ 2 ] );
+                    case 2:  // fall-through
+                        modifiers[ 0 ] = parseAnsiModifier( parts[ 1 ] );
+                    default: // fall-through
+                    case 1:
+                        foreground = parts[ 0 ];
+                }
+            } else {
+                foreground = "";
+                modifiers = new AnsiModifier[ 0 ];
+            }
+
+            if ( !AnsiColor.isColor( background ) ) {
+                err.println( "Invalid background color: " + background );
+                error = true;
+            }
+            if ( !AnsiColor.isColor( foreground ) ) {
+                if ( !foreground.isEmpty() ) {
+                    err.println( "Invalid foreground color: " + foreground );
+                    error = true;
+                }
+            }
+
+            if ( error ) {
+                return null;
+            }
+
             List<String> rest = CommandHelper.breakupArguments(
                     invocation.getUnprocessedInput(), 2 );
 
@@ -181,12 +228,25 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
                 @Nullable Pattern matchPattern = getPattern( regex, caseInsensitive, err );
 
                 if ( matchPattern != null ) {
-                    return new HighlightCall( background, foreground, matchPattern, input, getTextColor() );
+                    return new HighlightCall( AnsiColor.backColorEscapeCode( background ),
+                            foreground.isEmpty() ? "" : AnsiColor.foreColorEscapeCode( foreground ),
+                            modifiers, matchPattern, input, getTextColor() );
                 }
             }
         }
 
         return null;
+    }
+
+    private static AnsiModifier parseAnsiModifier( String text ) {
+        @Nullable String modifierName = ansiModifierNameByShortOption.get( text );
+
+        String ansiModifier = text;
+        if ( modifierName != null ) {
+            ansiModifier = modifierName;
+        }
+
+        return AnsiModifier.valueOf( ansiModifier.toUpperCase() );
     }
 
     @Nullable
@@ -200,58 +260,35 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
         }
     }
 
-    private static class HighlightCall {
+    static class HighlightCall {
 
-        private final AnsiColor[] colors;
+        private final String backEscape;
+        private final String foreEscape;
         private final AnsiModifier[] modifiers;
         private final Pattern pattern;
         private final String text;
         private final String originalColor;
 
-        HighlightCall( String back, @Nullable String fore,
-                       Pattern pattern, String text, String originalColor ) {
+        HighlightCall( String backgroundColor,
+                       String foreColor,
+                       AnsiModifier[] modifiers,
+                       Pattern pattern,
+                       String text,
+                       String originalColor ) {
+            this.backEscape = backgroundColor;
+            this.foreEscape = foreColor;
+            this.modifiers = modifiers;
             this.pattern = pattern;
             this.text = text;
             this.originalColor = originalColor;
-
-            AnsiColor background = parse( back.startsWith( "_" ) ? back : "_" + back,
-                    AnsiColor::valueOf, null );
-
-            if ( fore != null ) {
-                String[] foreParts = fore.split( Pattern.quote( "+" ) );
-                AnsiColor foreColor = parse( foreParts[ 0 ], AnsiColor::valueOf, null );
-                this.colors = new AnsiColor[]{ background, foreColor };
-                this.modifiers = getAnsiModifiers( foreParts );
-            } else {
-                this.colors = new AnsiColor[]{ background };
-                this.modifiers = new AnsiModifier[ 0 ];
-            }
         }
 
-        private AnsiModifier[] getAnsiModifiers( String[] foreParts ) {
-            List<AnsiModifier> modifiers = new ArrayList<>( 2 );
-            for (int i = 1; i < foreParts.length; i++) {
-                modifiers.add( parse( foreParts[ i ], AnsiModifier::valueOf, ansiModifierNameByShortOption ) );
-            }
-            return modifiers.toArray( new AnsiModifier[ modifiers.size() ] );
+        String getBackEscape() {
+            return backEscape;
         }
 
-        private static <T> T parse( String text, Function<String, T> convert,
-                                    @Nullable Map<String, String> argMapper ) {
-            @Nullable String mappedText = argMapper == null ? null : argMapper.get( text );
-            try {
-                if ( mappedText != null ) {
-                    return convert.apply( mappedText );
-                } else {
-                    return convert.apply( text.toUpperCase() );
-                }
-            } catch ( IllegalArgumentException e ) {
-                throw new RuntimeException( "Invalid argument: '" + text + "'" );
-            }
-        }
-
-        AnsiColor[] getColors() {
-            return colors;
+        String getForeEscape() {
+            return foreEscape == null ? "" : foreEscape;
         }
 
         AnsiModifier[] getModifiers() {
