@@ -8,6 +8,7 @@ import com.athaydes.osgiaas.cli.CommandInvocation;
 import javax.annotation.Nullable;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -114,11 +115,11 @@ public class ArgsSpec {
     }
 
     private void appendArguments( StringBuilder builder, Arg arg ) {
-        Function<Map.Entry<String, Supplier<List<String>>>, String> doc = ( entry ) -> {
+        Function<Map.Entry<String, Supplier<? extends Collection<String>>>, String> doc = ( entry ) -> {
             if ( !showEnumeratedValuesInDocumentation ) {
                 return entry.getKey();
             }
-            List<String> enumeratedValues = entry.getValue().get();
+            Collection<String> enumeratedValues = entry.getValue().get();
             if ( enumeratedValues.isEmpty() ) {
                 return entry.getKey();
             } else {
@@ -334,15 +335,15 @@ public class ArgsSpec {
         @Nullable
         private final String description;
         private final boolean mandatory;
-        private final List<Map.Entry<String, Supplier<List<String>>>> mandatoryArgs;
-        private final List<Map.Entry<String, Supplier<List<String>>>> optionalArgs;
+        private final List<Map.Entry<String, Supplier<? extends Collection<String>>>> mandatoryArgs;
+        private final List<Map.Entry<String, Supplier<? extends Collection<String>>>> optionalArgs;
         private final int minArgs;
         private final int maxArgs;
         private final boolean allowMultiple;
 
         private Arg( String key, @Nullable String longKey, @Nullable String description, boolean mandatory,
-                     List<Map.Entry<String, Supplier<List<String>>>> mandatoryArgs,
-                     List<Map.Entry<String, Supplier<List<String>>>> optionalArgs,
+                     List<Map.Entry<String, Supplier<? extends Collection<String>>>> mandatoryArgs,
+                     List<Map.Entry<String, Supplier<? extends Collection<String>>>> optionalArgs,
                      boolean allowMultiple ) {
             this.key = key;
             this.longKey = longKey;
@@ -429,8 +430,8 @@ public class ArgsSpec {
             @Nullable
             private String description;
             private boolean mandatory = false;
-            private List<Map.Entry<String, Supplier<List<String>>>> mandatoryArgs = new ArrayList<>( 2 );
-            private List<Map.Entry<String, Supplier<List<String>>>> optionalArgs = new ArrayList<>( 2 );
+            private List<Map.Entry<String, Supplier<? extends Collection<String>>>> mandatoryArgs = new ArrayList<>( 2 );
+            private List<Map.Entry<String, Supplier<? extends Collection<String>>>> optionalArgs = new ArrayList<>( 2 );
             private boolean allowMultiple = false;
 
             private ArgBuilder( String option ) {
@@ -493,7 +494,7 @@ public class ArgsSpec {
              *                                 argument might take (used for auto-completion).
              * @return this builder
              */
-            public ArgBuilder withEnumeratedArg( String name, Supplier<List<String>> enumeratedValuesSupplier ) {
+            public ArgBuilder withEnumeratedArg( String name, Supplier<? extends Collection<String>> enumeratedValuesSupplier ) {
                 mandatoryArgs.add( new SimpleEntry<>( name, enumeratedValuesSupplier ) );
                 return this;
             }
@@ -512,7 +513,7 @@ public class ArgsSpec {
              *                       argument might take (used for auto-completion).
              * @return this builder
              */
-            public ArgBuilder withEnumeratedArgs( Map<String, Supplier<List<String>>> enumeratedArgs ) {
+            public ArgBuilder withEnumeratedArgs( Map<String, Supplier<? extends Collection<String>>> enumeratedArgs ) {
                 mandatoryArgs.addAll( enumeratedArgs.entrySet() );
                 return this;
             }
@@ -546,7 +547,7 @@ public class ArgsSpec {
              *                       argument might take (used for auto-completion).
              * @return this builder
              */
-            public ArgBuilder withOptionalEnumeratedArgs( Map<String, Supplier<List<String>>> enumeratedArgs ) {
+            public ArgBuilder withOptionalEnumeratedArgs( Map<String, Supplier<? extends Collection<String>>> enumeratedArgs ) {
                 optionalArgs.addAll( enumeratedArgs.entrySet() );
                 return this;
             }
@@ -624,12 +625,13 @@ public class ArgsSpec {
             Set<Arg> remainingOptions = new HashSet<>( argMap.values() );
             Set<Arg> specifiedOptions = new HashSet<>();
             int completionIndex = lastPart.isEmpty() ? lastPartLength : 0;
-            List<List<String>> currentMandatoryArgs = new ArrayList<>();
+            List<? extends Collection<String>> currentMandatoryArgs = new ArrayList<>();
 
-            // treat the command itself as the first argument
-            currentMandatoryArgs.add( Collections.emptyList() );
+            // treat the command itself as the first argument (add null because we can't add
+            // anything else to a generic list without its concrete type)
+            currentMandatoryArgs.add( null );
 
-            List<List<String>> currentOptionalArgs = new ArrayList<>();
+            List<? extends Collection<String>> currentOptionalArgs = new ArrayList<>();
 
             for (String commandPart : commandParts) {
                 // to keep track of the current position, we must use the un-trimmed command part's length
@@ -643,7 +645,7 @@ public class ArgsSpec {
                 }
 
                 if ( currentMandatoryArgs.size() > 0 ) {
-                    List<String> options = currentMandatoryArgs.remove( 0 );
+                    Collection<String> options = emptyListOr( currentMandatoryArgs.remove( 0 ) );
                     if ( !options.isEmpty() && !options.contains( commandPart ) ) {
                         // mandatory argument value was not matched
                         return -1;
@@ -654,7 +656,7 @@ public class ArgsSpec {
                 }
 
                 if ( !currentOptionalArgs.isEmpty() ) {
-                    List<String> options = currentOptionalArgs.remove( 0 );
+                    Collection<String> options = currentOptionalArgs.remove( 0 );
                     if ( options.isEmpty() || options.contains( commandPart ) ) {
                         // this is an optional argument
                         continue;
@@ -677,7 +679,8 @@ public class ArgsSpec {
                         remainingOptions.remove( arg );
                     }
 
-                    Function<List<Entry<String, Supplier<List<String>>>>, List<List<String>>> optionArgValues =
+                    Function<List<Entry<String, Supplier<? extends Collection<String>>>>,
+                            List<? extends Collection<String>>> optionArgValues =
                             ( a ) -> a.stream()
                                     .map( Entry::getValue )
                                     .map( Supplier::get )
@@ -695,7 +698,7 @@ public class ArgsSpec {
 
             if ( !currentMandatoryArgs.isEmpty() ) {
                 // mandatory arguments are required, use only valid options for completion
-                List<String> possibleCompletions = currentMandatoryArgs.get( 0 );
+                Collection<String> possibleCompletions = emptyListOr( currentMandatoryArgs.get( 0 ) );
                 for (String possibility : possibleCompletions) {
                     if ( possibility.startsWith( lastPart ) ) {
                         candidates.add( possibility );
@@ -707,7 +710,7 @@ public class ArgsSpec {
             } else {
                 // all remaining option arguments could be used for completion
                 if ( !currentOptionalArgs.isEmpty() ) {
-                    List<String> possibleCompletions = currentOptionalArgs.get( 0 );
+                    Collection<String> possibleCompletions = currentOptionalArgs.get( 0 );
                     for (String possibility : possibleCompletions) {
                         if ( possibility.startsWith( lastPart ) ) {
                             candidates.add( possibility );
@@ -736,6 +739,15 @@ public class ArgsSpec {
             } else {
                 return -1;
             }
+        }
+
+    }
+
+    private static Collection<String> emptyListOr( @Nullable Collection<String> collection ) {
+        if ( collection == null ) {
+            return Collections.emptyList();
+        } else {
+            return collection;
         }
     }
 
