@@ -5,19 +5,18 @@ package com.athaydes.osgiaas.api.ansi;
  * <p>
  * ANSI modifiers can be applied together with {@link AnsiColor}.
  *
- * @see Ansi#applyAnsi(java.lang.String, com.athaydes.osgiaas.api.ansi.AnsiColor[], com.athaydes.osgiaas.api.ansi.AnsiModifier...)
+ * @see Ansi#applyAnsi(String, AnsiColor, AnsiModifier...)
  */
 public enum AnsiModifier {
 
     RESET( 0 ),
-    HIGH_INTENSITY( 1 ),
-    LOW_INTENSITY( 2 ),
-    ITALIC( 3 ),
+    BOLD( 1 ),
+    DIM( 2 ),
     UNDERLINE( 4 ),
     BLINK( 5 ),
     RAPID_BLINK( 6 ),
-    REVERSE_VIDEO( 7 ),
-    INVISIBLE_TEXT( 8 );
+    REVERSE( 7 ),
+    HIDDEN( 8 );
 
     private final int code;
 
@@ -27,7 +26,7 @@ public enum AnsiModifier {
 
     @Override
     public String toString() {
-        return Ansi.stringFromCode( code );
+        return Ansi.simpleAnsiEscape( code );
     }
 
 }
