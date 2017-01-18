@@ -1,7 +1,6 @@
 package com.athaydes.osgiaas.cli.java;
 
 import com.athaydes.osgiaas.api.env.ClassLoaderContext;
-import com.athaydes.osgiaas.api.stream.LineOutputStream;
 import com.athaydes.osgiaas.cli.CommandHelper;
 import com.athaydes.osgiaas.cli.CommandInvocation;
 import com.athaydes.osgiaas.cli.StreamingCommand;
@@ -20,13 +19,13 @@ import org.osgi.framework.BundleContext;
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -147,7 +146,7 @@ public class JavaCommand implements Command, StreamingCommand {
     }
 
     @Override
-    public OutputStream pipe( String command, PrintStream out, PrintStream err ) {
+    public Consumer<String> pipe( String command, PrintStream out, PrintStream err ) {
         CommandInvocation invocation = javaArgs.parse( command,
                 JAVA_OPTIONS.separatorCode( ' ' ) );
 
@@ -172,13 +171,14 @@ public class JavaCommand implements Command, StreamingCommand {
 
             if ( callable.isPresent() ) {
                 try {
+                    //noinspection unchecked
                     Function<String, ?> callback = ( Function<String, ?> ) callable.get().call();
-                    return new LineOutputStream( line -> {
+                    return line -> {
                         @Nullable Object output = callback.apply( line );
                         if ( output != null ) {
                             out.println( output );
                         }
-                    }, out );
+                    };
                 } catch ( Exception e ) {
                     err.println( e );
                 }

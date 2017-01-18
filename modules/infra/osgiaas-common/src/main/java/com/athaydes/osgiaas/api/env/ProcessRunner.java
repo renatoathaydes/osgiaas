@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
  * A Simple wrapper around {@link ProcessBuilder} to make it easy to run native commands,
  * redirecting the output to provided {@link PrintStream}s.
  */
-public class NativeCommandRunner {
+public class ProcessRunner {
 
     private final ExecutorService executorService = Executors.newFixedThreadPool( 2 );
 

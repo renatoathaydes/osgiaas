@@ -1,6 +1,5 @@
 package com.athaydes.osgiaas.cli.scala;
 
-import com.athaydes.osgiaas.api.stream.LineOutputStream;
 import com.athaydes.osgiaas.cli.CommandHelper;
 import com.athaydes.osgiaas.cli.StreamingCommand;
 import org.osgi.service.component.ComponentContext;
@@ -11,10 +10,10 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 public class ScalaCommand implements StreamingCommand {
 
@@ -92,7 +91,7 @@ public class ScalaCommand implements StreamingCommand {
     }
 
     @Override
-    public OutputStream pipe( String line, PrintStream out, PrintStream err ) {
+    public Consumer<String> pipe( String line, PrintStream out, PrintStream err ) {
         @Nullable ScriptEngine engine = getEngine();
 
         if ( engine == null ) {
@@ -104,15 +103,14 @@ public class ScalaCommand implements StreamingCommand {
         try {
             Object result = runScript( out, err, engine, command );
             if ( result instanceof scala.Function1 ) {
-                return new LineOutputStream( l ->
-                {
+                return l -> {
                     //noinspection unchecked
                     @Nullable Object returnedValue = ( ( scala.Function1 ) result ).apply( l );
 
                     if ( returnedValue != null ) {
                         out.println( returnedValue );
                     }
-                }, out );
+                };
             } else {
                 err.println( "Scala returned instance of " + ( result == null ? "null" : result.getClass() ) );
             }

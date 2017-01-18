@@ -100,13 +100,13 @@ class CliRun implements Runnable {
         String using = "";
         if ( !commandBeingUsed.isEmpty() ) {
             using = Ansi.applyAnsi( "[using " + commandBeingUsed.trim() + "]\n",
-                    new AnsiColor[]{ promptColor },
-                    AnsiModifier.ITALIC, AnsiModifier.HIGH_INTENSITY ) + AnsiColor.RESET;
+                    promptColor,
+                    AnsiModifier.BOLD );
         }
 
         return using + Ansi.applyColor(
                 cliProperties.getPrompt(),
-                promptColor ) + AnsiColor.RESET;
+                promptColor );
     }
 
     @Override

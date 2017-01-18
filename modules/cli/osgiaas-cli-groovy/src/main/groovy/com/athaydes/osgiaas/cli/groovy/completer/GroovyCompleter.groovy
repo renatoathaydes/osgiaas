@@ -245,7 +245,7 @@ class PropertiesCompleter implements CommandCompleter {
         }
     }
 
-    private static uncapitalizeAscii( String word ) {
+    private static String uncapitalizeAscii( String word ) {
         char[] chars = word.toCharArray()
         chars[ 0 ] += 32
         new String( chars )

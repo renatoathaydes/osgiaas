@@ -12,6 +12,10 @@ sourceSets {
     }
 }
 
+dependencies {
+    compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
+}
+
 // process generated files
 tasks.compileJava.doFirst {
     def generatedJavaDir = "$buildDir/generated-java"

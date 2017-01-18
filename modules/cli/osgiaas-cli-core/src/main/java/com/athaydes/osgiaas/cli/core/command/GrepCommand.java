@@ -1,6 +1,5 @@
 package com.athaydes.osgiaas.cli.core.command;
 
-import com.athaydes.osgiaas.api.stream.LineOutputStream;
 import com.athaydes.osgiaas.cli.CommandHelper;
 import com.athaydes.osgiaas.cli.CommandInvocation;
 import com.athaydes.osgiaas.cli.StreamingCommand;
@@ -56,13 +55,14 @@ public class GrepCommand implements StreamingCommand {
     }
 
     @Override
-    public LineOutputStream pipe( String line, PrintStream out, PrintStream err ) {
+    public Consumer<String> pipe( String line, PrintStream out, PrintStream err ) {
         @Nullable Consumer<String> consumer = grepAndConsume( line, out, err );
         if ( consumer != null ) {
-            return new LineOutputStream( consumer, out );
+            return consumer;
         } else {
-            return new LineOutputStream( ( ignore ) -> {
-            }, out );
+            return ( ignore ) -> {
+                // nothing to do
+            };
         }
     }
 

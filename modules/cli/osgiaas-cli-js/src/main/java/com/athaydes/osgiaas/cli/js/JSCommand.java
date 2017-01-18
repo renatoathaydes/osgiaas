@@ -1,6 +1,5 @@
 package com.athaydes.osgiaas.cli.js;
 
-import com.athaydes.osgiaas.api.stream.LineOutputStream;
 import com.athaydes.osgiaas.cli.CommandHelper;
 import com.athaydes.osgiaas.cli.StreamingCommand;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
@@ -12,10 +11,10 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 public class JSCommand implements StreamingCommand {
 
@@ -91,7 +90,7 @@ public class JSCommand implements StreamingCommand {
     }
 
     @Override
-    public OutputStream pipe( String line, PrintStream out, PrintStream err ) {
+    public Consumer<String> pipe( String line, PrintStream out, PrintStream err ) {
         @Nullable ScriptEngine engine = getEngine();
 
         if ( engine == null ) {
@@ -107,14 +106,13 @@ public class JSCommand implements StreamingCommand {
                 if ( mirror.isFunction() ) {
 
                     //noinspection CollectionAddedToSelf
-                    return new LineOutputStream( l ->
-                    {
+                    return l -> {
                         @Nullable Object returnedValue = mirror.call( result, l );
 
                         if ( returnedValue != null && !ScriptObjectMirror.isUndefined( returnedValue ) ) {
                             out.println( returnedValue );
                         }
-                    }, out );
+                    };
                 }
             }
 

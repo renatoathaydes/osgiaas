@@ -14,6 +14,23 @@ To use the command is extremely simple. Any argument is treated as groovy code:
 
 The value returned by the Groovy script is printed unless it is `null`.
 
+## System requirements
+
+The OSGi environment must export the `sun.reflect` package for Groovy to work.
+
+This is typically accomplished by adding this package to the `org.osgi.framework.system.packages.extra` property.
+
+With the `osgi-run` Gradle plugin, you can achieve this by adding this line to your build file:
+
+```groovy
+runOsgi {
+    // ... other settings
+
+    // required to run Groovy
+    config += [ 'org.osgi.framework.system.packages.extra': 'sun.reflect' ]
+}
+```
+
 ## Command Options
 
 The following options are supported:
