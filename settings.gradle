@@ -22,5 +22,6 @@ include 'modules:cli:osgiaas-cli-api',
         'modules:cli:osgiaas-cli-javac',
         'modules:cli:osgiaas-cli-js',
         'modules:cli:osgiaas-cli-scala',
+        'modules:cli:osgiaas-cli-clojure',
         'modules:cli:osgiaas-cli-frege'
 
