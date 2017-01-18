@@ -2,6 +2,7 @@ package com.athaydes.osgiaas.api.ansi;
 
 import javax.annotation.Nullable;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 /**
  * Functions to help format text with ANSI.
@@ -63,7 +64,7 @@ public class Ansi {
      * @throws IllegalArgumentException if colorByte is not between 0 and 255
      */
     public static String applyForeColor( String text, int colorByte ) {
-        return asString( join( foreColorEscape( colorByte ), text, AnsiColor.RESET ) );
+        return asString( join( foreColorEscape( colorByte ), text ) );
     }
 
     /**
@@ -77,7 +78,7 @@ public class Ansi {
      * @throws IllegalArgumentException if colorByte is not between 0 and 255
      */
     public static String applyBackColor( String text, int colorByte ) {
-        return asString( join( backColorEscape( colorByte ), text, AnsiColor.RESET ) );
+        return asString( join( backColorEscape( colorByte ), text ) );
     }
 
     /**
@@ -91,7 +92,8 @@ public class Ansi {
      * @return formatted text
      */
     public static String applyAnsi( String text, @Nullable AnsiColor color, AnsiModifier... modifiers ) {
-        return asString( join( join( color, text ), ( Object[] ) modifiers ) ) + AnsiColor.RESET;
+        String[] modifierEscapers = Stream.of( modifiers ).map( AnsiModifier::toString ).toArray( String[]::new );
+        return asString( join( color == null ? null : color.toString(), join( text, modifierEscapers ) ) );
     }
 
     /**
@@ -100,44 +102,61 @@ public class Ansi {
      * This method performs no validation of the escape sequences. Prefer the other overloads of this method,
      * which are type-safe.
      *
-     * @param text            to format
-     * @param escapeSequence  first escape sequence to apply
-     * @param escapeSequences more escape sequences to apply
+     * @param text                 to format
+     * @param firstEscapeSequence  first escape sequence to apply
+     * @param secondEscapeSequence second escape sequence to apply
+     * @param escapeSequences      more escape sequences to apply
      * @return formatted text
      */
     public static String applyAnsi( String text,
-                                    @Nullable Object escapeSequence,
-                                    @Nullable Object... escapeSequences ) {
+                                    @Nullable String firstEscapeSequence,
+                                    @Nullable String secondEscapeSequence,
+                                    @Nullable String... escapeSequences ) {
         if ( escapeSequences == null ) {
-            escapeSequences = new Object[ 0 ];
+            escapeSequences = new String[ 0 ];
         }
 
-        // parts = escapeSequence, [escapeSequences], text, RESET
-        Object[] parts = new Object[ escapeSequences.length + 3 ];
-        parts[ 0 ] = escapeSequence;
-        System.arraycopy( escapeSequences, 0, parts, 1, escapeSequences.length );
-        parts[ parts.length - 2 ] = text;
-        parts[ parts.length - 1 ] = AnsiColor.RESET;
+        // parts = first, second, [escapeSequences], text
+        String[] parts = new String[ escapeSequences.length + 3 ];
+        parts[ 0 ] = firstEscapeSequence;
+        parts[ 1 ] = secondEscapeSequence;
+        System.arraycopy( escapeSequences, 0, parts, 2, escapeSequences.length );
+        parts[ parts.length - 1 ] = text;
 
         return asString( parts );
     }
 
-    private static String asString( Object... objects ) {
+    /**
+     * Apply the ANSI escapeSequences to the given text.
+     * <p>
+     * This method performs no validation of the escape sequences. Prefer the other overloads of this method,
+     * which are type-safe.
+     *
+     * @param text           to format
+     * @param escapeSequence escape sequence to apply
+     * @return formatted text
+     */
+    public static String applyAnsi( String text, @Nullable String escapeSequence ) {
+        return applyAnsi( text, escapeSequence, null );
+    }
+
+    private static String asString( String... parts ) {
         StringBuilder builder = new StringBuilder();
-        for (Object obj : objects) {
-            if ( obj != null ) {
-                builder.append( obj );
+        for (String part : parts) {
+            if ( part != null ) {
+                builder.append( part );
             }
         }
+        builder.append( AnsiColor.RESET );
         return builder.toString();
     }
 
-    private static Object[] join( @Nullable Object object, @Nullable Object... others ) {
+    private static String[] join( @Nullable String object, @Nullable String... others ) {
         if ( others == null || others.length == 0 ) {
-            return new Object[]{ object };
+            return new String[]{ object };
         }
 
-        Object[] result = new Object[ others.length + 1 ];
+        String[] result = new String[ others.length + 1 ];
         result[ 0 ] = object;
         System.arraycopy( others, 0, result, 1, others.length );
         return result;

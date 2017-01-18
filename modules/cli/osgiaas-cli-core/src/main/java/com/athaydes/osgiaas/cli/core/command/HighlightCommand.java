@@ -3,6 +3,7 @@ package com.athaydes.osgiaas.cli.core.command;
 import com.athaydes.osgiaas.api.ansi.Ansi;
 import com.athaydes.osgiaas.api.ansi.AnsiColor;
 import com.athaydes.osgiaas.api.ansi.AnsiModifier;
+import com.athaydes.osgiaas.api.text.TextUtils;
 import com.athaydes.osgiaas.cli.CommandHelper;
 import com.athaydes.osgiaas.cli.CommandInvocation;
 import com.athaydes.osgiaas.cli.StreamingCommand;
@@ -133,7 +134,7 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
             if ( match ) {
                 out.print( Ansi.applyAnsi(
                         Ansi.ANSI_PATTERN.matcher( line ).replaceAll( "" ),
-                        highlightCall.getBackEscape(), highlightCall.getForeEscape(), highlightCall.getModifiers() ) );
+                        highlightCall.getBackEscape(), highlightCall.getForeEscape(), TextUtils.toString( highlightCall.getModifiers() ) ) );
                 out.println( highlightCall.getOriginalColor() );
             } else {
                 out.println( line );
