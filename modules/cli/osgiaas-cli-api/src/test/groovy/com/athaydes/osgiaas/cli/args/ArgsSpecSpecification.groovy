@@ -178,7 +178,7 @@ class ArgsSpecSpecification extends Specification {
         def result = spec.documentation
 
         then: 'the documentation is as expected'
-        result == '* a'
+        result == '  * a'
     }
 
     def "Usage for simple command works as expected"() {
@@ -222,9 +222,9 @@ class ArgsSpecSpecification extends Specification {
         def result = spec.documentation
 
         then: 'the documentation is as expected'
-        result == """|* [a]
-            |* [bc] <hi>
-            |this is description""".stripMargin()
+        result == """|  * [a]
+            |  * [bc] <hi>
+            |    this is description""".stripMargin()
     }
 
     def "Usage for complex command works as expected"() {
@@ -260,8 +260,8 @@ class ArgsSpecSpecification extends Specification {
                 .withOptionalArgs( 'ho', 'ho' ).withDescription( 'very complex one' ).end()
                 .build()
 
-        when: 'we request documentation for the ArgsSpec'
-        def result = spec.documentation
+        when: 'we request documentation for the ArgsSpec without identation'
+        def result = spec.getDocumentation( '' )
 
         then: 'the documentation is as expected'
         result == """|* [-a…]

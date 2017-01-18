@@ -147,7 +147,7 @@ public class ArgsSpec {
      * @return documentation for the specified options.
      */
     public String getDocumentation() {
-        return getDocumentation( "" );
+        return getDocumentation( "  " );
     }
 
     /**
