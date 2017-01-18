@@ -1,6 +1,7 @@
 package com.athaydes.osgiaas.api.ansi;
 
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -55,7 +56,7 @@ public enum AnsiColor {
 
     BKG_WHITE( 107 );
 
-    public static final Pattern NUMBER_PATTERN = Pattern.compile( "d{1,3}" );
+    public static final Pattern NUMBER_PATTERN = Pattern.compile( "\\d{1,3}" );
 
     public static final AnsiColor DEFAULT_BG = BKG_YELLOW;
     public static final String BKG_PREFIX = "BKG_";
@@ -66,6 +67,9 @@ public enum AnsiColor {
         this.code = code;
     }
 
+    /**
+     * @return the escape code for the modifier. This value can be prepended to any text to modify it.
+     */
     @Override
     public String toString() {
         return Ansi.simpleAnsiEscape( code );
@@ -87,6 +91,13 @@ public enum AnsiColor {
                 isValidCode( text );
     }
 
+    /**
+     * Check if the given text can be used to generate a ANSI color escape sequence using one of the methods:
+     * {@link #backColorEscapeCode(String)} and {@link #foreColorEscapeCode(String)}.
+     *
+     * @param text to check
+     * @return true if the given text can be used to obtain a color escape code.
+     */
     static boolean isValidCode( String text ) {
         if ( NUMBER_PATTERN.matcher( text ).matches() ) {
             int b = Integer.parseInt( text );
@@ -130,11 +141,16 @@ public enum AnsiColor {
         }
     }
 
+    /**
+     * @return the simple name of the enumerated values for colors (not including the BKG_ prefix) in an
+     * alphabetically sorted Set.
+     */
     public static Set<String> colorNames() {
         return Arrays.stream( values() ).map( AnsiColor::name )
                 .filter( it -> !it.startsWith( BKG_PREFIX ) )
                 .map( String::toLowerCase )
-                .collect( Collectors.toSet() );
+                .sorted()
+                .collect( Collectors.toCollection( LinkedHashSet::new ) );
     }
 
 }

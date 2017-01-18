@@ -22,6 +22,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import java.util.stream.Collectors;
 
 /**
  * Highlight command.
@@ -42,14 +43,14 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
             }
         };
 
-        map.accept( "r", AnsiModifier.RESET.name() );
-        map.accept( "bl", AnsiModifier.BLINK.name() );
-        map.accept( "b", AnsiModifier.BOLD.name() );
-        map.accept( "d", AnsiModifier.DIM.name() );
-        map.accept( "h", AnsiModifier.HIDDEN.name() );
-        map.accept( "rb", AnsiModifier.RAPID_BLINK.name() );
-        map.accept( "u", AnsiModifier.UNDERLINE.name() );
-        map.accept( "rv", AnsiModifier.REVERSE.name() );
+        map.accept( "r", AnsiModifier.RESET.name().toLowerCase() );
+        map.accept( "bl", AnsiModifier.BLINK.name().toLowerCase() );
+        map.accept( "b", AnsiModifier.BOLD.name().toLowerCase() );
+        map.accept( "d", AnsiModifier.DIM.name().toLowerCase() );
+        map.accept( "h", AnsiModifier.HIDDEN.name().toLowerCase() );
+        map.accept( "rb", AnsiModifier.RAPID_BLINK.name().toLowerCase() );
+        map.accept( "u", AnsiModifier.UNDERLINE.name().toLowerCase() );
+        map.accept( "rv", AnsiModifier.REVERSE.name().toLowerCase() );
 
         ansiModifierNameByShortOption = Collections.unmodifiableMap( argumentByShortArgMap );
     }
@@ -97,8 +98,17 @@ public class HighlightCommand extends UsesCliProperties implements StreamingComm
                 "This command is often used to highlight " +
                 "output from other commands via the '|' (pipe) operator.\n" +
                 "The highlight command accepts the following options:\n\n" +
-                argsSpec.getDocumentation( "  " ) + "\n\n" +
-                "Example: ps | highlight -b red -f yellow+high_intensity";
+                argsSpec.getDocumentation() + "\n\n" +
+                "Supported colors:\n" +
+                String.join( " ", AnsiColor.colorNames() ) + "\n\n" +
+                "Supported modifiers (long|short names):\n" +
+                ansiModifierNameByShortOption.entrySet().stream()
+                        .map( entry -> entry.getValue() + "|" + entry.getKey() )
+                        .collect( Collectors.joining( " " ) ) + "\n\n" +
+                "You may also use integers between 0 and 255 as colors.\n\n" +
+                "Examples:\n\n" +
+                ">> ps | highlight -b red -f yellow+bold search-text\n" +
+                ">> run cat file.log | highlight -b 55 Request \\d+";
     }
 
     @Override
