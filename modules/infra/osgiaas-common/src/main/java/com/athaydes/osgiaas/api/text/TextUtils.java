@@ -1,5 +1,7 @@
 package com.athaydes.osgiaas.api.text;
 
+import java.util.stream.Stream;
+
 /**
  * Utility functions to process text.
  */
@@ -29,6 +31,16 @@ public final class TextUtils {
      */
     public static String padLeft( String text, int padding ) {
         return String.format( "%1$" + padding + "s", text );
+    }
+
+    /**
+     * Converts an array of Objects to an array of Strings by calling {@link #toString()} on each Object.
+     *
+     * @param objects objects
+     * @return String array
+     */
+    public static String[] toString( Object[] objects ) {
+        return Stream.of( objects ).map( Object::toString ).toArray( String[]::new );
     }
 
 }
