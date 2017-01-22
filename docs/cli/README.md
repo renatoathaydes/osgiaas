@@ -34,6 +34,7 @@ monitoring the OSGi system itself), this bundle adds the following Commands:
 * [Javac](osgiaas-cli-javac.md) - Java REPL
 * [JavaScript](osgiaas-cli-js.md) - JS REPL ([Nashorn](http://openjdk.java.net/projects/nashorn/))
 * [Scala](osgiaas-cli-scala.md) - Scala REPL
+* [Clojure](osgiaas-cli-clojure.md) - Clojure REPL
 
 ## Writing your own commands in Java and other JVM languages
 

@@ -7,7 +7,6 @@ repositories {
     jcenter()
 }
 
-version = '0.6'
 description = 'OSGiaaS Cli Ivy uses Apache Ivy to get dependencies.'
 
 jar {
