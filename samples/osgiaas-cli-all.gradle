@@ -32,10 +32,12 @@ dependencies {
     osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-javac:$osgiaasVersion"
     osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-js:$osgiaasVersion"
     osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-scala:$osgiaasVersion" // requires the Scala compiler systemLib
+    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-clojure:0.5'
 
     // system libs
     systemLib 'org.frege-lang:frege-interpreter-core:1.2'
     systemLib 'org.scala-lang:scala-compiler:2.12.1'
+    systemLib 'org.clojure:clojure:1.8.0'
 
     // OSGi Service Component Runtime implementation
     osgiRuntime 'org.apache.felix:org.apache.felix.scr:2.0.2', {
