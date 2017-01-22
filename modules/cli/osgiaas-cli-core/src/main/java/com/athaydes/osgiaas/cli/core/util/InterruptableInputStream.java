@@ -41,12 +41,12 @@ public class InterruptableInputStream extends InputStream {
     }
 
     @Override
-    public synchronized void mark( int readlimit ) {
+    public void mark( int readlimit ) {
         in.mark( readlimit );
     }
 
     @Override
-    public synchronized void reset() throws IOException {
+    public void reset() throws IOException {
         in.reset();
     }
 
