@@ -22,9 +22,9 @@ repositories {
 
 dependencies {
     // the osgiaas-cli core bundle
-    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-core:0.6'
+    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-core:0.7'
 
-    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-clojure:0.5'
+    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-clojure:0.7'
 
     // OSGi Service Component Runtime implementation
     osgiRuntime 'org.apache.felix:org.apache.felix.scr:2.0.2', {
