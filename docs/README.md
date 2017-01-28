@@ -98,6 +98,7 @@ to your favourite shell.
 * Javac (Java interpreter)
 * JS (JavaScript interpreter)
 * Scala (Scala script interpreter)
+* Clojure (Clojure interpreter)
 
 ### Language modules
 
