@@ -1,0 +1,46 @@
+/**
+ * This Gradle build file uses the osgi-run plugin to create an OSGi environment that
+ * includes the osgiaas-cli bundle, amongst other bundles (see the dependencies section).
+ *
+ * Build with:
+ *     gradle -b osgiaas-cli-default.gradle createOsgiRuntime
+ *
+ * Then, run with:
+ *     bash build/osgi/run.sh
+ * or, in Windows:
+ *     build/osgi/run.bat
+ */
+
+plugins {
+    id "com.athaydes.osgi-run" version "1.5.4"
+}
+
+repositories {
+    mavenLocal()
+    jcenter()
+}
+
+dependencies {
+    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-core:0.7'
+    osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-ivy:0.7"
+
+    osgiRuntime 'org.apache.felix:org.apache.felix.scr:2.0.2', {
+        exclude group: '*'
+    }
+}
+
+runOsgi {
+    bundles = [ ] // all bundles added as osgiRuntime dependencies
+
+    // enable debugging (run gradle -Pdebug)
+    def debug = project.hasProperty( 'debug' )
+
+    if ( debug ) {
+        // (run gradle -Pdebug -Pu <tasks> to suspend until debugger is attached)
+        def suspend = project.hasProperty( 'u' ) ? 'y' : 'n'
+        javaArgs = '-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=' + suspend
+    }
+
+    // required to run JavaScript and Groovy
+    config += [ 'org.osgi.framework.system.packages.extra': 'sun.reflect,jdk.nashorn.api.scripting' ]
+}
