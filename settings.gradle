@@ -11,7 +11,8 @@ include 'modules:infra:osgiaas-common',
 // language modules
 include 'modules:lang:osgiaas-javac',
         'modules:lang:osgiaas-autocomplete',
-        'modules:lang:osgiaas-java-autocomplete'
+        'modules:lang:osgiaas-java-autocomplete',
+        'modules:lang:osgiaas-kotlin'
 
 // CLI modules
 include 'modules:cli:osgiaas-cli-api',
