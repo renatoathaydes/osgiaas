@@ -48,8 +48,6 @@ and follow the instructions given in the previous sections.
 
 ## Tutorial
 
-The following sections explain how to create a custom command using Gradle and the `osgi-run` plugin.
-
-TBD
+Please visit the [osgi-run Tutorial](https://sites.google.com/a/athaydes.com/renato-athaydes/posts/osgi-runtutorial-runyourjavakotlinfregecodeinosgi).
 
 > Check one of the existing single-command modules at [modules/cli](../../modules/cli) for inspiration.
