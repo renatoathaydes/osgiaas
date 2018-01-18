@@ -17,6 +17,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * A Java compiler that compiles classes in-memory.
+ * <p>
+ * If you want to use several classloaders to compile different classes, consider using
+ * one of the {@link com.athaydes.osgiaas.javac.JavacService} implementations.
+ */
 @SuppressWarnings( "WeakerAccess" )
 public class OsgiaasJavaCompiler {
 
@@ -56,13 +62,28 @@ public class OsgiaasJavaCompiler {
         }
     }
 
-    ClassLoaderContext getClassLoaderContext() {
+    /**
+     * @return the {@link ClassLoaderContext} used by this compiler.
+     */
+    public ClassLoaderContext getClassLoaderContext() {
         return classLoader;
     }
 
-    <T> Optional<Class<T>> compile( String qualifiedClassName,
-                                    CharSequence javaSource,
-                                    PrintStream writer ) {
+    /**
+     * Compile a class with the given name and source.
+     * <p>
+     * The output of the compiler is written to the provided writer.
+     *
+     * @param qualifiedClassName the qualified name of the class
+     * @param javaSource         the Java class source code
+     * @param writer             to capture the compiler output
+     * @param <T>                type of the compiled class (usually Object or an interface implemented by the class)
+     * @return the compiled class Object if successful, or empty if a compilation error occurs.
+     * Compilation errors are written to the provided writer.
+     */
+    public <T> Optional<Class<T>> compile( String qualifiedClassName,
+                                           CharSequence javaSource,
+                                           PrintStream writer ) {
         logger.info( "Compiling {} from source code", qualifiedClassName );
         String className = CompilerUtils.simpleClassNameFrom( qualifiedClassName );
         String packageName = CompilerUtils.packageOf( qualifiedClassName );

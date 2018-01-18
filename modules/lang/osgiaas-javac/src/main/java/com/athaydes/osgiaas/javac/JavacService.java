@@ -13,20 +13,48 @@ import static com.athaydes.osgiaas.javac.internal.SnippetClass.asCallableSnippet
 
 /**
  * Java Compiler Service.
+ * <p>
+ * This service uses a {@link com.athaydes.osgiaas.javac.internal.compiler.OsgiaasJavaCompiler} to compile Java
+ * source code, managing different class loaders as necessary.
+ * <p>
+ * Unlike the compiler, this service can compile both Java classes and Java source code snippets
+ * (by first wrapping them into a simple Java class with a main method).
  */
 public interface JavacService {
 
+    /**
+     * @return the default writer, System.err.
+     */
     default PrintStream defaultWriter() {
         return System.err;
     }
 
+    /**
+     * Compiles a Java class with the given name.
+     *
+     * @param classLoaderContext the ClassLoader context
+     * @param qualifiedName      qualified name of the Java class
+     * @param code               the Java class source code
+     * @param <T>                type of the compiled class (usually Object or an interface implemented by the class)
+     * @return the compiled class Object if successful, or empty if a compilation error occurs.
+     * Compilation errors are written to the default writer.
+     */
     default <T> Optional<Class<T>> compileJavaClass( ClassLoaderContext classLoaderContext,
                                                      String qualifiedName,
                                                      String code ) {
         return compileJavaClass( classLoaderContext, qualifiedName, code, defaultWriter() );
     }
 
-    <T> Optional<Class<T>> compileJavaClass( ClassLoaderContext classLoaderContextContext,
+    /**
+     * @param classLoaderContext the ClassLoader context
+     * @param qualifiedName      qualified name of the Java class
+     * @param code               the Java class source code
+     * @param writer             to capture the compiler output
+     * @param <T>                type of the compiled class (usually Object or an interface implemented by the class)
+     * @return the compiled class Object if successful, or empty if a compilation error occurs.
+     * Compilation errors are written to the provided writer.
+     */
+    <T> Optional<Class<T>> compileJavaClass( ClassLoaderContext classLoaderContext,
                                              String qualifiedName,
                                              String code,
                                              PrintStream writer );
