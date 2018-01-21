@@ -29,7 +29,7 @@ dependencies {
     osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-grab:$osgiaasVersion"
     osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-ivy:$osgiaasVersion"
     osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-groovy:$osgiaasVersion"
-    osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-javac:$osgiaasVersion"
+    osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-javac:0.8"
     osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-js:$osgiaasVersion"
     osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-scala:$osgiaasVersion" // requires the Scala compiler systemLib
     osgiRuntime "com.athaydes.osgiaas:osgiaas-cli-clojure:$osgiaasVersion"

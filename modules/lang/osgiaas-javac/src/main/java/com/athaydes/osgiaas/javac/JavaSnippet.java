@@ -8,7 +8,7 @@ import static java.util.Collections.emptyList;
  * Representation of a Java code snippet.
  * <p>
  * Instances of types implementing this interface can be used to run
- * Java code using the {@link JavacService} class.
+ * Java code using the {@link JavacService} implementations.
  * <p>
  * A trivial implementation of this class is provided with the nested {@link Builder} class.
  */

@@ -20,6 +20,9 @@ import java.util.stream.Stream;
 import static com.athaydes.osgiaas.javac.internal.CompilerUtils.classNameFromPath;
 import static com.athaydes.osgiaas.javac.internal.CompilerUtils.packageOf;
 
+/**
+ * Implementation of {@link ClassLoaderContext} for use within OSGi.
+ */
 final class OsgiaasClassLoader extends ClassLoader
         implements ClassLoaderContext {
 

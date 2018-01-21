@@ -76,4 +76,32 @@ assertEquals( 0, zero );
 
 # Advanced usage
 
-TBD
+If you need more control, you can use the `com.athaydes.osgiaas.javac.internal.compiler.OsgiaasJavaCompiler`
+class directly.
+
+The following code shows how you can pass an option, `-Werror` (treat compiler warnings as errors)
+directly to `javac`, compile a class that implements
+`Runnable`, then run an instance of the compiled class:
+
+```java
+OsgiaasJavaCompiler compiler = new OsgiaasJavaCompiler( DefaultClassLoaderContext.INSTANCE,
+   Arrays.asList( "-Werror" ) );
+
+Optional<Class<Object>> runner = compiler.compile( "Runner", "public class Runner implements Runnable {" +
+        "  public void run() {" +
+        "    System.out.println(\"hello world\");" +
+        "  }" +
+        "}", System.out );
+
+runner.orElseThrow( () -> new RuntimeException( "Error compiling" ) )
+        .asSubclass( Runnable.class )
+        .newInstance()
+        .run();
+```
+
+If you want control over how classes are loaded into the JVM, you can also provide a custom implementation of
+`ClassLoaderContext`, which wraps a `ClassLoader` and provides information to the compiler about classes the
+`ClassLoader` can load.
+
+See [OsgiaasClassLoader](https://github.com/renatoathaydes/osgiaas/blob/master/modules/lang/osgiaas-javac/src/main/java/com/athaydes/osgiaas/javac/internal/compiler/OsgiaasClassLoader.java)
+for an example context implementation.
