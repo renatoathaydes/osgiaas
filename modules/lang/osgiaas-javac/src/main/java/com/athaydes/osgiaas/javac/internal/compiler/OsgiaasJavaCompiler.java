@@ -34,11 +34,22 @@ public class OsgiaasJavaCompiler {
     private DiagnosticCollector<JavaFileObject> diagnostics;
     private final OsgiaasFileManager javaFileManager;
 
+    /**
+     * Create an instance of {@link OsgiaasJavaCompiler}.
+     *
+     * @param classLoaderContext ClassLoader context
+     */
     @SuppressWarnings( "WeakerAccess" )
     public OsgiaasJavaCompiler( ClassLoaderContext classLoaderContext ) {
         this( classLoaderContext, Collections.emptyList() );
     }
 
+    /**
+     * Create an instance of {@link OsgiaasJavaCompiler}.
+     *
+     * @param classLoaderContext ClassLoader context
+     * @param options            javac options (see "javac -help" for details)
+     */
     @SuppressWarnings( "WeakerAccess" )
     public OsgiaasJavaCompiler( ClassLoaderContext classLoaderContext, Iterable<String> options ) {
         compiler = ToolProvider.getSystemJavaCompiler();

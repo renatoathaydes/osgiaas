@@ -7,6 +7,9 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * Representation of a Java class wrapping a {@link JavaSnippet}.
+ */
 public class SnippetClass {
     @SuppressWarnings( "FieldCanBeLocal" )
     private static final AtomicLong classCount = new AtomicLong( 0L );
@@ -14,19 +17,31 @@ public class SnippetClass {
     private final String className;
     private final String code;
 
-    SnippetClass( String className, String code ) {
+    private SnippetClass( String className, String code ) {
         this.code = code;
         this.className = className;
     }
 
+    /**
+     * @return Java class' name
+     */
     public String getClassName() {
         return className;
     }
 
+    /**
+     * @return Java class source code
+     */
     public String getCode() {
         return code;
     }
 
+    /**
+     * Wraps the provided Java source code snippet in a Java Class.
+     *
+     * @param snippet to be wrapped
+     * @return a {@link SnippetClass}
+     */
     public static SnippetClass asCallableSnippet( JavaSnippet snippet ) {
         String className = "JavaSnippet" + classCount.getAndIncrement();
 
@@ -45,6 +60,16 @@ public class SnippetClass {
                 "}" );
     }
 
+    /**
+     * Create an instance of the given type using its default constructor,
+     * casting it to {@link Callable}.
+     *
+     * @param type of instance to create
+     * @return instance of {@link Callable} if the given type is a sub-type of {@link Callable}
+     * and contains a public, default constructor.
+     * @throws RuntimeException if the given type is not a sub-type of {@link Callable} or does not
+     *                          have a public, default constructor.
+     */
     public static Callable<?> uncheckedInstantiator( Class<?> type ) {
         try {
             return Callable.class.cast( type.newInstance() );

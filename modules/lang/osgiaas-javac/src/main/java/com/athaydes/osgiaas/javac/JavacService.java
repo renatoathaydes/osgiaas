@@ -46,6 +46,8 @@ public interface JavacService {
     }
 
     /**
+     * Compiles a Java class with the given name.
+     *
      * @param classLoaderContext the ClassLoader context
      * @param qualifiedName      qualified name of the Java class
      * @param code               the Java class source code
@@ -59,30 +61,126 @@ public interface JavacService {
                                              String code,
                                              PrintStream writer );
 
+    /**
+     * Compiles the given Java source code snippet.
+     * <p>
+     * Example of a snippet:
+     * <pre>
+     * <code>
+     * int four = 2 + 2;
+     * System.out.println("2 + 2 == " + four );
+     * </code>
+     * </pre>
+     *
+     * @param snippet Java source code snippet (not a class or method)
+     * @return the compiled class Object if successful, or empty if a compilation error occurs.
+     * Compilation errors are written to the default writer.
+     */
     default Optional<Callable<?>> compileJavaSnippet( String snippet ) {
         return compileJavaSnippet( JavaSnippet.Builder.withCode( snippet ),
                 DefaultClassLoaderContext.INSTANCE, defaultWriter() );
     }
 
+    /**
+     * Compiles the given Java source code snippet.
+     * <p>
+     * Example of a snippet:
+     * <pre>
+     * <code>
+     * int four = 2 + 2;
+     * System.out.println("2 + 2 == " + four );
+     * </code>
+     * </pre>
+     *
+     * @param snippet            Java source code snippet (not a class or method)
+     * @param classLoaderContext the ClassLoader context
+     * @return the compiled class Object if successful, or empty if a compilation error occurs.
+     * Compilation errors are written to the default writer.
+     */
     default Optional<Callable<?>> compileJavaSnippet( String snippet, ClassLoaderContext classLoaderContext ) {
         return compileJavaSnippet( JavaSnippet.Builder.withCode( snippet ),
                 classLoaderContext, defaultWriter() );
     }
 
+    /**
+     * Compiles the given Java source code snippet.
+     * <p>
+     * Example of a snippet:
+     * <pre>
+     * <code>
+     * int four = 2 + 2;
+     * System.out.println("2 + 2 == " + four );
+     * </code>
+     * </pre>
+     *
+     * @param snippet            Java source code snippet (not a class or method)
+     * @param classLoaderContext the ClassLoader context
+     * @param writer             to capture the compiler output
+     * @return the compiled class Object if successful, or empty if a compilation error occurs.
+     * Compilation errors are written to the provided writer.
+     */
     default Optional<Callable<?>> compileJavaSnippet( String snippet,
                                                       ClassLoaderContext classLoaderContext,
                                                       PrintStream writer ) {
         return compileJavaSnippet( JavaSnippet.Builder.withCode( snippet ), classLoaderContext, writer );
     }
 
+    /**
+     * Compiles the given Java source code snippet.
+     * <p>
+     * Example of a snippet:
+     * <pre>
+     * <code>
+     * int four = 2 + 2;
+     * System.out.println("2 + 2 == " + four );
+     * </code>
+     * </pre>
+     *
+     * @param snippet Java source code snippet (not a class or method)
+     * @return the compiled class Object if successful, or empty if a compilation error occurs.
+     * Compilation errors are written to the default writer.
+     */
     default Optional<Callable<?>> compileJavaSnippet( JavaSnippet snippet ) {
         return compileJavaSnippet( snippet, DefaultClassLoaderContext.INSTANCE, defaultWriter() );
     }
 
+    /**
+     * Compiles the given Java source code snippet.
+     * <p>
+     * Example of a snippet:
+     * <pre>
+     * <code>
+     * int four = 2 + 2;
+     * System.out.println("2 + 2 == " + four );
+     * </code>
+     * </pre>
+     *
+     * @param snippet            Java source code snippet (not a class or method)
+     * @param classLoaderContext the ClassLoader context
+     * @return the compiled class Object if successful, or empty if a compilation error occurs.
+     * Compilation errors are written to the default writer.
+     */
     default Optional<Callable<?>> compileJavaSnippet( JavaSnippet snippet, ClassLoaderContext classLoaderContext ) {
         return compileJavaSnippet( snippet, classLoaderContext, defaultWriter() );
     }
 
+    /**
+     * Compiles the given Java source code snippet.
+     * <p>
+     * Example of a snippet:
+     * <pre>
+     * <code>
+     * int four = 2 + 2;
+     * System.out.println("2 + 2 == " + four );
+     * </code>
+     * </pre>
+     *
+     * @param snippet            Java source code snippet (not a class or method)
+     * @param classLoaderContext the ClassLoader context
+     * @param writer             to capture the compiler output
+     * @return the compiled class Object if successful, or empty if a compilation error occurs.
+     * Compilation errors are written to the provided writer.
+     */
     default Optional<Callable<?>> compileJavaSnippet( JavaSnippet snippet,
                                                       ClassLoaderContext classLoaderContext,
                                                       PrintStream writer ) {
