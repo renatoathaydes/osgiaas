@@ -1,10 +1,6 @@
 package com.athaydes.osgiaas.javac.internal.compiler;
 
 import com.athaydes.osgiaas.api.env.ClassLoaderContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.tools.JavaFileObject;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,6 +12,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.tools.JavaFileObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.athaydes.osgiaas.javac.internal.CompilerUtils.classNameFromPath;
 import static com.athaydes.osgiaas.javac.internal.CompilerUtils.packageOf;
@@ -94,7 +93,7 @@ final class OsgiaasClassLoader extends ClassLoader
     protected Class<?> findClass( String qualifiedClassName )
             throws ClassNotFoundException {
         OsgiaasFileObject file = fileByClassName.get( qualifiedClassName );
-        if ( file != null ) {
+        if ( file != null && file.getKind() == JavaFileObject.Kind.CLASS ) {
             byte[] bytes = file.getByteCode();
             return defineClass( qualifiedClassName, bytes, 0, bytes.length );
         }
